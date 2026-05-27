@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import logging
+import random
 import re
 import time
 import xml.etree.ElementTree as ET
@@ -90,22 +91,36 @@ def _fetch_url(url: str, timeout: int, retries: int) -> str:
     attempts = max(1, retries)
     for attempt in range(attempts):
         try:
-            request = Request(url, headers={"User-Agent": "daily-arxiv-digest/0.1"})
+            request = Request(
+                url,
+                headers={"User-Agent": "daily-arxiv-digest/0.1 (mailto: arxiv-digest@example.com)"},
+            )
             with urlopen(request, timeout=timeout) as response:
                 body: str = response.read().decode("utf-8")
+                if attempt > 0:
+                    logger.info("arXiv API request succeeded after %d retry(s).", attempt)
                 return body
         except HTTPError as exc:
             last_error = exc
             if attempt < attempts - 1:
                 retry_after = exc.headers.get("Retry-After")
-                delay = int(retry_after) if retry_after and retry_after.isdigit() else max(10, 2**attempt)
-                logger.warning("arXiv API returned HTTP %d; retrying in %d seconds.", exc.code, delay)
+                if retry_after and retry_after.isdigit():
+                    delay = int(retry_after)
+                elif exc.code == 429:
+                    # arXiv rate limit: use long backoff with jitter
+                    delay = (2 ** attempt) * 30 + random.uniform(0, 10)
+                else:
+                    delay = max(10, 2**attempt)
+                logger.warning(
+                    "arXiv API returned HTTP %d; retry %d/%d in %d seconds.",
+                    exc.code, attempt + 1, attempts - 1, int(delay),
+                )
                 time.sleep(delay)
         except Exception as exc:
             last_error = exc
             if attempt < attempts - 1:
-                delay = 2**attempt
-                logger.warning("arXiv API request failed; retrying in %d seconds: %s", delay, exc)
+                delay = 2**attempt + random.uniform(0, 3)
+                logger.warning("arXiv API request failed: %s; retry %d/%d in %d seconds.", exc, attempt + 1, attempts - 1, int(delay))
                 time.sleep(delay)
     raise RuntimeError(f"Failed to fetch arXiv API after {attempts} attempt(s): {last_error}") from last_error
 

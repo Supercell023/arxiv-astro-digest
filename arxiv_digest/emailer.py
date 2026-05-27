@@ -68,7 +68,12 @@ def send_email(
     message.set_content("Your email client does not support HTML. Please view this digest in an HTML-capable client.")
     message.add_alternative(html_body, subtype="html")
 
-    with smtplib.SMTP(smtp_host, smtp_port) as server:
-        server.starttls()
-        server.login(smtp_username, smtp_password)
-        server.send_message(message)
+    if smtp_port == 465:
+        with smtplib.SMTP_SSL(smtp_host, smtp_port) as server:
+            server.login(smtp_username, smtp_password)
+            server.send_message(message)
+    else:
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_username, smtp_password)
+            server.send_message(message)
