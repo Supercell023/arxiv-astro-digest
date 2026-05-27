@@ -37,8 +37,8 @@ def add_fallback_paper_summaries(papers: list[Paper]) -> list[Paper]:
     ]
 
 
-def generate_digest_summary(api_key: str | None, model: str, papers: list[Paper]) -> str:
-    summary, _ = generate_digest_content(api_key, model, papers)
+def generate_digest_summary(api_key: str | None, model: str, base_url: str | None, papers: list[Paper]) -> str:
+    summary, _ = generate_digest_content(api_key, model, papers, base_url=base_url)
     return summary
 
 
@@ -48,6 +48,7 @@ def generate_digest_content(
     papers: list[Paper],
     max_llm_papers: int = 12,
     max_abstract_chars: int = 1800,
+    base_url: str | None = None,
 ) -> tuple[str, list[Paper]]:
     if not papers:
         return _fallback_summary(papers), []
@@ -62,7 +63,10 @@ def generate_digest_content(
         return _fallback_summary(papers), add_fallback_paper_summaries(papers)
 
     try:
-        client = OpenAI(api_key=api_key)
+        if base_url:
+            client = OpenAI(api_key=api_key, base_url=base_url)
+        else:
+            client = OpenAI(api_key=api_key)
         paper_block = "\n\n".join(
             "\n".join(
                 [

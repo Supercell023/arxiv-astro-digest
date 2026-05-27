@@ -44,6 +44,7 @@ class Config:
     min_rating: int
     lookback_days: int
     openai_api_key: str | None
+    openai_base_url: str | None
     openai_model: str
     zotero_api_key: str | None
     zotero_user_id: str | None
@@ -73,6 +74,7 @@ def load_config() -> Config:
         min_rating=_env_int("MIN_RATING", 1),
         lookback_days=_env_int("LOOKBACK_DAYS", 1),
         openai_api_key=os.getenv("OPENAI_API_KEY"),
+        openai_base_url=os.getenv("OPENAI_BASE_URL"),
         openai_model=_env("OPENAI_MODEL", "gpt-4o-mini"),
         zotero_api_key=os.getenv("ZOTERO_API_KEY"),
         zotero_user_id=os.getenv("ZOTERO_USER_ID"),

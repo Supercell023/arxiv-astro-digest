@@ -42,6 +42,7 @@ def run_pipeline(config: Config) -> PipelineResult:
         ranked,
         max_llm_papers=config.max_llm_papers,
         max_abstract_chars=config.max_abstract_chars,
+        base_url=config.openai_base_url,
     )
     return PipelineResult(
         papers=papers,
