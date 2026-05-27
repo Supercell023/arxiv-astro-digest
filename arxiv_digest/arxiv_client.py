@@ -93,7 +93,7 @@ def _fetch_url(url: str, timeout: int, retries: int) -> str:
         try:
             request = Request(
                 url,
-                headers={"User-Agent": "daily-arxiv-digest/0.1 (mailto: arxiv-digest@example.com)"},
+                headers={"User-Agent": "daily-arxiv-digest/0.1"},
             )
             with urlopen(request, timeout=timeout) as response:
                 body: str = response.read().decode("utf-8")
