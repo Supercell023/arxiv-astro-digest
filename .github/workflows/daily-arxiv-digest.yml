@@ -36,6 +36,7 @@ jobs:
           MIN_RATING: ${{ vars.MIN_RATING }}
           LOOKBACK_DAYS: ${{ vars.LOOKBACK_DAYS }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
           ZOTERO_API_KEY: ${{ secrets.ZOTERO_API_KEY }}
           ZOTERO_USER_ID: ${{ secrets.ZOTERO_USER_ID }}
