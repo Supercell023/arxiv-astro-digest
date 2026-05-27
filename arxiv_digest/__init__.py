@@ -1,0 +1,1 @@
+"""Daily arXiv digest package."""

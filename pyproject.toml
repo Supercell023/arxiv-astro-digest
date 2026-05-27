@@ -1,0 +1,19 @@
+[project]
+name = "daily-arxiv-digest"
+version = "0.1.0"
+description = "Daily arXiv paper digest with Chinese summaries"
+requires-python = ">=3.11"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = [
+    "openai",
+    "dotenv",
+]
+ignore_missing_imports = true

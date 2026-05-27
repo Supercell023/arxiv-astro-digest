@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<body style="font-family: Georgia, 'Times New Roman', serif; color: #222; line-height: 1.5;">
+  <h1>Daily arXiv Digest</h1>
+  <p style="color: #666;">Generated at {{ generated_at }}</p>
+  <section style="padding: 18px; background: #f6f2e8; border-radius: 12px; margin-bottom: 24px;">
+    <h2 style="margin-top: 0;">LLM 总结</h2>
+    <p>{{ summary }}</p>
+  </section>
+  {% for paper in papers %}
+  <article style="margin: 0 0 24px; padding: 18px; border: 1px solid #ddd; border-radius: 12px;">
+    <p style="margin: 0 0 8px; color: #b26a00; font-size: 18px; letter-spacing: 1px;">
+      <strong>{{ stars(paper.rating) }}</strong>
+      <span style="color: #555; font-size: 14px; letter-spacing: 0;">兴趣评级 {{ paper.rating }}/5 &middot; Score {{ "%.2f"|format(paper.score) }}</span>
+    </p>
+    <h2 style="margin: 0 0 8px; font-size: 18px;"><a href="{{ paper.abs_url }}">{{ paper.title }}</a></h2>
+    <p style="margin: 0 0 8px; color: #555;">
+      {{ paper.authors[:8]|join(", ") }}{% if paper.authors|length > 8 %} et al.{% endif %}
+    </p>
+    <p style="margin: 0 0 8px;"><strong>推荐依据:</strong> {{ paper.score_reasons|join("; ") or "category/date match" }}</p>
+    <p style="margin: 0 0 8px;"><strong>Categories:</strong> {{ paper.categories|join(", ") }}</p>
+    <section style="margin: 12px 0; padding: 12px; background: #f7fbff; border-radius: 10px;">
+      <h3 style="margin: 0 0 6px; font-size: 15px;">中文单篇摘要</h3>
+      <p style="margin: 0;">{{ paper.chinese_summary }}</p>
+    </section>
+    <details style="margin: 10px 0;">
+      <summary style="cursor: pointer; color: #555;">英文原始摘要</summary>
+      <p>{{ paper.summary }}</p>
+    </details>
+    <p style="margin: 0;"><a href="{{ paper.pdf_url }}">PDF</a></p>
+  </article>
+  {% endfor %}
+</body>
+</html>
