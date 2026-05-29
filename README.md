@@ -5,7 +5,7 @@
 ## 已完成的主要改进
 
 - **arXiv 抓取**：支持按多个 arXiv category 抓取论文，例如 `astro-ph.GA,astro-ph.CO`。
-- **抓取数量控制**：用 `ARXIV_FETCH_MAX_RESULTS` 控制候选池大小，避免一次读取太多论文。
+- **分页抓取**：用较小的 `ARXIV_PAGE_SIZE` 分多次请求 arXiv，同时用 `ARXIV_FETCH_MAX_RESULTS` 控制总候选池大小。
 - **北京时间自然日**：用 `DIGEST_TIMEZONE=Asia/Shanghai` 定义“昨天”，不再只是最近 24 小时。
 - **推荐排序**：结合关键词、arXiv 分类和 Zotero 标签偏好计算推荐分数。
 - **星级评价**：把推荐分数映射为 1-5 星，并在邮件中展示。
@@ -76,7 +76,10 @@ Settings -> Secrets and variables -> Actions
 | `ARXIV_CATEGORIES` | `astro-ph.GA,astro-ph.CO` | 关注的 arXiv 分类，逗号分隔 |
 | `ARXIV_KEYWORDS` | `galaxy,cosmology,black hole,star formation` | 兴趣关键词，逗号分隔 |
 | `DIGEST_TIMEZONE` | `Asia/Shanghai` | 用于定义“昨天”的时区 |
-| `ARXIV_FETCH_MAX_RESULTS` | `50` | arXiv 候选池大小，越大越容易触发 429 |
+| `ARXIV_FETCH_MAX_RESULTS` | `100` | arXiv 总候选池大小 |
+| `ARXIV_PAGE_SIZE` | `25` | 单次 arXiv API 请求最多获取多少篇 |
+| `ARXIV_MAX_PAGES` | `4` | 最多请求多少页 |
+| `ARXIV_PAGE_DELAY_SECONDS` | `3` | 页与页之间等待多少秒 |
 | `ARXIV_REQUEST_TIMEOUT` | `60` | arXiv 单次请求超时秒数 |
 | `ARXIV_REQUEST_RETRIES` | `5` | arXiv 请求失败后的最大尝试次数 |
 | `ARXIV_RATE_LIMIT_BACKOFF_BASE` | `60` | 429 指数退避基础等待秒数 |
@@ -94,6 +97,26 @@ Settings -> Secrets and variables -> Actions
 | `ZOTERO_COLLECTION_ID` | 留空 | 可选，仅参考某个 Zotero collection |
 
 ## arXiv 429 指数退避
+
+现在抓取策略分成两层：
+
+```text
+ARXIV_FETCH_MAX_RESULTS = 总共最多收集多少篇候选论文
+ARXIV_PAGE_SIZE = 单次请求最多取多少篇
+ARXIV_MAX_PAGES = 最多翻几页
+ARXIV_PAGE_DELAY_SECONDS = 每页之间等待多少秒
+```
+
+例如：
+
+```text
+ARXIV_FETCH_MAX_RESULTS=100
+ARXIV_PAGE_SIZE=25
+ARXIV_MAX_PAGES=4
+ARXIV_PAGE_DELAY_SECONDS=3
+```
+
+表示最多分 4 次请求，每次最多 25 篇，理论上最多收集 100 篇候选论文。这样比单次请求 100 篇更温和，也更适合扩大候选池。
 
 当 arXiv 返回 `HTTP 429 Too Many Requests` 且没有提供 `Retry-After` 头时，程序按下面的公式等待：
 

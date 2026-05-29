@@ -43,6 +43,9 @@ class Config:
     arxiv_keywords: list[str]
     digest_timezone: str
     arxiv_fetch_max_results: int
+    arxiv_page_size: int
+    arxiv_max_pages: int
+    arxiv_page_delay_seconds: int
     arxiv_request_timeout: int
     arxiv_request_retries: int
     arxiv_rate_limit_backoff_base: int
@@ -76,7 +79,10 @@ def load_config() -> Config:
         arxiv_categories=_split_csv(_env("ARXIV_CATEGORIES", "astro-ph.GA,astro-ph.CO")),
         arxiv_keywords=_split_csv(_env("ARXIV_KEYWORDS", "")),
         digest_timezone=_env("DIGEST_TIMEZONE", "Asia/Shanghai"),
-        arxiv_fetch_max_results=_env_int("ARXIV_FETCH_MAX_RESULTS", 50),
+        arxiv_fetch_max_results=_env_int("ARXIV_FETCH_MAX_RESULTS", 100),
+        arxiv_page_size=_env_int("ARXIV_PAGE_SIZE", 25),
+        arxiv_max_pages=_env_int("ARXIV_MAX_PAGES", 4),
+        arxiv_page_delay_seconds=_env_int("ARXIV_PAGE_DELAY_SECONDS", 3),
         arxiv_request_timeout=_env_int("ARXIV_REQUEST_TIMEOUT", 60),
         arxiv_request_retries=_env_int("ARXIV_REQUEST_RETRIES", 5),
         arxiv_rate_limit_backoff_base=_env_int("ARXIV_RATE_LIMIT_BACKOFF_BASE", 60),

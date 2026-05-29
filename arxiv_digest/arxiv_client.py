@@ -163,6 +163,9 @@ def fetch_recent_papers(
     categories: list[str],
     lookback_days: int,
     max_results: int = 100,
+    page_size: int = 25,
+    max_pages: int = 4,
+    page_delay_seconds: int = 3,
     timeout: int = 60,
     retries: int = 3,
     timezone_name: str = "Asia/Shanghai",
@@ -174,33 +177,66 @@ def fetch_recent_papers(
         raise ValueError("At least one arXiv category is required.")
 
     query = " OR ".join(f"cat:{category}" for category in categories)
-    params = urlencode(
-        {
-            "search_query": query,
-            "start": 0,
-            "max_results": max_results,
-            "sortBy": "submittedDate",
-            "sortOrder": "descending",
-        }
-    )
-    body = _fetch_url(
-        f"https://export.arxiv.org/api/query?{params}",
-        timeout=timeout,
-        retries=retries,
-        rate_limit_backoff_base=rate_limit_backoff_base,
-        rate_limit_backoff_max=rate_limit_backoff_max,
-        rate_limit_backoff_jitter=rate_limit_backoff_jitter,
-    )
-
-    root = ET.fromstring(body)
     start_utc, end_utc = _previous_local_window(lookback_days, timezone_name)
-    papers = [_entry_to_paper(entry) for entry in root.findall("atom:entry", namespaces=ATOM_NS)]
-    filtered = [paper for paper in papers if start_utc <= paper.published < end_utc]
+    target_results = max(1, max_results)
+    per_page = max(1, min(page_size, target_results))
+    pages = max(1, max_pages)
 
     seen: set[str] = set()
     unique: list[Paper] = []
-    for paper in filtered:
-        if paper.id not in seen:
+    for page in range(pages):
+        if len(unique) >= target_results:
+            break
+
+        start = page * per_page
+        remaining = target_results - len(unique)
+        current_page_size = min(per_page, remaining)
+        params = urlencode(
+            {
+                "search_query": query,
+                "start": start,
+                "max_results": current_page_size,
+                "sortBy": "submittedDate",
+                "sortOrder": "descending",
+            }
+        )
+        logger.info(
+            "Fetching arXiv page %d/%d: start=%d, max_results=%d.",
+            page + 1,
+            pages,
+            start,
+            current_page_size,
+        )
+        body = _fetch_url(
+            f"https://export.arxiv.org/api/query?{params}",
+            timeout=timeout,
+            retries=retries,
+            rate_limit_backoff_base=rate_limit_backoff_base,
+            rate_limit_backoff_max=rate_limit_backoff_max,
+            rate_limit_backoff_jitter=rate_limit_backoff_jitter,
+        )
+
+        root = ET.fromstring(body)
+        papers = [_entry_to_paper(entry) for entry in root.findall("atom:entry", namespaces=ATOM_NS)]
+        if not papers:
+            break
+
+        older_than_window = True
+        for paper in papers:
+            if paper.published >= start_utc:
+                older_than_window = False
+            if not (start_utc <= paper.published < end_utc):
+                continue
+            if paper.id in seen:
+                continue
             seen.add(paper.id)
             unique.append(paper)
+            if len(unique) >= target_results:
+                break
+
+        if older_than_window:
+            logger.info("Stopping arXiv pagination because this page is older than the target date window.")
+            break
+        if page < pages - 1 and len(unique) < target_results:
+            time.sleep(max(0, page_delay_seconds))
     return unique
