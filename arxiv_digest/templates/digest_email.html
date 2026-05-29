@@ -1,34 +1,175 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<body style="font-family: Georgia, 'Times New Roman', serif; color: #222; line-height: 1.5;">
-  <h1>Daily arXiv Digest</h1>
-  <p style="color: #666;">Generated at {{ generated_at }}</p>
-  <section style="padding: 18px; background: #f6f2e8; border-radius: 12px; margin-bottom: 24px;">
-    <h2 style="margin-top: 0;">LLM 总结</h2>
-    <p>{{ summary }}</p>
-  </section>
-  {% for paper in papers %}
-  <article style="margin: 0 0 24px; padding: 18px; border: 1px solid #ddd; border-radius: 12px;">
-    <p style="margin: 0 0 8px; color: #b26a00; font-size: 18px; letter-spacing: 1px;">
-      <strong>{{ stars(paper.rating) }}</strong>
-      <span style="color: #555; font-size: 14px; letter-spacing: 0;">兴趣评级 {{ paper.rating }}/5 &middot; Score {{ "%.2f"|format(paper.score) }}</span>
-    </p>
-    <h2 style="margin: 0 0 8px; font-size: 18px;"><a href="{{ paper.abs_url }}">{{ paper.title }}</a></h2>
-    <p style="margin: 0 0 8px; color: #555;">
-      {{ paper.authors[:8]|join(", ") }}{% if paper.authors|length > 8 %} et al.{% endif %}
-    </p>
-    <p style="margin: 0 0 8px;"><strong>推荐依据:</strong> {{ paper.score_reasons|join("; ") or "category/date match" }}</p>
-    <p style="margin: 0 0 8px;"><strong>Categories:</strong> {{ paper.categories|join(", ") }}</p>
-    <section style="margin: 12px 0; padding: 12px; background: #f7fbff; border-radius: 10px;">
-      <h3 style="margin: 0 0 6px; font-size: 15px;">中文单篇摘要</h3>
-      <p style="margin: 0;">{{ paper.chinese_summary }}</p>
-    </section>
-    <details style="margin: 10px 0;">
-      <summary style="cursor: pointer; color: #555;">英文原始摘要</summary>
-      <p>{{ paper.summary }}</p>
-    </details>
-    <p style="margin: 0;"><a href="{{ paper.pdf_url }}">PDF</a></p>
-  </article>
-  {% endfor %}
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background: #f4f6f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background: #f4f6f9; padding: 24px 0;">
+<tr>
+<td align="center">
+
+  {# -- 主容器 600px -- #}
+  <table width="600" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+
+    {# -- 头部 -- #}
+    <tr>
+      <td style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 32px 40px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="font-size: 26px; font-weight: 700; color: #ffffff; letter-spacing: 0.5px;">
+            Daily arXiv Digest
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size: 13px; color: rgba(255,255,255,0.6); padding-top: 8px;">
+            {{ generated_at }}
+          </td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+
+    {# -- LLM 总览 -- #}
+    <tr>
+      <td style="padding: 28px 40px 8px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: #fef9e7; border-left: 4px solid #e67e22; border-radius: 0 6px 6px 0;">
+        <tr>
+          <td style="padding: 18px 20px; font-size: 14px; color: #7d6608; line-height: 1.75;">
+            <strong style="font-size: 15px; color: #5d4e0c;">LLM 总览</strong><br>
+            {{ summary }}
+          </td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+
+    {# -- 论文列表 -- #}
+    <tr>
+      <td style="padding: 20px 40px 32px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+
+        {% for paper in papers %}
+        <tr>
+          <td style="padding-bottom: 24px;">
+
+            <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e8ecf1; border-radius: 8px;">
+
+              {# -- 星级 + 标题 -- #}
+              <tr>
+                <td style="padding: 20px 22px 12px;">
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="font-size: 20px; letter-spacing: 2px; width: 120px;">
+                      {% for i in range(paper.rating) %}<span style="color: #e67e22;">&#9733;</span>{% endfor %}
+                      {% for i in range(5 - paper.rating) %}<span style="color: #d5d8dc;">&#9733;</span>{% endfor %}
+                    </td>
+                    <td style="font-size: 11px; color: #8899a6; text-align: right;">
+                      {{ "%.2f"|format(paper.score) }}
+                    </td>
+                  </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 0 22px 10px;">
+                  <a href="{{ paper.abs_url }}" style="font-size: 17px; font-weight: 600; color: #1a1a2e; text-decoration: none; line-height: 1.45;">
+                    {{ paper.title }}
+                  </a>
+                </td>
+              </tr>
+
+              {# -- 作者 -- #}
+              <tr>
+                <td style="padding: 0 22px 10px; font-size: 13px; color: #657786;">
+                  {{ paper.authors[:6]|join(", ") }}{% if paper.authors|length > 6 %} <span style="color: #aab8c2;">et al.</span>{% endif %}
+                </td>
+              </tr>
+
+              {# -- 推荐依据 -- #}
+              <tr>
+                <td style="padding: 0 22px 8px;">
+                  <span style="font-size: 11px; color: #8899a6; background: #f5f8fa; padding: 3px 8px; border-radius: 4px;">
+                    {{ paper.score_reasons|join(" &middot; ") or "category / date match" }}
+                  </span>
+                </td>
+              </tr>
+
+              {# -- Categories -- #}
+              <tr>
+                <td style="padding: 0 22px 10px;">
+                  {% for cat in paper.categories %}
+                  <span style="display: inline-block; font-size: 10px; color: #5b7f95; background: #e8f0f6; padding: 2px 7px; border-radius: 3px; margin: 0 4px 4px 0;">{{ cat }}</span>
+                  {% endfor %}
+                </td>
+              </tr>
+
+              {# -- 分割线 -- #}
+              <tr><td style="padding: 0 22px;"><div style="border-top: 1px solid #f0f3f5;"></div></td></tr>
+
+              {# -- 中文摘要 -- #}
+              <tr>
+                <td style="padding: 14px 22px 6px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="background: #f0f7ff; border-radius: 6px;">
+                  <tr>
+                    <td style="padding: 12px 16px;">
+                      <span style="font-size: 11px; font-weight: 600; color: #2c5f8a; text-transform: uppercase; letter-spacing: 0.5px;">中文摘要</span>
+                      <br>
+                      <span style="font-size: 14px; color: #2c3e50; line-height: 1.75;">{{ paper.chinese_summary }}</span>
+                    </td>
+                  </tr>
+                  </table>
+                </td>
+              </tr>
+
+              {# -- 英文摘要折叠 -- #}
+              <tr>
+                <td style="padding: 8px 22px 14px;">
+                  <details>
+                    <summary style="font-size: 12px; color: #8899a6; cursor: pointer;">英文原始摘要</summary>
+                    <p style="font-size: 13px; color: #657786; line-height: 1.65; margin: 8px 0 0;">{{ paper.summary }}</p>
+                  </details>
+                </td>
+              </tr>
+
+              {# -- PDF 按钮 -- #}
+              <tr>
+                <td style="padding: 0 22px 18px;">
+                  <a href="{{ paper.pdf_url }}" style="display: inline-block; font-size: 12px; color: #e67e22; text-decoration: none; border: 1px solid #e67e22; padding: 5px 14px; border-radius: 4px; font-weight: 500;">PDF</a>
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+        {% endfor %}
+
+        </table>
+      </td>
+    </tr>
+
+    {# -- 页脚 -- #}
+    <tr>
+      <td style="background: #f8f9fb; padding: 20px 40px; border-top: 1px solid #e8ecf1;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="font-size: 11px; color: #aab8c2;">
+            由 Daily arXiv Digest 自动生成 &middot; GitHub Actions
+          </td>
+          <td style="font-size: 11px; color: #aab8c2; text-align: right;">
+            {{ generated_at }}
+          </td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+
+  </table>
+
+</td>
+</tr>
+</table>
+
 </body>
 </html>

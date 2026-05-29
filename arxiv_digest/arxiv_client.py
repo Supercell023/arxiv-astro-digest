@@ -20,6 +20,10 @@ logger = logging.getLogger(__name__)
 ATOM_NS = {"atom": "http://www.w3.org/2005/Atom", "arxiv": "http://arxiv.org/schemas/atom"}
 
 
+class ArxivRateLimitError(RuntimeError):
+    """Raised when arXiv keeps returning HTTP 429 after retries."""
+
+
 def _parse_datetime(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
@@ -86,7 +90,30 @@ def _previous_local_window(days: int, timezone_name: str) -> tuple[datetime, dat
     return start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc)
 
 
-def _fetch_url(url: str, timeout: int, retries: int) -> str:
+def _rate_limit_delay(
+    attempt: int,
+    retry_after: str | None,
+    base_seconds: int,
+    max_seconds: int,
+    jitter_seconds: int,
+) -> float:
+    if retry_after and retry_after.isdigit():
+        return min(int(retry_after), max_seconds)
+
+    base = max(1, base_seconds)
+    cap = max(base, max_seconds)
+    jitter = random.uniform(0, max(0, jitter_seconds))
+    return min(base * (2**attempt) + jitter, cap)
+
+
+def _fetch_url(
+    url: str,
+    timeout: int,
+    retries: int,
+    rate_limit_backoff_base: int = 60,
+    rate_limit_backoff_max: int = 600,
+    rate_limit_backoff_jitter: int = 30,
+) -> str:
     last_error: Exception | None = None
     attempts = max(1, retries)
     for attempt in range(attempts):
@@ -104,11 +131,14 @@ def _fetch_url(url: str, timeout: int, retries: int) -> str:
             last_error = exc
             if attempt < attempts - 1:
                 retry_after = exc.headers.get("Retry-After")
-                if retry_after and retry_after.isdigit():
-                    delay = int(retry_after)
-                elif exc.code == 429:
-                    # arXiv rate limit: use long backoff with jitter
-                    delay = (2 ** attempt) * 30 + random.uniform(0, 10)
+                if exc.code == 429:
+                    delay = _rate_limit_delay(
+                        attempt,
+                        retry_after,
+                        rate_limit_backoff_base,
+                        rate_limit_backoff_max,
+                        rate_limit_backoff_jitter,
+                    )
                 else:
                     delay = max(10, 2**attempt)
                 logger.warning(
@@ -122,6 +152,10 @@ def _fetch_url(url: str, timeout: int, retries: int) -> str:
                 delay = 2**attempt + random.uniform(0, 3)
                 logger.warning("arXiv API request failed: %s; retry %d/%d in %d seconds.", exc, attempt + 1, attempts - 1, int(delay))
                 time.sleep(delay)
+    if isinstance(last_error, HTTPError) and last_error.code == 429:
+        raise ArxivRateLimitError(
+            f"arXiv API rate limit persisted after {attempts} attempt(s): {last_error}"
+        ) from last_error
     raise RuntimeError(f"Failed to fetch arXiv API after {attempts} attempt(s): {last_error}") from last_error
 
 
@@ -132,6 +166,9 @@ def fetch_recent_papers(
     timeout: int = 60,
     retries: int = 3,
     timezone_name: str = "Asia/Shanghai",
+    rate_limit_backoff_base: int = 60,
+    rate_limit_backoff_max: int = 600,
+    rate_limit_backoff_jitter: int = 30,
 ) -> list[Paper]:
     if not categories:
         raise ValueError("At least one arXiv category is required.")
@@ -146,7 +183,14 @@ def fetch_recent_papers(
             "sortOrder": "descending",
         }
     )
-    body = _fetch_url(f"https://export.arxiv.org/api/query?{params}", timeout=timeout, retries=retries)
+    body = _fetch_url(
+        f"https://export.arxiv.org/api/query?{params}",
+        timeout=timeout,
+        retries=retries,
+        rate_limit_backoff_base=rate_limit_backoff_base,
+        rate_limit_backoff_max=rate_limit_backoff_max,
+        rate_limit_backoff_jitter=rate_limit_backoff_jitter,
+    )
 
     root = ET.fromstring(body)
     start_utc, end_utc = _previous_local_window(lookback_days, timezone_name)

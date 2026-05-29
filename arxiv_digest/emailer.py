@@ -17,7 +17,7 @@ _env = Environment(loader=FileSystemLoader(_TEMPLATES_DIR), autoescape=True)
 
 def _stars(rating: int) -> str:
     rating = max(1, min(5, rating))
-    return "★" * rating + "☆" * (5 - rating)
+    return "\u2605" * rating + "\u2606" * (5 - rating)
 
 
 def _nl2br(text: str) -> Markup:

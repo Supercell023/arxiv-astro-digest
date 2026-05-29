@@ -4,6 +4,7 @@ import logging
 import traceback
 from datetime import datetime
 
+from .arxiv_client import ArxivRateLimitError
 from .config import Config, load_config
 from .emailer import render_email_html, render_error_email_html, send_email
 from .pipeline import run_pipeline
@@ -40,13 +41,28 @@ def notify_failure(config: Config, exc: Exception) -> None:
     )
 
 
-if __name__ == "__main__":
+def run_cli() -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
     loaded_config = load_config()
     try:
         main(loaded_config)
+    except ArxivRateLimitError as error:
+        try:
+            notify_failure(loaded_config, error)
+        except Exception:
+            logging.exception("Failed to send arXiv rate-limit notification email.")
+            raise
+        if loaded_config.arxiv_rate_limit_graceful:
+            logging.warning("arXiv rate limit persisted; notification sent and workflow will exit successfully.")
+            return 0
+        raise
     except Exception as error:
         try:
             notify_failure(loaded_config, error)
         finally:
             raise
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(run_cli())

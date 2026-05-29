@@ -22,6 +22,13 @@ def _env_int(name: str, default: int) -> int:
         raise ValueError(f"Environment variable {name} must be an integer, got {value!r}.") from exc
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if not value:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
 def _load_dotenv_if_available() -> None:
     try:
         from dotenv import load_dotenv
@@ -38,6 +45,10 @@ class Config:
     arxiv_fetch_max_results: int
     arxiv_request_timeout: int
     arxiv_request_retries: int
+    arxiv_rate_limit_backoff_base: int
+    arxiv_rate_limit_backoff_max: int
+    arxiv_rate_limit_backoff_jitter: int
+    arxiv_rate_limit_graceful: bool
     max_papers: int
     max_llm_papers: int
     max_abstract_chars: int
@@ -65,9 +76,13 @@ def load_config() -> Config:
         arxiv_categories=_split_csv(_env("ARXIV_CATEGORIES", "astro-ph.GA,astro-ph.CO")),
         arxiv_keywords=_split_csv(_env("ARXIV_KEYWORDS", "")),
         digest_timezone=_env("DIGEST_TIMEZONE", "Asia/Shanghai"),
-        arxiv_fetch_max_results=_env_int("ARXIV_FETCH_MAX_RESULTS", 100),
+        arxiv_fetch_max_results=_env_int("ARXIV_FETCH_MAX_RESULTS", 50),
         arxiv_request_timeout=_env_int("ARXIV_REQUEST_TIMEOUT", 60),
-        arxiv_request_retries=_env_int("ARXIV_REQUEST_RETRIES", 3),
+        arxiv_request_retries=_env_int("ARXIV_REQUEST_RETRIES", 5),
+        arxiv_rate_limit_backoff_base=_env_int("ARXIV_RATE_LIMIT_BACKOFF_BASE", 60),
+        arxiv_rate_limit_backoff_max=_env_int("ARXIV_RATE_LIMIT_BACKOFF_MAX", 600),
+        arxiv_rate_limit_backoff_jitter=_env_int("ARXIV_RATE_LIMIT_BACKOFF_JITTER", 30),
+        arxiv_rate_limit_graceful=_env_bool("ARXIV_RATE_LIMIT_GRACEFUL", True),
         max_papers=_env_int("MAX_PAPERS", 12),
         max_llm_papers=_env_int("MAX_LLM_PAPERS", 12),
         max_abstract_chars=_env_int("MAX_ABSTRACT_CHARS", 1800),

@@ -27,6 +27,9 @@ def run_pipeline(config: Config) -> PipelineResult:
         timeout=config.arxiv_request_timeout,
         retries=config.arxiv_request_retries,
         timezone_name=config.digest_timezone,
+        rate_limit_backoff_base=config.arxiv_rate_limit_backoff_base,
+        rate_limit_backoff_max=config.arxiv_rate_limit_backoff_max,
+        rate_limit_backoff_jitter=config.arxiv_rate_limit_backoff_jitter,
     )
     preferences = fetch_zotero_preferences(
         config.zotero_api_key,

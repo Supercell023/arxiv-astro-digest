@@ -2,13 +2,13 @@ name: Daily arXiv Digest
 
 on:
   schedule:
-    - cron: "10 0 * * *"
+    - cron: "37 3 * * *"
   workflow_dispatch:
 
 jobs:
   send-digest:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
 
     steps:
       - name: Checkout repository
@@ -30,6 +30,10 @@ jobs:
           ARXIV_FETCH_MAX_RESULTS: ${{ vars.ARXIV_FETCH_MAX_RESULTS }}
           ARXIV_REQUEST_TIMEOUT: ${{ vars.ARXIV_REQUEST_TIMEOUT }}
           ARXIV_REQUEST_RETRIES: ${{ vars.ARXIV_REQUEST_RETRIES }}
+          ARXIV_RATE_LIMIT_BACKOFF_BASE: ${{ vars.ARXIV_RATE_LIMIT_BACKOFF_BASE }}
+          ARXIV_RATE_LIMIT_BACKOFF_MAX: ${{ vars.ARXIV_RATE_LIMIT_BACKOFF_MAX }}
+          ARXIV_RATE_LIMIT_BACKOFF_JITTER: ${{ vars.ARXIV_RATE_LIMIT_BACKOFF_JITTER }}
+          ARXIV_RATE_LIMIT_GRACEFUL: ${{ vars.ARXIV_RATE_LIMIT_GRACEFUL }}
           MAX_PAPERS: ${{ vars.MAX_PAPERS }}
           MAX_LLM_PAPERS: ${{ vars.MAX_LLM_PAPERS }}
           MAX_ABSTRACT_CHARS: ${{ vars.MAX_ABSTRACT_CHARS }}
