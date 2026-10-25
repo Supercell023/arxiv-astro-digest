@@ -75,6 +75,13 @@ jobs:
           ANALYSIS_ENABLED: ${{ vars.ANALYSIS_ENABLED }}
           ANALYSIS_EXTRACT_MODEL: ${{ vars.ANALYSIS_EXTRACT_MODEL }}
           ANALYSIS_ASSESS_MODEL: ${{ vars.ANALYSIS_ASSESS_MODEL }}
+          # 思考模式（留空 = 跟随默认：DeepSeek 端点默认关）
+          ANALYSIS_EXTRACT_THINKING: ${{ vars.ANALYSIS_EXTRACT_THINKING }}
+          ANALYSIS_ASSESS_THINKING: ${{ vars.ANALYSIS_ASSESS_THINKING }}
+          LLM_THINKING: ${{ vars.LLM_THINKING }}
+          PULSE_THINKING: ${{ vars.PULSE_THINKING }}
+          RADAR_THINKING: ${{ vars.RADAR_THINKING }}
+          TRANSLATE_THINKING: ${{ vars.TRANSLATE_THINKING }}
           FULLTEXT_ENABLED: ${{ vars.FULLTEXT_ENABLED }}
           # 板块开关
           PULSE_ENABLED: ${{ vars.PULSE_ENABLED }}
