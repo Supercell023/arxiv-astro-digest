@@ -1,0 +1,133 @@
+# ============================================================
+# 会议系列与已排期实例
+# ------------------------------------------------------------
+# 国内会议的现实：日期公布得很晚。所以这里分两层：
+#
+#   series   —— 你每年都关注的"系列"，记录周期与历史月份，
+#               用于生成"预计 5 月，日期未公布"的软提醒
+#   instances —— 已经发出正式通知的"具体届次"，有确切日期与地点
+#
+# 程序行为：
+#   1. 对 instances 里有确切日期的条目，做 D-30 / D-7 / D-0 倒计时
+#   2. 对 series 里没有未来实例的，按 historical_months 推断，
+#      在"预计月份"前 60 天提示"该系列通常此时开会，去官网看通知"
+#   3. indico 字段给了 URL 的，会去拉 contributions（报告列表）
+#
+# 维护成本：每年 4-5 次，看到通知就填 instances。
+# ============================================================
+
+version: 1
+updated: 2026-10-24
+
+series:
+  - id: gsj
+    name: 郭守敬学术研讨会暨星系宇宙学前沿研讨会
+    organizer: 中国天文学会星系宇宙学专业委员会
+    cadence: annual
+    typical_month: 5
+    historical_months: [5, 5, 5]        # 2024、2025、2026 均在 5 月
+    info_url: http://astronomy.pmo.cas.cn/xsjl/gnxsjl/index_1.html
+    tags: [cosmology, galaxy, china]
+
+  - id: cas-annual
+    name: 中国天文学会学术年会
+    organizer: 中国天文学会
+    cadence: annual
+    typical_month: 10
+    historical_months: [10, 10]
+    info_url: http://astronomy.pmo.cas.cn/xsjl/gnxsjl/index_1.html
+    tags: [astronomy, china]
+
+  - id: cross-strait-cosmo
+    name: 海峡两岸粒子物理和宇宙学研讨会
+    organizer: 中科院理论物理研究所
+    cadence: annual
+    typical_month: 1
+    historical_months: [1]
+    info_url: https://indico.itp.ac.cn/category/   # Indico，可拉报告列表
+    tags: [cosmology, particle, china]
+
+  - id: cps-gravity
+    name: 中国物理学会引力与相对论天体物理分会学术年会
+    organizer: 中国物理学会引力与相对论天体物理分会
+    cadence: annual
+    typical_month: 4
+    historical_months: [4]
+    info_url: https://www.cps-net.org.cn/
+    tags: [gravity, cosmology, china]
+
+  - id: csst-science
+    name: CSST 年度科学年会
+    organizer: 国家天文台 / 承办高校
+    cadence: annual
+    typical_month: 7
+    historical_months: [7]
+    info_url: https://nao.cas.cn/
+    tags: [csst, china, survey]
+
+instances:
+  # ---------- 已举行（保留做上下文，30 天后自动归档） ----------
+  - series: cross-strait-cosmo
+    edition: 第10届
+    date_start: 2026-01-18
+    date_end: 2026-01-22
+    location: 广州·珠江宾馆
+    confidence: 确定
+    indico: https://indico.itp.ac.cn/event/361/
+
+  - series: cps-gravity
+    edition: 2026 年会
+    date_start: 2026-04-18
+    date_end: 2026-04-20
+    location: 海口
+    confidence: 确定
+
+  - series: gsj
+    edition: 第28届
+    date_start: 2026-05-22
+    date_end: 2026-05-25
+    location: 海口·海南大学
+    title: 第28届郭守敬学术研讨会暨 2026 年星系宇宙学前沿研讨会
+    confidence: 确定
+    url: https://conf.koushare.com/conf/gsj2026/
+
+  - series: csst-science
+    edition: 2026 年度
+    date_start: 2026-07-27
+    date_end: 2026-07-31
+    location: 新疆喀什·徕宁饭店
+    confidence: 确定
+    url: https://nao.cas.cn/news/tz/202606/t20260602_8212337.html
+
+  # ---------- 即将举行 ----------
+  - series: cas-annual
+    edition: 2026 年学术年会
+    date_start: 2026-10-27
+    date_end: 2026-10-31
+    location: 石家庄·以岭健康城凯旋门大酒店
+    host: 河北师范大学物理学院
+    confidence: 确定
+    url: https://jsas.nju.edu.cn/d6/2c/c21057a841260/pagem.htm
+    note: 10 月 27 日报到，10 月 31 日离会。
+
+  # ---------- 日期未公布（只知窗口） ----------
+  - series: cross-strait-cosmo
+    edition: 第11届
+    date_start: null
+    expected_month: 2027-01
+    confidence: 待定
+    note: 该系列固定在 1 月，第 10 届为 2026-01-18；第 11 届通知通常秋季发出。
+
+  - series: gsj
+    edition: 第29届
+    date_start: null
+    expected_month: 2027-05
+    confidence: 待定
+    note: 连续三年在 5 月；2027 年通知一般在春季公布。
+
+  - series: cas-annual
+    edition: 2027 年学术年会
+    date_start: null
+    expected_month: 2027-10
+    confidence: 待定
+    note: 中国天文学会 2026-07 起征集 2027-2030 年承办单位，承办地确定后才会公布时间。

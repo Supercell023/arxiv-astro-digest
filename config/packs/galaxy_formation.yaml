@@ -1,0 +1,60 @@
+# 领域包：星系形成与演化
+#
+# 与 galaxy_cosmology 强相关但关注点不同：这边问"星系为什么长这样"，
+# 那边问"能不能拿它测宇宙学"。同时勾选时两套评价标准会合并（取并集）。
+
+id: galaxy_formation
+name: 星系形成与演化
+capability: high
+
+arxiv_categories:
+  - astro-ph.GA
+  - astro-ph.CO
+
+evaluation:
+  focus:
+    - 样本选择与完备性：质量完备下限、星等限、是否用同一套 SED 拟合流程
+    - 物理量的推导链：恒星质量、SFR、金属丰度各用什么标定，系统误差量级
+    - 环境依赖：是按晕质量、投影密度还是最近邻距离定义环境，是否有混淆
+    - 反馈与重子物理：AGN 反馈、恒星反馈、气体流出是否有观测证据支撑
+    - 与模拟的对比：模拟的 subgrid 模型是否与所测物理量直接对应
+  red_flags:
+    - 用单一 SED 拟合结论下强断言，不提标定差异
+    - 环境效应结论未排除质量依赖性（mass-environment degeneracy）
+    - 只给相关系数或趋势，不给物理量级
+    - 把 mock 的结论直接说成观测事实
+
+title_hint: >-
+  标题里出现 quenching、star formation history、mass-metallicity、
+  stellar mass function、morphology、environment、feedback、
+  outflows、satellite、central galaxy 时，优先归入本包。
+
+reader_context: >-
+  读者的主线是用群和团做宇宙学，但也需要知道星系形成这一侧的进展——
+  因为星系团的质量标定、成员分配、richness 都建立在星系形成与演化的理解上。
+
+sources:
+  secondary:
+    - https://astrobites.org/feed/
+    - https://aasnova.org/feed/
+  events:
+    - https://www.eso.org/public/news/
+
+pulse:
+  topics:
+    - label: 星系形成与演化
+      aliases: [galaxy formation, galaxy evolution, stellar mass, star formation history]
+    - label: 淬灭 / 反馈
+      aliases: [quenching, quenched, feedback, agn feedback, outflows]
+    - label: 环境依赖
+      aliases: [environment, environmental dependence, satellite galaxies, central galaxies]
+    - label: 星系团 / 群
+      aliases: [galaxy cluster, galaxy clusters, groups and clusters]
+    - label: 化学演化
+      aliases: [metallicity, chemical enrichment, abundance gradient]
+    - label: 高红移
+      aliases: [high-redshift, high-z, reionization, cosmic dawn]
+    - label: JWST
+      aliases: [jwst, james webb]
+    - label: 模拟 / mock
+      aliases: [hydrodynamical simulation, semi-analytic, mock catalog, subgrid]

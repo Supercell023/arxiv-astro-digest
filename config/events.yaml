@@ -1,0 +1,140 @@
+# ============================================================
+# 领域事件日历（确定性事件）
+# ------------------------------------------------------------
+# 这个文件的定位：记录"提前就知道"的大事，而不是靠抓取发现。
+# 数据发布、提案截止、会议召开、望远镜发射——这些日期是提前几个月到
+# 几年定好的。每天的任务只是：
+#   1. 倒计时（还有 N 天）
+#   2. 当天/临近提醒（D-0、D-7、D-30 三档）
+#   3. 过期归档（-30 天以后不再显示，但保留在文件里做历史）
+#
+# confidence 三档，决定邮件里的措辞：
+#   确定 → "11 月 12 日"        （官方已公告）
+#   预计 → "预计 2027 年中"      （有官方路线图但未锁死）
+#   待定 → "日期未公布"          （只知道大概窗口）
+#
+# 维护成本：每年更新一次。改完记得把 updated 字段改掉。
+# ============================================================
+
+version: 1
+updated: 2026-10-24
+
+events:
+  # ---------- Euclid ----------
+  - id: euclid-dr1-foundation
+    kind: data_release
+    title: Euclid DR1 Foundation 数据发布
+    title_en: Euclid Data Release 1 (Foundation)
+    date: 2026-11-12
+    confidence: 确定
+    url: https://www.cosmos.esa.int/web/euclid/timeline
+    tags: [cosmology, survey, euclid]
+    note: 首次面向公众的正式科学数据；DR1 Complete 预计 2027 年中补齐。
+
+  - id: euclid-dr1-complete
+    kind: data_release
+    title: Euclid DR1 Complete
+    title_en: Euclid Data Release 1 (Complete)
+    date: 2027-06-15
+    date_precision: 月
+    confidence: 预计
+    url: https://www.cosmos.esa.int/web/euclid/timeline
+    tags: [cosmology, survey, euclid]
+    note: 官方口径为"2027 年中"，此处取 6 月中作为近似锚点，日期临近时以官网为准。
+
+  - id: euclid-dr2
+    kind: data_release
+    title: Euclid DR2
+    date: 2029-03-01
+    date_precision: 月
+    confidence: 预计
+    url: https://www.cosmos.esa.int/web/euclid/timeline
+    tags: [cosmology, survey, euclid]
+    note: 官方路线图为 2029 年 3 月；DR3 为 2031 年 10 月。
+
+  # ---------- Rubin / LSST ----------
+  - id: rubin-dp1
+    kind: data_release
+    title: Rubin DP1（Data Preview 1）
+    date: 2025-06-30
+    confidence: 确定
+    url: https://dp1.lsst.io/
+    tags: [survey, rubin, cosmology]
+    note: 已发布；含图像与目录数据，2026-01 有过一次 WCS 修正。
+
+  - id: rubin-early-dp2
+    kind: data_release
+    title: Rubin Early DP2
+    date: 2026-07-27
+    confidence: 确定
+    url: https://dp2.lsst.io/
+    tags: [survey, rubin, cosmology]
+    note: 已发布；早期版，偏重目录数据与深叠加图像。
+
+  - id: rubin-dp2-full
+    kind: data_release
+    title: Rubin DP2 完整版
+    date: null
+    confidence: 待定
+    url: https://rubinobservatory.org/for-scientists/data-products/recent-data-releases
+    tags: [survey, rubin, cosmology]
+    note: Early DP2 之后的完整处理版，官方未给具体日期，需定期核对。
+
+  # ---------- DESI ----------
+  - id: desi-dr2-papers
+    kind: data_release
+    title: DESI DR2 系列论文（第二批）
+    date: 2026-07-30
+    confidence: 确定
+    url: https://data.desi.lbl.gov/doc/papers/dr2/
+    tags: [cosmology, survey, desi]
+    note: 首批 2025-03-19；本批为后续三年数据的关键结果。
+
+  - id: desi-dr3
+    kind: data_release
+    title: DESI DR3（五年巡天数据）
+    date: 2028-06-01
+    date_precision: 月
+    confidence: 待定
+    url: https://data.desi.lbl.gov/doc/releases/
+    tags: [cosmology, survey, desi]
+    note: 五年巡天已完成约 96%，运行持续到 2028 年；DR3 为第三次公开释放，具体日期未公布。
+
+  # ---------- PFS ----------
+  - id: pfs-full-operation
+    kind: milestone
+    title: PFS 正式进入全运行
+    date: 2025-01-10
+    confidence: 确定
+    url: https://pfs.naoj.org/
+    tags: [survey, pfs, spectroscopy]
+
+  - id: pfs-dr1
+    kind: data_release
+    title: PFS 首次数据发布（DR1）
+    date: null
+    confidence: 待定
+    url: https://pfs.naoj.org/
+    tags: [survey, pfs, spectroscopy]
+    note: 2394 光纤的大规模光谱巡天，正式运行后首个数据释放窗口未公布。
+
+  # ---------- CSST ----------
+  - id: csst-launch
+    kind: launch
+    title: 中国空间站巡天望远镜（CSST）发射
+    date: 2027-12-01
+    date_precision: 年
+    confidence: 预计
+    url: https://nao.cas.cn/
+    tags: [china, space, survey, csst]
+    note: 多次推迟；2025 年初口径为 2027 年，无更精确窗口。官方确认前不要当确定日期用。
+
+  # ---------- 常用提案截止（按需增补） ----------
+  - id: jwst-cycle5-tbd
+    kind: deadline
+    title: JWST 下一轮提案截止
+    date: null
+    confidence: 待定
+    url: https://www.stsci.edu/jwst/science-execution/proposal-process
+    tags: [space, proposal]
+    note: 每年一轮，通常在 11 月前后；具体日期见 STScI 通告，需要时补上真实日期。

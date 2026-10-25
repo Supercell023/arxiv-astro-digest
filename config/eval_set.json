@@ -1,0 +1,271 @@
+{
+  "version": 1,
+  "note": "由 scripts/eval_analysis.py build 自动生成；expected_numbers 来自摘要原文，可直接核验是否被漏抽",
+  "categories": [
+    "astro-ph.CO",
+    "astro-ph.GA"
+  ],
+  "entries": [
+    {
+      "id": "2610.31664v1",
+      "title": "Odd radio circle J1555+2726: Observational evidence for shock re-acceleration of fossil plasma",
+      "categories": [
+        "astro-ph.GA",
+        "astro-ph.CO"
+      ],
+      "expected_numbers": [
+        "2726",
+        "50",
+        "1284",
+        "1",
+        "150",
+        "5"
+      ],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31660v1",
+      "title": "Sound-Horizon-Agnostic Forecast for Constraints on $H_0$ and $Σm_ν$ from BAO, CMB Lensing, Supernovae and LSST-like Galaxy Lensing",
+      "categories": [
+        "astro-ph.CO"
+      ],
+      "expected_numbers": [
+        "5000",
+        "0",
+        "1.5",
+        "1.3",
+        "0.7",
+        "95"
+      ],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31626v1",
+      "title": "A Robust Estimator for the Lyman-$α$ Forest 1D Power Spectrum at High Redshift",
+      "categories": [
+        "astro-ph.CO",
+        "astro-ph.GA"
+      ],
+      "expected_numbers": [
+        "5"
+      ],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31582v1",
+      "title": "Some minimal characteristics and flat trajectories of a system in the N-body problem",
+      "categories": [
+        "math-ph",
+        "astro-ph.GA"
+      ],
+      "expected_numbers": [],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31545v1",
+      "title": "SpecLess: A Multi Survey Python Package for Machine Learning Classification of Galaxy Morphology and Activity from Photometry",
+      "categories": [
+        "astro-ph.GA"
+      ],
+      "expected_numbers": [
+        "0.9332",
+        "35,554",
+        "0.9237",
+        "3,269",
+        "16,931",
+        "11,975"
+      ],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31482v1",
+      "title": "Slow Massive-Star Formation and the O-Star ZAMS Deficit",
+      "categories": [
+        "astro-ph.SR",
+        "astro-ph.GA"
+      ],
+      "expected_numbers": [
+        "90",
+        "0.43",
+        "0.60"
+      ],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31469v1",
+      "title": "QUIJOTE scientific results - XII. Characterization of the polarized synchrotron emission at the power spectrum level in the QUIJOTE-MFI wide survey",
+      "categories": [
+        "astro-ph.CO"
+      ],
+      "expected_numbers": [],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31441v1",
+      "title": "Gravitational Wave Diffractive Images Reveal the Structure of Astrophysical Objects",
+      "categories": [
+        "astro-ph.CO",
+        "astro-ph.HE",
+        "gr-qc",
+        "hep-ph"
+      ],
+      "expected_numbers": [],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31416v1",
+      "title": "A Catalog of Spectral Properties for DESI DR1 Quasars",
+      "categories": [
+        "astro-ph.GA"
+      ],
+      "expected_numbers": [
+        "1,717,774",
+        "1,774,723",
+        "1",
+        "500",
+        "88.6"
+      ],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31182v1",
+      "title": "The XMM-Newton view of the DEM L36 superbubble in the Large Magellanic Cloud",
+      "categories": [
+        "astro-ph.HE",
+        "astro-ph.GA"
+      ],
+      "expected_numbers": [],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31181v1",
+      "title": "A cosmological intercept tension in local distance ladders",
+      "categories": [
+        "astro-ph.CO"
+      ],
+      "expected_numbers": [
+        "71.37",
+        "1.23",
+        "1.18",
+        "1",
+        "63.25",
+        "0.95"
+      ],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31175v1",
+      "title": "Robust paths to primordial $B$ modes in the presence of polarised point source contamination",
+      "categories": [
+        "astro-ph.CO"
+      ],
+      "expected_numbers": [
+        "1"
+      ],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31168v1",
+      "title": "A cosmic filament catalog for COSMOS-Web Data Release 1 across 0.5 < z < 3.5",
+      "categories": [
+        "astro-ph.CO",
+        "astro-ph.GA",
+        "astro-ph.IM"
+      ],
+      "expected_numbers": [
+        "12,523",
+        "136,210"
+      ],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31101v1",
+      "title": "Saxion Decay and Dark Radiation in the KSVZ Axion Model",
+      "categories": [
+        "hep-ph",
+        "astro-ph.CO"
+      ],
+      "expected_numbers": [
+        "1",
+        "4"
+      ],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31081v1",
+      "title": "Cosmological Inference with Gravitational-Wave Dark Sirens and 21-cm Intensity Mapping: Forecasts for LIGO-Virgo-KAGRA with MeerKAT and SKAO",
+      "categories": [
+        "astro-ph.CO",
+        "gr-qc"
+      ],
+      "expected_numbers": [
+        "0",
+        "61",
+        "53",
+        "10",
+        "15"
+      ],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31078v1",
+      "title": "Self-Supervised Representation Learning for JWST Galaxy Images and Low Resolution Spectra",
+      "categories": [
+        "astro-ph.GA"
+      ],
+      "expected_numbers": [
+        "1",
+        "2",
+        "0.9",
+        "0.24"
+      ],
+      "must_cite": false
+    },
+    {
+      "id": "2610.31044v1",
+      "title": "Assessing the consistency of the CPL dark-energy model with cosmological data: Simulation-calibrated neural posterior disagreement",
+      "categories": [
+        "astro-ph.CO",
+        "gr-qc",
+        "hep-ph"
+      ],
+      "expected_numbers": [],
+      "must_cite": false
+    },
+    {
+      "id": "2610.30961v1",
+      "title": "GPAge: a Global Parameterization based on cosmic Age for some unified early-time and late-time solutions to the Hubble tension",
+      "categories": [
+        "astro-ph.CO"
+      ],
+      "expected_numbers": [],
+      "must_cite": false
+    },
+    {
+      "id": "2610.30959v1",
+      "title": "EP J062132.0+623837: A Multi-wavelength Study of a Changing-look Active Galactic Nucleus Discovered by Einstein Probe",
+      "categories": [
+        "astro-ph.GA",
+        "astro-ph.HE"
+      ],
+      "expected_numbers": [
+        "62132.0",
+        "623837",
+        "6213207",
+        "6238390",
+        "43",
+        "1"
+      ],
+      "must_cite": false
+    },
+    {
+      "id": "2610.30922v1",
+      "title": "Stability of rotation axis of galactic disks in HESTIA suite",
+      "categories": [
+        "astro-ph.GA"
+      ],
+      "expected_numbers": [],
+      "must_cite": false
+    }
+  ]
+}

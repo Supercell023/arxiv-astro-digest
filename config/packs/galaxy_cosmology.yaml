@@ -1,0 +1,79 @@
+# 领域包：星系宇宙学
+#
+# 一个包 = 一组 arXiv 分类 + 一套评价标准。评价标准是这里最有价值的部分：
+# 它让模型知道"这个领域里什么叫做得扎实、什么叫在遮掩"。
+#
+# 勾选方式：FIELDS=galaxy_cosmology,galaxy_formation
+
+id: galaxy_cosmology
+name: 星系宇宙学
+capability: high          # high = 我能判断这里的质量；邮件里不必加免责声明
+
+# 主分类在前；cross-list 到别的分类不影响归入本包
+arxiv_categories:
+  - astro-ph.CO
+  - astro-ph.GA
+
+# —— 评价标准：模型拿它当"审稿清单" ——
+evaluation:
+  focus:
+    - 质量标定：弱透镜/动力学/SZ/X-ray 交叉标定，标定误差是否进了最终误差预算
+    - 选择函数与完备性：光学 richness、X-ray flux、SZ 显著性的选择方式，Eddington bias 是否处理
+    - 系统误差：测光红移偏差、投影与成员污染、并合中的星系团、超样本协方差
+    - 探针一致性：丰度 / 聚类 / 弱透镜 / BAO 之间是否自洽，有无选择性地只报一个
+    - 模拟与观测的对比：子网格物理、分辨率是否收敛、mock 是否含真实选择函数
+  red_flags:
+    - 用未标定的质量-观测关系做定量宇宙学结论
+    - 单一探针给出强断言，却不提与其他探针的一致性
+    - 只报统计误差，系统误差一句带过
+    - mock 未说明是否包含巡天选择函数，却用它做观测对比
+    - 把"张力"解释为"新物理"而不先排除系统误差
+
+# —— 术语提示：给 Stage A 抽取时做锚点，也防中文硬翻 ——
+title_hint: >-
+  标题里出现 cluster、group、halo、mass calibration、richness、
+  abundance、SZ、X-ray、weak lensing 时，优先归入本包。
+
+reader_context: >-
+  读者用星系群和星系团做宇宙学，手上既有巡天数据也有宇宙学模拟和 mock。
+  因此最在意三件事：样本是怎么选出来的、质量是怎么标定的、误差预算是否可信。
+
+sources:
+  # 二次解读（机构新闻、综述博客）
+  secondary:
+    - https://astrobites.org/feed/
+    - https://aasnova.org/feed/
+  # 领域事件（数据发布、会议）
+  events:
+    - https://www.cosmos.esa.int/web/euclid/timeline
+    - https://rubinobservatory.org/for-scientists/data-products/recent-data-releases
+    - https://data.desi.lbl.gov/doc/releases/
+
+# 「本周脉搏」用的主题词表：label 显示给人看，aliases 用来在标题/正文里数命中。
+# 命中越多、被越多个源提到，越可能进"大家在说"的清单。
+pulse:
+  topics:
+    - label: 星系团 / 群
+      aliases: [galaxy cluster, galaxy clusters, cluster cosmology, groups and clusters, cluster mass]
+    - label: 弱透镜
+      aliases: [weak lensing, weak-lensing, cosmic shear, shear calibration]
+    - label: 质量标定
+      aliases: [scaling relation, mass calibration, mass-observable, richness, hydrostatic mass]
+    - label: 光度红移
+      aliases: [photometric redshift, photo-z, photo-z calibration]
+    - label: BAO / RSD
+      aliases: [baryon acoustic, bao, redshift-space distortion, rsd]
+    - label: 暗能量
+      aliases: [dark energy, w0wa, equation of state, cosmological constant]
+    - label: S8 / 结构增长
+      aliases: [s8, sigma8, sigma_8, growth of structure, structure growth]
+    - label: Euclid
+      aliases: [euclid]
+    - label: DESI
+      aliases: [desi, dark energy spectroscopic]
+    - label: Rubin / LSST
+      aliases: [rubin, lsst, vera rubin]
+    - label: 模拟 / mock
+      aliases: [hydrodynamical simulation, mock catalog, mock catalogs, n-body simulation, subhalo]
+    - label: 选择函数 / 完备性
+      aliases: [selection function, completeness, eddington bias, catalogue contamination]

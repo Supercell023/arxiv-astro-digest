@@ -1,8 +1,15 @@
 [project]
 name = "daily-arxiv-digest"
-version = "0.1.0"
+version = "0.11.1"
 description = "Daily arXiv paper digest with Chinese summaries"
 requires-python = ">=3.11"
+dependencies = [
+    "jinja2>=3.1",
+    "openai>=1.0",
+    "pypdf>=6.0",
+    "python-dotenv>=1.0",
+    "pyyaml>=6.0",
+]
 
 [tool.mypy]
 python_version = "3.11"
@@ -15,5 +22,6 @@ show_error_codes = true
 module = [
     "openai",
     "dotenv",
+    "yaml",
 ]
 ignore_missing_imports = true

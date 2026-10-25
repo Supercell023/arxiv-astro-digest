@@ -1,0 +1,101 @@
+# 二手解读、机构新闻与会议报告的信息源。
+#
+# 每个源都可以用 `enabled: false` 临时关掉；
+# `fields` 是可选的——写了就只在勾选对应领域包时启用。
+# `cadence` 决定抓取节奏：`daily`（默认，适合更新频繁的新闻页）
+# 或 `weekly`（适合望远镜/巡天项目页——一周发不了一条，每天抓是浪费请求）。
+# 日期靠 state.json 里的 `fetched` 记录，Actions 无状态也能记住上次抓取日。
+#
+# 报告（talks）用 Indico 的结构化导出，不需要爬 HTML：
+#   https://<host>/event/1234  →  https://<host>/export/event/1234.json?detail=contributions
+# 一年维护一次 event id 即可。
+
+feeds:
+  # —— 宇宙学二手解读（每日）——
+  - id: astrobites
+    name: Astrobites
+    url: https://astrobites.org/feed/
+    tags: [astro]
+    fields: [galaxy_cosmology, galaxy_formation]
+    max_items: 5
+    cadence: daily
+
+  - id: aasnova
+    name: AAS Nova
+    url: https://aasnova.org/feed/
+    tags: [astro]
+    fields: [galaxy_cosmology, galaxy_formation]
+    max_items: 6
+    cadence: daily
+
+  # —— 机构/媒体新闻（每日）——
+  - id: nasa
+    name: NASA 新闻
+    url: https://www.nasa.gov/news-release/feed/
+    tags: [agency]
+    max_items: 5
+    cadence: daily
+    exclude: ["APOD:"]       # 每日一图混在新闻流里，不是学界动态
+
+  - id: physorg
+    name: Phys.org 天文
+    url: https://phys.org/rss-feed/space-news/astronomy/
+    tags: [news]
+    max_items: 5
+    cadence: daily
+
+  - id: universetoday
+    name: Universe Today
+    url: https://www.universetoday.com/feed/
+    tags: [news]
+    max_items: 3
+    cadence: daily
+
+  # —— 巡天/望远镜项目页（每周）——
+  - id: esa
+    name: ESA 空间科学
+    url: https://www.esa.int/rssfeed/Our_Activities/Space_Science
+    tags: [agency]
+    max_items: 3
+    cadence: weekly
+
+  - id: eso
+    name: ESO 新闻
+    url: https://www.eso.org/public/news/feed/
+    tags: [observatory]
+    max_items: 3
+    cadence: weekly
+
+  - id: desi
+    name: DESI
+    url: https://www.desi.lbl.gov/feed/
+    tags: [survey]
+    max_items: 3
+    cadence: weekly
+
+  - id: keck
+    name: Keck Observatory
+    url: https://keckobservatory.org/feed/
+    tags: [observatory]
+    max_items: 3
+    cadence: weekly
+
+  - id: quanta
+    name: Quanta
+    url: https://www.quantamagazine.org/feed/
+    tags: [science]
+    max_items: 2
+    cadence: weekly
+    enabled: false          # 更新慢、与具体领域相关性弱，默认关
+
+indico:
+  # 示例（已过期，默认关）。把 url 换成你在跟的会议即可。
+  # 只抓近 30 天内的报告，所以过期会议不会制造噪音。
+  - id: strait-2026
+    name: 海峡两岸粒子物理与宇宙学会议
+    url: https://indico.itp.ac.cn/event/361
+    tags: [cosmology]
+    fields: [galaxy_cosmology]
+    max_items: 6
+    cadence: weekly
+    enabled: false

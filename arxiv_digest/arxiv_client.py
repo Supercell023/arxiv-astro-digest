@@ -4,6 +4,7 @@ import html
 import logging
 import random
 import re
+import ssl
 import time
 import xml.etree.ElementTree as ET
 from datetime import datetime, time as datetime_time, timedelta, timezone, tzinfo
@@ -106,6 +107,21 @@ def _rate_limit_delay(
     return min(base * (2**attempt) + jitter, cap)
 
 
+def _ssl_context() -> ssl.SSLContext | None:
+    """带上 certifi 的证书链。
+
+    Windows / 部分 pip 装的 Python 没有系统根证书，直接 urlopen 会报
+    CERTIFICATE_VERIFY_FAILED。GitHub Actions 的 Linux 环境有系统证书，
+    这个分支只是让本机也能跑；没有 certifi 时返回 None（走默认行为）。
+    """
+    try:
+        import certifi
+
+        return ssl.create_default_context(cafile=certifi.where())
+    except Exception:
+        return None
+
+
 def _fetch_url(
     url: str,
     timeout: int,
@@ -122,7 +138,7 @@ def _fetch_url(
                 url,
                 headers={"User-Agent": "daily-arxiv-digest/0.1"},
             )
-            with urlopen(request, timeout=timeout) as response:
+            with urlopen(request, timeout=timeout, context=_ssl_context()) as response:
                 body: str = response.read().decode("utf-8")
                 if attempt > 0:
                     logger.info("arXiv API request succeeded after %d retry(s).", attempt)

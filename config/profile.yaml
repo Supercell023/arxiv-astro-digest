@@ -1,0 +1,113 @@
+# 读者画像 —— 这是整封信的"编辑方针"
+#
+# 它不描述"我喜欢什么"，而是规定"什么算对你有用"以及"评论必须怎么组织"。
+# 两阶段分析里的 Stage B（assess）会把它和领域包一起拼进 prompt；
+# 改这里不需要动代码，改完第二天生效。
+#
+# 字段说明见 docs/PRODUCT_PLAN.md §13。
+
+version: 1
+
+identity:
+  role: phd_student
+  field: 星系宇宙学 / 星系形成与演化
+  # 用来给评论"定高度"：这句话之后，模型不该再解释红移是什么。
+  background: >-
+    研究生级天体物理背景，熟悉 ΛCDM、光度红移、晕质量函数、
+    两点相关函数、MCMC 参数拟合、巡天选择函数。
+  tone: >-
+    同伴式、直接。先给技术判断，再给理由。
+    禁止用"具有重要意义""推动了领域发展"代替具体结论。
+
+language:
+  # zh_with_original = 中文标题在前、英文原题随后
+  titles: zh_with_original
+  commentary: zh
+  # 术语保留英文，不硬翻（Galactic 语境下"cluster"翻错很尴尬）
+  keep_terms:
+    - BAO
+    - RSD
+    - HOD
+    - SHAM
+    - Eddington bias
+    - assembly bias
+    - super-sample covariance
+    - mass-observable relation
+    - weak lensing
+    - photometric redshift
+    - completeness
+
+reading:
+  minutes_per_day: 20
+  deep_papers: 4
+  brief_papers: 10
+
+# —— 我在做什么：这三块决定了"和我有关"的判定 ——
+work:
+  data:
+    - 星系巡天数据（成像 + 光谱）
+    - 宇宙学模拟数据（N-body 与流体）
+    - 由模拟转换得到的 mock catalog（含巡天选择函数的 mock）
+  probes:
+    # 主战场：用星系群和星系团做宇宙学
+    primary:
+      - galaxy groups
+      - galaxy clusters
+    # 会关注的方法与交叉检验
+    secondary:
+      - 弱引力透镜
+      - 星系聚类
+      - BAO / RSD
+      - 星系丰度函数
+      - 与大尺度结构其他探针的交叉
+  methods:
+    - 晕占据分布（HOD）与子晕丰度匹配（SHAM）
+    - 质量-观测关系与质量标定
+    - 丰度函数拟合
+    - 两点/三点相关函数估计
+    - 协方差估计（jackknife、模拟、解析）
+    - 选择函数与系统误差建模
+
+# —— 我要的答案：读一篇论文时，按这个顺序被回答 ——
+# 顺序即优先级；Stage B 必须逐条填，读不到写"摘要未提"，不许猜。
+questions:
+  - key: data
+    ask: 用了什么数据？样本量多大、红移区间、质量或光度区间
+  - key: processing
+    ask: 怎么筛选和处理的？选择 cut、完备性、掩膜、测光红移、成员星系分配
+  - key: systematics
+    ask: 怎么校正误差、提取信号的？统计误差与系统误差分别怎么处理
+  - key: method
+    ask: 用什么方法、研究什么问题？估计量、建模、拟合设定、协方差
+  - key: result
+    ask: 得到什么新结果？与既有约束一致还是张力，误差棒从哪来
+
+# —— 不要给我的东西 ——
+never:
+  - 复述摘要
+  - 解释教科书概念（ΛCDM、红移、光度距离、星系分类）
+  - 用评价性空话代替具体结论
+  - 没读到方法细节就编造样本量、误差棒来源或拟合范围
+  - 把"预期""可能"写成"发现"
+
+# —— 输出契约：Stage B 必须按这个结构产出 ——
+analysis:
+  fields:
+    data: 数据集类型（survey / simulation / mock）、样本量、红移与质量区间
+    processing: 关键 cut 与处理步骤，含完备性与选择函数
+    systematics: 系统误差来源与校正手段；没有讨论就明确写"未见讨论"
+    method: 估计量 + 建模 + 拟合设定 + 协方差
+    result: 新结果、与既有约束的一致性、误差棒来源
+    caveat: 作者自己承认的局限（没有就写"作者未讨论"）
+    for_you: 一句话——这条能怎么用到我手上的工作里，说具体动作
+  depth:
+    deep: 每项 40-90 字，凡是数字必须来自原文
+    brief: 只给 result 与 for_you，各不超过 40 字
+  # 允许的"和我有关"判定，用于打分与排版
+relevance_kind:
+  direct: 用我的主探针（群/团）做宇宙学
+  method: 方法或标定可以搬到我的流程里
+  data: 新数据发布或 mock 公开，可直接用
+  formation: 星系形成与演化的机制类结果
+  context: 值得知道但暂时用不上
+  off: 与我无关，不该出现在信里

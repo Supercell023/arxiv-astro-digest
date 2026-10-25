@@ -2,11 +2,30 @@ name: Daily arXiv Digest
 
 on:
   schedule:
-    - cron: "37 0 * * *"
+    # 05:30 UTC = 13:30 北京 = 01:30 ET（美东）。arXiv 的当日公告在 20:00 ET，
+    # 这个点跑拿到的永远是"昨天的公告 + 今天凌晨前的新提交"，不会踩空。
+    - cron: "30 5 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: write        # 回写 state.json，避免 60 天无活动被停用定时任务
+
 jobs:
+  selfcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Offline self-check
+        run: python -m arxiv_digest.selfcheck
+
   send-digest:
+    needs: selfcheck
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -24,6 +43,7 @@ jobs:
 
       - name: Send digest
         env:
+          FIELDS: ${{ vars.FIELDS }}
           ARXIV_CATEGORIES: ${{ vars.ARXIV_CATEGORIES }}
           ARXIV_KEYWORDS: ${{ vars.ARXIV_KEYWORDS }}
           DIGEST_TIMEZONE: ${{ vars.DIGEST_TIMEZONE }}
@@ -42,9 +62,29 @@ jobs:
           MAX_ABSTRACT_CHARS: ${{ vars.MAX_ABSTRACT_CHARS }}
           MIN_RATING: ${{ vars.MIN_RATING }}
           LOOKBACK_DAYS: ${{ vars.LOOKBACK_DAYS }}
+          DEEP_PAPERS: ${{ vars.DEEP_PAPERS }}
+          BRIEF_PAPERS: ${{ vars.BRIEF_PAPERS }}
+          LLM_BATCH_SIZE: ${{ vars.LLM_BATCH_SIZE }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          ANALYSIS_ENABLED: ${{ vars.ANALYSIS_ENABLED }}
+          ANALYSIS_EXTRACT_MODEL: ${{ vars.ANALYSIS_EXTRACT_MODEL }}
+          ANALYSIS_ASSESS_MODEL: ${{ vars.ANALYSIS_ASSESS_MODEL }}
+          PROFILE_PATH: ${{ vars.PROFILE_PATH }}
+          PACKS_DIR: ${{ vars.PACKS_DIR }}
+          FULLTEXT_ENABLED: ${{ vars.FULLTEXT_ENABLED }}
+          FULLTEXT_MAX_CHARS: ${{ vars.FULLTEXT_MAX_CHARS }}
+          FULLTEXT_MAX_PAGES: ${{ vars.FULLTEXT_MAX_PAGES }}
+          FULLTEXT_TIMEOUT: ${{ vars.FULLTEXT_TIMEOUT }}
+          CALENDAR_ENABLED: ${{ vars.CALENDAR_ENABLED }}
+          CALENDAR_EVENTS_PATH: ${{ vars.CALENDAR_EVENTS_PATH }}
+          CALENDAR_CONFERENCES_PATH: ${{ vars.CALENDAR_CONFERENCES_PATH }}
+          SOURCES_ENABLED: ${{ vars.SOURCES_ENABLED }}
+          SOURCES_PATH: ${{ vars.SOURCES_PATH }}
+          SOURCES_MAX_ITEMS: ${{ vars.SOURCES_MAX_ITEMS }}
+          STATE_PATH: ${{ vars.STATE_PATH }}
+          TREND_ENABLED: ${{ vars.TREND_ENABLED }}
           ZOTERO_API_KEY: ${{ secrets.ZOTERO_API_KEY }}
           ZOTERO_USER_ID: ${{ secrets.ZOTERO_USER_ID }}
           ZOTERO_LIBRARY_TYPE: ${{ vars.ZOTERO_LIBRARY_TYPE }}
@@ -56,3 +96,20 @@ jobs:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: python -m arxiv_digest.main
+
+      - name: Persist state
+        if: always()
+        run: |
+          if [ ! -f state.json ]; then
+            echo "没有 state.json，跳过"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state.json
+          if git diff --cached --quiet; then
+            echo "state.json 没有变化"
+            exit 0
+          fi
+          git commit -m "chore: update digest state $(date -u +%F)"
+          git push

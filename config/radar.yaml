@@ -1,0 +1,48 @@
+# 邻域雷达：每天从"别的方向"各挑一条，只给标题 + 一句为什么值得看。
+#
+# 目的不是让你读它们，而是让你知道隔壁在动什么——长期只看自己那一格会窄化。
+# 想加 CS / 物理方向，直接加一条即可（categories 用 arXiv 分类名）：
+#
+#   - id: cs_ml
+#     name: 机器学习
+#     categories: [cs.LG, stat.ML]
+#     blurb: 方法侧的新东西，偶尔能迁移到巡天数据处理
+#     enabled: false     # 默认关闭，想看时改成 true
+
+neighborhoods:
+  - id: exoplanets
+    name: 系外行星
+    categories: [astro-ph.EP]
+    blurb: 探测、大气、宜居性
+    max_items: 1
+
+  - id: stars
+    name: 恒星与银河系
+    categories: [astro-ph.SR]
+    blurb: 恒星物理、双星、星族
+    max_items: 1
+
+  - id: high_energy
+    name: 高能天体
+    categories: [astro-ph.HE]
+    blurb: 暂现源、黑洞、宇宙线
+    max_items: 1
+
+  - id: instrumentation
+    name: 仪器与方法
+    categories: [astro-ph.IM]
+    blurb: 探测器、 pipelines、统计方法
+    max_items: 1
+
+  - id: solar_system
+    name: 太阳系与小天体
+    categories: [astro-ph.EP, physics.space-ph]
+    blurb: 行星科学、空间物理
+    max_items: 1
+
+  - id: cs_ml
+    name: 机器学习
+    categories: [cs.LG, stat.ML]
+    blurb: 方法侧新进展，有时能迁移到巡天数据处理
+    max_items: 1
+    enabled: false

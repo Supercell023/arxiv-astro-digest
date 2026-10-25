@@ -3,28 +3,32 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark only">
+<meta name="supported-color-schemes" content="dark only">
 </head>
-<body style="margin: 0; padding: 0; background: #f4f6f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+<body style="margin: 0; padding: 0; background: {{ P.page }}; -webkit-text-size-adjust: 100%; font-family: 'Times New Roman', Times, Georgia, 'Songti SC', 'SimSun', 'STSong', 'Noto Serif CJK SC', serif; font-size: 15px;">
 
-<table width="100%" cellpadding="0" cellspacing="0" style="background: #f4f6f9; padding: 24px 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background: {{ P.page }}; padding: 24px 0;">
 <tr>
 <td align="center">
 
   {# -- 主容器 600px -- #}
-  <table width="600" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+  <table width="600" cellpadding="0" cellspacing="0" style="background: {{ P.card }}; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 18px rgba(0,0,0,0.55);">
 
-    {# -- 头部 -- #}
+    {# -- 头部：报头式，一眼知道今天量级 -- #}
     <tr>
-      <td style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 32px 40px;">
+      <td style="background: {{ P.header_bg }}; background-image: repeating-linear-gradient(0deg, {{ P.grid }} 0 1px, transparent 1px 24px), repeating-linear-gradient(90deg, {{ P.grid }} 0 1px, transparent 1px 24px); padding: 30px 40px 22px; border-bottom: 1px solid {{ P.header_line }}; border-top: 2px solid {{ P.read }};">
         <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
-          <td style="font-size: 26px; font-weight: 700; color: #ffffff; letter-spacing: 0.5px;">
-            Daily arXiv Digest
-          </td>
+          <td style="font-size: 10.5px; letter-spacing: 2.4px; color: {{ P.read }}; font-weight: 700;">DAILY ARXIV DIGEST</td>
+          <td align="right" style="font-size: 11px; color: {{ P.muted2 }};">{{ generated_at }}</td>
         </tr>
         <tr>
-          <td style="font-size: 13px; color: rgba(255,255,255,0.6); padding-top: 8px;">
-            {{ generated_at }}
+          <td colspan="2" style="padding-top: 10px; font-size: 26px; font-weight: 700; color: {{ P.text }}; letter-spacing: 0.5px;">今日简报</td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding-top: 8px; font-size: 12px; color: {{ P.muted2 }}; line-height: 1.7;">
+            精读 {{ deep_papers|length }} 篇 · 速览 {{ brief_papers|length }} 篇{% if secondary %} · 二手解读 {{ secondary|length }} 条{% endif %}{% if talks %} · 会议报告 {{ talks|length }} 条{% endif %}{% if window_days and window_days > 1 %} · 覆盖近 {{ window_days }} 天{% endif %} · 按 20 分钟阅读安排
           </td>
         </tr>
         </table>
@@ -34,10 +38,10 @@
     {# -- LLM 总览 -- #}
     <tr>
       <td style="padding: 28px 40px 8px;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="background: #fef9e7; border-left: 4px solid #e67e22; border-radius: 0 6px 6px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: {{ P.note_bg }}; border-left: 4px solid {{ P.read }}; border-radius: 0 6px 6px 0;">
         <tr>
-          <td style="padding: 18px 20px; font-size: 14px; color: #7d6608; line-height: 1.75;">
-            <strong style="font-size: 15px; color: #5d4e0c;">LLM 总览</strong><br>
+          <td style="padding: 18px 20px; font-size: 14px; color: {{ P.note_text }}; line-height: 1.75;">
+            <strong style="font-size: 15px; color: {{ P.text }};">LLM 总览</strong><br>
             {{ summary }}
           </td>
         </tr>
@@ -45,16 +49,205 @@
       </td>
     </tr>
 
+    {# -- 本周脉搏：先给世界，再给你 -- #}
+    {% if pulse and not pulse.is_empty %}
+    <tr>
+      <td style="padding: 20px 40px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: {{ P.card }}; border: 1px solid {{ P.line }}; border-radius: 8px;">
+        <tr>
+          <td style="padding: 16px 20px 4px;">
+            <div style="font-size: 14px; font-weight: 700; color: {{ P.pulse }}; letter-spacing: 0.6px; padding-left: 10px; border-left: 4px solid {{ P.pulse }};">本周脉搏 · 大家在关注什么</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 2px 20px 12px;">
+            <div style="font-size: 17px; font-weight: 700; color: {{ P.text }}; line-height: 1.55;">
+              {% if pulse.headline_url %}<a href="{{ pulse.headline_url }}" style="color: {{ P.text }}; text-decoration: none;">{{ pulse.headline }}</a>{% else %}{{ pulse.headline }}{% endif %}
+            </div>
+            {% if pulse.pick_link %}
+            <div style="font-size: 12px; color: {{ P.muted2 }}; line-height: 1.7; padding-top: 8px; border-top: 1px dashed {{ P.line }}; margin-top: 10px;">
+              只看一篇 → <a href="{{ pulse.pick_link[1] }}" style="color: {{ P.pulse }}; text-decoration: none; font-weight: 600;">{{ pulse.pick_link[0] }}</a>
+              <span style="color: {{ P.faint }};">（这一周最多人在说的那条里，证据最集中的一篇）</span>
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+
+        {% for thread in pulse.threads %}
+        <tr>
+          <td style="padding: 10px 20px 12px; border-top: 1px solid {{ P.line2 }};">
+            <div style="line-height: 1.5;">
+              <span style="display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 9px; background: {{ P.verdict_bg if thread.status == 'debate' else (P.chip_bg if thread.status == 'unsettled' else P.chip_new) }}; color: {% if thread.status == 'debate' %}{{ P.warn }}{% elif thread.status == 'unsettled' %}{{ P.muted4 }}{% else %}{{ P.ok }}{% endif %};">
+                {{ thread.status_label }}
+              </span>
+              <span style="font-size: 13.5px; font-weight: 600; color: {{ P.body }};">{{ thread.question }}</span>
+            </div>
+            <div style="font-size: 12.5px; color: {{ P.body3 }}; line-height: 1.7; padding-top: 5px;">{{ thread.summary }}</div>
+            {% if thread.why_you %}
+            <div style="font-size: 11.5px; color: {{ P.pulse }}; line-height: 1.72; padding-top: 4px;">对你：{{ thread.why_you }}</div>
+            {% endif %}
+            {% if thread.links %}
+            <div style="font-size: 10.5px; color: {{ P.muted3 }}; line-height: 1.7; padding-top: 4px;">
+              {% for link in thread.links %}<a href="{{ link[1] }}" style="color: {{ P.read }}; text-decoration: none;">{{ link[0] }}</a>{% if not loop.last %} · {% endif %}{% endfor %}
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+
+        {% if pulse.topics %}
+        <tr>
+          <td style="padding: 10px 20px 6px; border-top: 1px solid {{ P.line2 }};">
+            <div style="font-size: 10.5px; color: {{ P.muted }}; line-height: 1.72; padding-bottom: 6px;">本周材料里的主题分布（按提及次数）</div>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              {% set top = pulse.topics[0].hits if pulse.topics[0].hits > 0 else 1 %}
+              {% for topic in pulse.topics[:6] %}
+              <tr>
+                <td width="112" style="font-size: 11px; color: {{ P.body3 }}; padding: 1px 0;">{{ topic.label }}{% if topic.is_shared %}<span style="color: {{ P.pulse }};"> ·同题多源</span>{% endif %}</td>
+                <td style="padding: 1px 6px;">
+                  <table width="100%" cellpadding="0" cellspacing="0"><tr>
+                    <td width="{{ ((topic.hits / top) * 100) | round | int }}%" style="background: {{ P.bad if topic.tension_items else P.field }}; height: 7px; font-size: 1px; line-height: 1px;">&nbsp;</td>
+                    <td style="height: 7px; font-size: 1px; line-height: 1px;">&nbsp;</td>
+                  </tr></table>
+                </td>
+                <td width="34" align="right" style="font-size: 11px; color: {{ P.muted3 }}; padding: 1px 0;">{{ topic.hits }}</td>
+              </tr>
+              {% endfor %}
+            </table>
+          </td>
+        </tr>
+        {% endif %}
+
+        {% if pulse.quiet %}
+        <tr>
+          <td style="padding: 8px 20px 4px; border-top: 1px solid {{ P.line2 }};">
+            <div style="font-size: 11.5px; color: {{ P.muted }}; line-height: 1.72;">注：{{ pulse.quiet }}</div>
+          </td>
+        </tr>
+        {% endif %}
+
+        <tr>
+          <td style="padding: 8px 20px 14px; font-size: 10.5px; color: {{ P.muted3 }}; line-height: 1.72;">
+            基于 {{ pulse.materials }} 条材料 / {{ pulse.source_count }} 个源{% if pulse.basis == 'fallback' %}（未接入模型，只有主题统计）{% endif %}
+          </td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+    {% endif %}
+
+    {# -- 邻域雷达：每方向 1 条展开 + N 条折叠 -- #}
+    {% if radar and not radar.is_empty %}
+    <tr>
+      <td style="padding: 18px 40px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: {{ P.tint_pulse }}; border: 1px solid {{ P.tint_pulse3 }}; border-radius: 10px;">
+        <tr>
+          <td style="padding: 16px 22px 4px;">
+            <div style="font-size: 14px; font-weight: 700; color: {{ P.radar }}; letter-spacing: 0.6px; padding-left: 10px; border-left: 4px solid {{ P.radar }};">邻域雷达 · 别的方向这周在动什么</div>
+            <div style="font-size: 11px; color: {{ P.faint }}; line-height: 1.72; padding-top: 4px;">每个方向先展开一条，其余折叠。只看标题和一句话，不占你的精读预算。</div>
+          </td>
+        </tr>
+        {% for block in radar.blocks %}
+        {% if block.headline %}
+        {% set hit = block.headline %}
+        <tr>
+          <td style="padding: 12px 22px 10px; border-top: 1px solid {{ P.tint_pulse2 }};">
+            <div style="font-size: 10.5px; font-weight: 700; color: {{ P.pulse }}; letter-spacing: 0.3px;">{{ block.neighborhood }}<span style="color: {{ P.faint3 }}; font-weight: 400;"> · {{ hit.category }}{% if hit.published %} · {{ hit.published }}{% endif %}</span>{% if block.total %}<span style="color: {{ P.faint4 }}; font-weight: 400;"> · 本周 {{ block.total }} 篇</span>{% endif %}</div>
+            <div style="padding-top: 3px;">
+              <a href="{{ hit.url }}" style="color: {{ P.text }}; text-decoration: none; font-size: 13.5px; font-weight: 600; line-height: 1.5;">{{ hit.title }}</a>
+            </div>
+            {% if hit.display_summary %}
+            <div style="font-size: 12px; color: {{ P.body2 }}; line-height: 1.75; padding-top: 4px;">{{ hit.display_summary }}</div>
+            {% endif %}
+            {% if hit.abstract %}
+            <details style="padding-top: 4px;">
+              <summary style="cursor: pointer; font-size: 11px; color: {{ P.faint4 }};">摘要原文</summary>
+              <div style="font-size: 11.5px; color: {{ P.muted5 }}; line-height: 1.7; padding-top: 3px;">{{ hit.abstract }}</div>
+            </details>
+            {% endif %}
+            {% if block.folded_count %}
+            <details style="padding-top: 6px;">
+              <summary style="cursor: pointer; font-size: 11.5px; color: {{ P.pulse }}; font-weight: 600;">再看 {{ block.neighborhood }} 这周另外 {{ block.folded_count }} 条</summary>
+              {% for more in block.rest %}
+              <div style="padding: 8px 0 2px;">
+                <div style="font-size: 10px; color: {{ P.faint3 }};">{{ more.category }}{% if more.published %} · {{ more.published }}{% endif %}</div>
+                <a href="{{ more.url }}" style="color: {{ P.body }}; text-decoration: none; font-size: 12.5px; font-weight: 600; line-height: 1.5;">{{ more.title }}</a>
+                {% if more.display_summary %}<div style="font-size: 11.5px; color: {{ P.body2 }}; line-height: 1.7; padding-top: 2px;">{{ more.display_summary }}</div>{% endif %}
+              </div>
+              {% endfor %}
+            </details>
+            {% endif %}
+          </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+        {% if radar.counts %}
+        <tr>
+          <td style="padding: 6px 22px 16px; border-top: 1px solid {{ P.tint_pulse2 }}; font-size: 10.5px; color: {{ P.faint }}; line-height: 1.7;">
+            本周各方向投稿量：{% for name, count in radar.counts %}{{ name }} {{ count }}{% if not loop.last %} · {% endif %}{% endfor %}
+          </td>
+        </tr>
+        {% endif %}
+        </table>
+      </td>
+    </tr>
+    {% endif %}
+    {# -- 近期日程：只读本地 YAML，不依赖任何外部服务 -- #}
+    {% if calendar and not calendar.is_empty %}
+    <tr>
+      <td style="padding: 16px 40px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: {{ P.chip_bg }}; border-left: 4px solid {{ P.src_eso }}; border-radius: 0 6px 6px 0;">
+        <tr>
+          <td style="padding: 16px 18px 14px;">
+            <div style="font-size: 14px; font-weight: 700; color: {{ P.cal }}; letter-spacing: 0.6px; padding-left: 10px; border-left: 4px solid {{ P.cal }}; padding-bottom: 4px;">近期日程</div>
+
+            {% for line in calendar.rows %}
+            <div style="padding: 7px 0; font-size: 13px; color: {{ P.body }}; line-height: 1.55;">
+              <span style="display: inline-block; min-width: 52px; font-size: 11px; font-weight: 600; color: {{ P.bad if line.urgency == 'today' else (P.read if line.urgency == 'week' else P.cal_soft) }};">
+                {{ line.countdown_label or line.when_label }}
+              </span>
+              <span style="font-size: 11px; color: {{ P.read }};">{{ line.kind_label }}</span>
+              {% if line.url %}<a href="{{ line.url }}" style="color: {{ P.text }}; text-decoration: none; font-weight: 600;">{{ line.title }}</a>{% else %}<span style="font-weight: 600;">{{ line.title }}</span>{% endif %}
+              <span style="font-size: 11px; color: {{ P.muted }};">· {{ line.when_label }}{% if line.location %} · {{ line.location }}{% endif %}{% if line.confidence in ('预计', '待定') %} · {{ line.confidence }}{% endif %}</span>
+            </div>
+            {% endfor %}
+
+            {% if calendar.undated %}
+            <div style="padding: 7px 0 0; font-size: 11px; color: {{ P.muted }}; line-height: 1.72;">
+              日期未公布：{{ calendar.undated_titles }}
+            </div>
+            {% endif %}
+            {% if calendar.next_far %}
+            <div style="padding: 4px 0 0; font-size: 11px; color: {{ P.faint2 }};">
+              更远：{{ calendar.next_far.when_label }} · {{ calendar.next_far.title }}
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+    {% endif %}
+
+    {# -- 精读 -- #}
+    <tr>
+      <td style="padding: 26px 40px 6px; background: {{ P.tint_read }};">
+        <div style="font-size: 10.5px; letter-spacing: 2px; color: {{ P.read }}; font-weight: 700;">READING</div>
+        <div style="font-size: 21px; font-weight: 700; color: {{ P.text }}; padding-top: 6px; padding-left: 11px; border-left: 4px solid {{ P.read }}; line-height: 1.3;">精读 · {{ deep_papers|length }} 篇</div>
+        <div style="border-top: 1px solid {{ P.panel5 }}; margin-top: 12px;"></div>
+      </td>
+    </tr>
+
     {# -- 论文列表 -- #}
     <tr>
-      <td style="padding: 20px 40px 32px;">
+      <td style="padding: 12px 40px 12px;">
         <table width="100%" cellpadding="0" cellspacing="0">
 
-        {% for paper in papers %}
+        {% for paper in deep_papers %}
         <tr>
           <td style="padding-bottom: 24px;">
 
-            <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e8ecf1; border-radius: 8px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid {{ P.card_edge }}; border-radius: 10px; background: {{ P.card }}; box-shadow: {{ P.glow }};">
 
               {# -- 星级 + 标题 -- #}
               <tr>
@@ -62,10 +255,10 @@
                   <table width="100%" cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="font-size: 20px; letter-spacing: 2px; width: 120px;">
-                      {% for i in range(paper.rating) %}<span style="color: #e67e22;">&#9733;</span>{% endfor %}
-                      {% for i in range(5 - paper.rating) %}<span style="color: #d5d8dc;">&#9733;</span>{% endfor %}
+                      {% for i in range(paper.rating) %}<span style="color: {{ P.read }};">&#9733;</span>{% endfor %}
+                      {% for i in range(5 - paper.rating) %}<span style="color: {{ P.line3 }};">&#9733;</span>{% endfor %}
                     </td>
-                    <td style="font-size: 11px; color: #8899a6; text-align: right;">
+                    <td style="font-size: 11px; color: {{ P.muted }}; text-align: right;">
                       {{ "%.2f"|format(paper.score) }}
                     </td>
                   </tr>
@@ -74,7 +267,7 @@
               </tr>
               <tr>
                 <td style="padding: 0 22px 10px;">
-                  <a href="{{ paper.abs_url }}" style="font-size: 17px; font-weight: 600; color: #1a1a2e; text-decoration: none; line-height: 1.45;">
+                  <a href="{{ paper.abs_url }}" style="font-size: 17px; font-weight: 600; color: {{ P.text }}; text-decoration: none; line-height: 1.45;">
                     {{ paper.title }}
                   </a>
                 </td>
@@ -82,15 +275,15 @@
 
               {# -- 作者 -- #}
               <tr>
-                <td style="padding: 0 22px 10px; font-size: 13px; color: #657786;">
-                  {{ paper.authors[:6]|join(", ") }}{% if paper.authors|length > 6 %} <span style="color: #aab8c2;">et al.</span>{% endif %}
+                <td style="padding: 0 22px 10px; font-size: 13px; color: {{ P.muted2 }};">
+                  {{ paper.authors[:6]|join(", ") }}{% if paper.authors|length > 6 %} <span style="color: {{ P.faint2 }};">et al.</span>{% endif %}
                 </td>
               </tr>
 
               {# -- 推荐依据 -- #}
               <tr>
                 <td style="padding: 0 22px 8px;">
-                  <span style="font-size: 11px; color: #8899a6; background: #f5f8fa; padding: 3px 8px; border-radius: 4px;">
+                  <span style="font-size: 11px; color: {{ P.muted }}; background: {{ P.line2 }}; padding: 3px 8px; border-radius: 4px;">
                     {{ paper.score_reasons|join(" &middot; ") or "category / date match" }}
                   </span>
                 </td>
@@ -100,43 +293,192 @@
               <tr>
                 <td style="padding: 0 22px 10px;">
                   {% for cat in paper.categories %}
-                  <span style="display: inline-block; font-size: 10px; color: #5b7f95; background: #e8f0f6; padding: 2px 7px; border-radius: 3px; margin: 0 4px 4px 0;">{{ cat }}</span>
+                  <span style="display: inline-block; font-size: 10px; color: {{ P.read }}; background: {{ P.panel2 }}; padding: 2px 7px; border-radius: 3px; margin: 0 4px 4px 0;">{{ cat }}</span>
                   {% endfor %}
                 </td>
               </tr>
 
               {# -- 分割线 -- #}
-              <tr><td style="padding: 0 22px;"><div style="border-top: 1px solid #f0f3f5;"></div></td></tr>
+              <tr><td style="padding: 0 22px;"><div style="border-top: 1px solid {{ P.line2 }};"></div></td></tr>
 
-              {# -- 中文摘要 -- #}
+              {# -- 一句话结论：只读这一句也能决定要不要点开 -- #}
+              {% if paper.analysis and paper.analysis.verdict %}
               <tr>
-                <td style="padding: 14px 22px 6px;">
-                  <table width="100%" cellpadding="0" cellspacing="0" style="background: #f0f7ff; border-radius: 6px;">
+                <td style="padding: 16px 22px 4px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="background: {{ P.verdict_bg }}; border-left: 3px solid {{ P.read }}; border-radius: 4px;">
                   <tr>
-                    <td style="padding: 12px 16px;">
-                      <span style="font-size: 11px; font-weight: 600; color: #2c5f8a; text-transform: uppercase; letter-spacing: 0.5px;">中文摘要</span>
-                      <br>
-                      <span style="font-size: 14px; color: #2c3e50; line-height: 1.75;">{{ paper.chinese_summary }}</span>
+                    <td style="padding: 12px 14px;">
+                      <div style="font-size: 14px; font-weight: 600; color: {{ P.text }}; line-height: 1.72;">{{ paper.analysis.verdict }}</div>
+                      <div style="font-size: 11px; color: {{ P.warn }}; padding-top: 6px;">
+                        {% if paper.analysis.read_advice == 'read' %}建议今天读完整篇{% elif paper.analysis.read_advice == 'skim' %}看方法与图表即可{% else %}留档，不必今天读{% endif %}
+                        {% if paper.analysis.read_reason %} &middot; {{ paper.analysis.read_reason }}{% endif %}
+                      </div>
                     </td>
                   </tr>
                   </table>
                 </td>
               </tr>
+              {% endif %}
 
-              {# -- 英文摘要折叠 -- #}
+              {# -- 方法链：3 秒看懂这篇的骨架 -- #}
+              {% if paper.analysis and paper.analysis.chain %}
               <tr>
-                <td style="padding: 8px 22px 14px;">
+                <td style="padding: 12px 22px 2px;">
+                  <div style="font-size: 10px; font-weight: 600; color: {{ P.muted }}; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px;">方法链</div>
+                  <div style="font-size: 12px; color: {{ P.body }}; line-height: 2.0;">
+                    {% for step in paper.analysis.chain %}<span style="background: {{ P.chain_bg }}; color: {{ P.soft }}; padding: 3px 9px; border-radius: 10px; white-space: nowrap;">{{ step }}</span>{% if not loop.last %}<span style="color: {{ P.faint2 }}; padding: 0 5px;">&rarr;</span>{% endif %}{% endfor %}
+                  </div>
+                </td>
+              </tr>
+              {% endif %}
+
+              {# -- 七问七答（结构化呈现）-- #}
+              {% if paper.analysis %}
+              <tr>
+                <td style="padding: 12px 22px 4px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="background: {{ P.panel }}; border-radius: 6px;">
+                  <tr>
+                    <td style="padding: 12px 16px;">
+                      <div style="font-size: 11px; color: {{ P.read }}; padding-bottom: 6px;">
+                        相关度 <strong style="color: {{ P.soft }};">{{ "%.2f"|format(paper.analysis.relevance) }}</strong>
+                        &middot; {{ paper.analysis.relevance_kind }}
+                        &middot; 置信 {{ paper.analysis.confidence }}
+                        &middot; {% if paper.analysis.basis == 'fulltext' %}<span style="color: {{ P.ok }}; font-weight: 600;">全文</span>{% else %}<span style="color: {{ P.warn }};">仅摘要</span>{% endif %}
+                        {% if paper.analysis.relevance_reason %} &middot; {{ paper.analysis.relevance_reason }}{% endif %}
+                      </div>
+                      {% for key, label, value in paper.analysis.fields %}
+                      <div style="padding: 3px 0; font-size: 13px; line-height: 1.7; color: {{ P.body }};">
+                        <span style="display: inline-block; min-width: 58px; font-size: 11px; font-weight: 600; color: {{ P.soft }};">{{ label }}</span>{{ value }}
+                      </div>
+                      {% endfor %}
+                    </td>
+                  </tr>
+                  </table>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td style="padding: 14px 22px 6px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="background: {{ P.panel }}; border-radius: 6px;">
+                  <tr>
+                    <td style="padding: 12px 16px;">
+                      <span style="font-size: 11px; font-weight: 600; color: {{ P.soft }}; text-transform: uppercase; letter-spacing: 0.5px;">中文摘要</span>
+                      <br>
+                      <span style="font-size: 14px; color: {{ P.body }}; line-height: 1.75;">{{ paper.chinese_summary }}</span>
+                    </td>
+                  </tr>
+                  </table>
+                </td>
+              </tr>
+              {% endif %}
+
+              {# -- 关键数字：每个数都能回到原文 -- #}
+              {% if paper.analysis and paper.analysis.numbers %}
+              <tr>
+                <td style="padding: 12px 22px 2px;">
+                  <div style="font-size: 10px; font-weight: 600; color: {{ P.muted }}; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px;">关键数字</div>
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    {% for item in paper.analysis.numbers %}
+                    <tr>
+                      <td width="100" style="font-size: 12px; color: {{ P.read }}; padding: 3px 10px 3px 0; vertical-align: top;">{{ item.label }}</td>
+                      <td style="font-size: 12.5px; color: {{ P.text }}; font-weight: 600; padding: 3px 0; vertical-align: top; line-height: 1.72;">
+                        {{ item.value }}
+                        {% if item.quote %}<div style="font-size: 10px; font-weight: 400; color: {{ P.faint2 }}; padding-top: 1px;">&ldquo;{{ item.quote|truncate(88, true) }}&rdquo;</div>{% endif %}
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </table>
+                </td>
+              </tr>
+              {% endif %}
+
+              {# -- 图表线索：PDF 里自动抽的图注 -- #}
+              {% if paper.analysis and paper.analysis.figures %}
+              <tr>
+                <td style="padding: 12px 22px 2px;">
+                  <div style="font-size: 10px; font-weight: 600; color: {{ P.muted }}; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px;">图表线索</div>
+                  {% for caption in paper.analysis.figures %}
+                  <div style="font-size: 12px; color: {{ P.muted2 }}; line-height: 1.7; padding-bottom: 3px;">&middot; {{ caption }}</div>
+                  {% endfor %}
+                </td>
+              </tr>
+              {% endif %}
+
+              {# -- 今天能做什么：动宾结构，不许写"关注" -- #}
+              {% if paper.analysis and paper.analysis.actions %}
+              <tr>
+                <td style="padding: 12px 22px 2px;">
+                  <div style="font-size: 10px; font-weight: 600; color: {{ P.muted }}; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px;">今天能做什么</div>
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    {% for action in paper.analysis.actions %}
+                    <tr>
+                      <td width="14" style="font-size: 12px; color: {{ P.ok }}; vertical-align: top; padding-top: 2px;">&#9656;</td>
+                      <td style="font-size: 12.5px; color: {{ P.body }}; line-height: 1.7; padding: 2px 0;">{{ action }}</td>
+                    </tr>
+                    {% endfor %}
+                  </table>
+                </td>
+              </tr>
+              {% endif %}
+
+              {# -- 红旗反查：领域包的风险清单逐条对照 -- #}
+              {% if paper.analysis and paper.analysis.red_flags %}
+              <tr>
+                <td style="padding: 12px 22px 2px;">
+                  <div style="font-size: 10px; font-weight: 600; color: {{ P.muted }}; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px;">红旗反查</div>
+                  {% for flag in paper.analysis.red_flags %}
+                  <div style="font-size: 12px; line-height: 1.7; padding-bottom: 3px;">
+                    <span style="color: {{ P.ok if flag.tone == 'ok' else (P.warn if flag.tone == 'warn' else P.bad) }}; font-weight: 600;">{{ flag.label }}</span>
+                    <span style="color: {{ P.body }};">{{ flag.flag }}</span>
+                    {% if flag.note %}<span style="color: {{ P.muted }};"> &mdash; {{ flag.note }}</span>{% endif %}
+                  </div>
+                  {% endfor %}
+                </td>
+              </tr>
+              {% endif %}
+
+              {# -- 术语小抄 -- #}
+              {% if paper.analysis and paper.analysis.concepts %}
+              <tr>
+                <td style="padding: 12px 22px 2px;">
+                  <div style="font-size: 10px; font-weight: 600; color: {{ P.muted }}; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px;">术语小抄</div>
+                  <div style="font-size: 12px; color: {{ P.muted2 }}; line-height: 1.8;">
+                    {% for concept in paper.analysis.concepts %}<strong style="color: {{ P.body }};">{{ concept.term }}</strong> {{ concept.gloss }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+                  </div>
+                </td>
+              </tr>
+              {% endif %}
+
+              {# -- 中文摘要：有分析时七问之外再给一段可直接读的综述 -- #}
+              {% if paper.analysis and paper.chinese_summary %}
+              <tr>
+                <td style="padding: 14px 22px 4px;">
+                  <div style="font-size: 10px; font-weight: 600; color: {{ P.muted }}; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 4px;">中文摘要</div>
+                  <p style="font-size: 14px; color: {{ P.body }}; line-height: 1.75; margin: 0;">{{ paper.chinese_summary }}</p>
+                </td>
+              </tr>
+              {% endif %}
+
+              {# -- 英文原始摘要：折叠。支持 <details> 的客户端默认收起；不支持的会直接展开 -- #}
+              <tr>
+                <td style="padding: 10px 22px 14px;">
                   <details>
-                    <summary style="font-size: 12px; color: #8899a6; cursor: pointer;">英文原始摘要</summary>
-                    <p style="font-size: 13px; color: #657786; line-height: 1.65; margin: 8px 0 0;">{{ paper.summary }}</p>
+                    <summary style="font-size: 10px; font-weight: 600; color: {{ P.muted }}; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; outline: none;">English abstract &mdash; 点击展开</summary>
+                    <p style="font-size: 13px; color: {{ P.muted2 }}; line-height: 1.72; margin: 8px 0 0;">{{ paper.summary }}</p>
                   </details>
                 </td>
               </tr>
 
-              {# -- PDF 按钮 -- #}
+              {# -- PDF 按钮 + 反馈（反馈只在配置了 FEEDBACK_URL 时出现） -- #}
               <tr>
                 <td style="padding: 0 22px 18px;">
-                  <a href="{{ paper.pdf_url }}" style="display: inline-block; font-size: 12px; color: #e67e22; text-decoration: none; border: 1px solid #e67e22; padding: 5px 14px; border-radius: 4px; font-weight: 500;">PDF</a>
+                  <a href="{{ paper.pdf_url }}" style="display: inline-block; font-size: 12px; color: {{ P.read }}; text-decoration: none; border: 1px solid {{ P.read }}; padding: 5px 14px; border-radius: 4px; font-weight: 500;">PDF</a>
+                  {% if feedback_url %}
+                  <span style="font-size: 11px; color: {{ P.faint }}; padding-left: 10px;">这篇：</span>
+                  <a href="{{ feedback_url }}?item={{ paper.id }}&v=up&t={{ generated_at }}" style="font-size: 11px; color: {{ P.ok }}; text-decoration: none; padding-left: 4px;">有用</a>
+                  <a href="{{ feedback_url }}?item={{ paper.id }}&v=meh&t={{ generated_at }}" style="font-size: 11px; color: {{ P.muted }}; text-decoration: none; padding-left: 8px;">一般</a>
+                  <a href="{{ feedback_url }}?item={{ paper.id }}&v=down&t={{ generated_at }}" style="font-size: 11px; color: {{ P.bad }}; text-decoration: none; padding-left: 8px;">无关</a>
+                  {% endif %}
                 </td>
               </tr>
 
@@ -149,15 +491,145 @@
       </td>
     </tr>
 
+    {# -- 速览 -- #}
+    {% if brief_papers %}
+    <tr>
+      <td style="padding: 10px 40px 32px; background: {{ P.tint_skim }};">
+        <div style="font-size: 10.5px; letter-spacing: 2px; color: {{ P.skim }}; font-weight: 700;">SKIM</div>
+        <div style="font-size: 21px; font-weight: 700; color: {{ P.text }}; padding-top: 6px; padding-left: 11px; border-left: 4px solid {{ P.skim }}; line-height: 1.3;">速览 · {{ brief_papers|length }} 篇</div>
+        <div style="border-top: 1px solid {{ P.panel3 }}; margin-top: 12px;"></div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+        {% for paper in brief_papers %}
+        <tr>
+          <td style="padding: 12px 0; border-bottom: 1px solid {{ P.line2 }};">
+            <div style="font-size: 10px; letter-spacing: 1px;">
+              <span style="color: {{ P.read }};">{% for i in range(paper.rating) %}&#9733;{% endfor %}</span><span style="color: {{ P.line3 }};">{% for i in range(5 - paper.rating) %}&#9733;{% endfor %}</span>
+              <span style="color: {{ P.muted }}; margin-left: 6px;">{{ "%.2f"|format(paper.score) }}</span>
+            </div>
+            <div style="padding-top: 4px;">
+              <a href="{{ paper.abs_url }}" style="font-size: 14px; font-weight: 600; color: {{ P.text }}; text-decoration: none; line-height: 1.45;">{{ paper.title }}</a>
+            </div>
+            <div style="font-size: 12px; color: {{ P.muted2 }}; padding-top: 3px;">
+              {{ paper.authors[:2]|join(", ") }}{% if paper.authors|length > 2 %} et al.{% endif %} &middot; {{ paper.categories|join(" / ") }}
+            </div>
+            <div style="font-size: 13px; color: {{ P.body }}; line-height: 1.72; padding-top: 6px;">{{ paper.brief_zh }}</div>
+            <details style="padding-top: 4px;">
+              <summary style="cursor: pointer; font-size: 11.5px; color: {{ P.muted }};">展开中英文摘要</summary>
+              <div style="padding: 8px 0 0 12px; border-left: 2px solid {{ P.line }};">
+                <div style="font-size: 12.5px; color: {{ P.body2 }}; line-height: 1.85;">{{ paper.chinese_summary }}</div>
+                <div style="font-size: 12px; color: {{ P.muted5 }}; line-height: 1.72; font-style: italic; padding-top: 8px;">{{ paper.summary }}</div>
+              </div>
+            </details>
+            <div style="padding-top: 7px;">
+              <a href="{{ paper.pdf_url }}" style="font-size: 11px; color: {{ P.read }}; text-decoration: none;">PDF</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        </table>
+      </td>
+    </tr>
+    {% endif %}
+
+    {% if secondary or talks %}
+    {# -- 世界在动：二手解读与会议报告，每条标注来源 -- #}
+    <tr>
+      <td style="padding: 26px 40px 6px; background: {{ P.tint_field }};">
+        <div style="font-size: 10.5px; letter-spacing: 2px; color: {{ P.field }}; font-weight: 700;">THE FIELD</div>
+        <div style="font-size: 21px; font-weight: 700; color: {{ P.text }}; padding-top: 6px; padding-left: 11px; border-left: 4px solid {{ P.field }}; line-height: 1.3;">
+          世界在动
+          <span style="float: right; font-size: 10.5px; font-weight: 400; color: {{ P.muted3 }}; letter-spacing: 0; padding-top: 10px;">别人写好的解读，省你读原文的时间</span>
+        </div>
+        <div style="border-top: 1px solid {{ P.panel4 }}; margin-top: 12px;"></div>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 40px 4px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+
+        {% for item in secondary %}
+        {% set tone = P.src_eso %}
+        {% if "Astrobites" in item.source %}{% set tone = P.warn %}{% elif "ESO" in item.source %}{% set tone = P.ok %}{% else %}{% set tone = P.src_aas %}{% endif %}
+        <tr>
+          <td style="padding: 11px 0 11px; border-bottom: 1px solid {{ P.line2 }};">
+            <div style="font-size: 10px; letter-spacing: 0.4px;">
+              <span style="display: inline-block; padding: 1px 7px; border-radius: 3px; background: {{ tone }}; color: {{ P.card }}; font-weight: 700;">{{ item.source }}</span>
+              {% if item.published %}<span style="color: {{ P.faint }}; padding-left: 6px;">{{ item.published[:10] }}</span>{% endif %}
+            </div>
+            <div style="padding-top: 4px;">
+              <a href="{{ item.url }}" style="color: {{ P.text }}; text-decoration: none; font-weight: 600; font-size: 14px; line-height: 1.45;">{% if item.title_zh %}{{ item.title_zh }}{% else %}{{ item.title }}{% endif %}</a>
+            </div>
+            {% if item.title_zh %}<div style="padding-top: 5px;"><span style="display: inline-block; font-size: 9px; letter-spacing: 0.8px; color: {{ P.muted }}; background: {{ P.chip_bg }}; border-radius: 3px; padding: 1px 6px; margin-right: 7px; vertical-align: 1px;">EN</span><span style="font-size: 11.5px; color: {{ P.muted }}; font-style: italic; line-height: 1.5;">{{ item.title }}</span></div>{% endif %}
+            {% if item.text_zh %}<div style="font-size: 13.5px; color: {{ P.body }}; line-height: 1.95; padding-top: 7px;">{{ item.text_zh }}</div>{% endif %}
+            {% if item.text and not item.text_zh %}<div style="font-size: 12.5px; color: {{ P.muted4 }}; line-height: 1.8; padding-top: 5px;">{{ item.text }}</div>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+
+        {% if talks %}
+        <tr><td style="padding: 16px 0 4px; font-size: 11px; font-weight: 700; color: {{ P.pulse }}; letter-spacing: 0.4px;">会议报告 · {{ talks|length }} 条</td></tr>
+        {% for item in talks %}
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid {{ P.line2 }};">
+            {% if item.url %}<a href="{{ item.url }}" style="color: {{ P.text }}; text-decoration: none; font-weight: 600; font-size: 13.5px; line-height: 1.45;">{% if item.title_zh %}{{ item.title_zh }}{% else %}{{ item.title }}{% endif %}</a>{% else %}<span style="font-weight: 600; font-size: 13.5px;">{{ item.title }}</span>{% endif %}
+            <div style="font-size: 11px; color: {{ P.muted }}; padding-top: 3px;">
+              <span style="display: inline-block; padding: 1px 7px; border-radius: 3px; background: {{ P.pulse }}; color: {{ P.card }}; font-weight: 700; font-size: 10px;">{{ item.source }}</span>
+              {% if item.meta["讲者"] %}<span style="color: {{ P.muted }}; padding-left: 6px;">{{ item.meta["讲者"] }}</span>{% endif %}
+              {% if item.published %}<span style="color: {{ P.faint }}; padding-left: 6px;">{{ item.published[:10] }}</span>{% endif %}
+            </div>
+            {% if item.title_zh %}<div style="padding-top: 4px;"><span style="display: inline-block; font-size: 9px; letter-spacing: 0.8px; color: {{ P.muted }}; background: {{ P.chip_bg }}; border-radius: 3px; padding: 1px 6px; margin-right: 7px; vertical-align: 1px;">EN</span><span style="font-size: 11.5px; color: {{ P.muted }}; font-style: italic; line-height: 1.5;">{{ item.title }}</span></div>{% endif %}
+            {% if item.text_zh %}<div style="font-size: 13px; color: {{ P.body }}; line-height: 1.9; padding-top: 5px;">{{ item.text_zh }}</div>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+
+        </table>
+      </td>
+    </tr>
+    {% endif %}
+
+    {% if trend %}
+    {# -- 本周趋势：只在状态文件积累够两天后才出现 -- #}
+    <tr>
+      <td style="padding: 20px 40px 4px;">
+        <div style="font-size: 12px; font-weight: 600; color: {{ P.text }}; letter-spacing: 0.5px; border-bottom: 1px solid {{ P.line }}; padding-bottom: 6px;">
+          本周投稿量变化
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 40px 16px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+        {% for row in trend %}
+        <tr>
+          <td style="padding: 4px 0; font-size: 12px; color: {{ P.body }}; width: 120px;">{{ row.label }}</td>
+          <td style="padding: 4px 0; font-size: 12px; color: {{ P.muted4 }};">本周 {{ row.this_week }} 篇 · 上周 {{ row.last_week }} 篇</td>
+          <td style="padding: 4px 0; font-size: 12px; text-align: right; font-weight: 600; color: {{ P.bad if row.arrow == '↑' else (P.ok if row.arrow == '↓' else P.muted) }};">{{ row.arrow }} {{ row.label_text }}</td>
+        </tr>
+        {% endfor %}
+        </table>
+      </td>
+    </tr>
+    {% endif %}
+
     {# -- 页脚 -- #}
     <tr>
-      <td style="background: #f8f9fb; padding: 20px 40px; border-top: 1px solid #e8ecf1;">
+      <td style="background: {{ P.footer_bg }}; padding: 20px 40px; border-top: 1px solid {{ P.line }};">
         <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
-          <td style="font-size: 11px; color: #aab8c2;">
+          <td style="font-size: 11px; color: {{ P.faint2 }};">
             由 Daily arXiv Digest 自动生成 &middot; GitHub Actions
+            {% if sources %}
+            <div style="padding-top: 4px;">
+              信息源：{% for src in sources %}{{ src.name }} {% if src.ok %}&#10003;{% else %}&#10007;{% endif %}{% if not loop.last %} &middot; {% endif %}{% endfor %}
+            </div>
+            {% endif %}
+            {% if attach_name %}
+            <div style="padding-top: 4px;">已附 HTML 文件 <span style="color: {{ P.muted }};">{{ attach_name }}</span> &middot; 下载后可直接转发</div>
+            {% endif %}
           </td>
-          <td style="font-size: 11px; color: #aab8c2; text-align: right;">
+          <td style="font-size: 11px; color: {{ P.faint2 }}; text-align: right;">
             {{ generated_at }}
           </td>
         </tr>
