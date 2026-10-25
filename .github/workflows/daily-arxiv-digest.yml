@@ -1,16 +1,26 @@
 name: Daily arXiv Digest
 
+# ── 触发方式 ────────────────────────────────────────────────
+# cron 用的是 UTC。
+#   30 5 * * *  = 13:30 北京 = 01:30 美东
+# arXiv 每天 20:00 ET 发当日公告，这个点拿到的是"昨天的公告 + 今天凌晨前的新提交"，
+# 不会踩空。别改成 0:37 UTC —— 那是 19:37 ET，冬令时比公告早 23 分钟，会整天空跑。
 on:
   schedule:
-    # 05:30 UTC = 13:30 北京 = 01:30 ET（美东）。arXiv 的当日公告在 20:00 ET，
-    # 这个点跑拿到的永远是"昨天的公告 + 今天凌晨前的新提交"，不会踩空。
     - cron: "30 5 * * *"
-  workflow_dispatch:
+  workflow_dispatch: # Actions 页面可以手动点一次
 
+# 回写 state.json 需要写权限；同时避免仓库 60 天无活动被 GitHub 停掉定时任务
 permissions:
-  contents: write        # 回写 state.json，避免 60 天无活动被停用定时任务
+  contents: write
+
+# 防止手动触发与定时任务撞车（两次同时跑会重复发信）
+concurrency:
+  group: daily-digest
+  cancel-in-progress: false
 
 jobs:
+  # 先跑 22 项离线自检：不联网、不花钱。挂了就不发信。
   selfcheck:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -19,6 +29,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Offline self-check
@@ -37,66 +48,47 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
       - name: Send digest
         env:
-          FIELDS: ${{ vars.FIELDS }}
-          ARXIV_CATEGORIES: ${{ vars.ARXIV_CATEGORIES }}
-          ARXIV_KEYWORDS: ${{ vars.ARXIV_KEYWORDS }}
-          DIGEST_TIMEZONE: ${{ vars.DIGEST_TIMEZONE }}
-          ARXIV_FETCH_MAX_RESULTS: ${{ vars.ARXIV_FETCH_MAX_RESULTS }}
-          ARXIV_PAGE_SIZE: ${{ vars.ARXIV_PAGE_SIZE }}
-          ARXIV_MAX_PAGES: ${{ vars.ARXIV_MAX_PAGES }}
-          ARXIV_PAGE_DELAY_SECONDS: ${{ vars.ARXIV_PAGE_DELAY_SECONDS }}
-          ARXIV_REQUEST_TIMEOUT: ${{ vars.ARXIV_REQUEST_TIMEOUT }}
-          ARXIV_REQUEST_RETRIES: ${{ vars.ARXIV_REQUEST_RETRIES }}
-          ARXIV_RATE_LIMIT_BACKOFF_BASE: ${{ vars.ARXIV_RATE_LIMIT_BACKOFF_BASE }}
-          ARXIV_RATE_LIMIT_BACKOFF_MAX: ${{ vars.ARXIV_RATE_LIMIT_BACKOFF_MAX }}
-          ARXIV_RATE_LIMIT_BACKOFF_JITTER: ${{ vars.ARXIV_RATE_LIMIT_BACKOFF_JITTER }}
-          ARXIV_RATE_LIMIT_GRACEFUL: ${{ vars.ARXIV_RATE_LIMIT_GRACEFUL }}
-          MAX_PAPERS: ${{ vars.MAX_PAPERS }}
-          MAX_LLM_PAPERS: ${{ vars.MAX_LLM_PAPERS }}
-          MAX_ABSTRACT_CHARS: ${{ vars.MAX_ABSTRACT_CHARS }}
-          MIN_RATING: ${{ vars.MIN_RATING }}
-          LOOKBACK_DAYS: ${{ vars.LOOKBACK_DAYS }}
-          DEEP_PAPERS: ${{ vars.DEEP_PAPERS }}
-          BRIEF_PAPERS: ${{ vars.BRIEF_PAPERS }}
-          LLM_BATCH_SIZE: ${{ vars.LLM_BATCH_SIZE }}
+          # ── 必需：在 Settings → Secrets and variables → Actions → Secrets ──
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
-          ANALYSIS_ENABLED: ${{ vars.ANALYSIS_ENABLED }}
-          ANALYSIS_EXTRACT_MODEL: ${{ vars.ANALYSIS_EXTRACT_MODEL }}
-          ANALYSIS_ASSESS_MODEL: ${{ vars.ANALYSIS_ASSESS_MODEL }}
-          PROFILE_PATH: ${{ vars.PROFILE_PATH }}
-          PACKS_DIR: ${{ vars.PACKS_DIR }}
-          FULLTEXT_ENABLED: ${{ vars.FULLTEXT_ENABLED }}
-          FULLTEXT_MAX_CHARS: ${{ vars.FULLTEXT_MAX_CHARS }}
-          FULLTEXT_MAX_PAGES: ${{ vars.FULLTEXT_MAX_PAGES }}
-          FULLTEXT_TIMEOUT: ${{ vars.FULLTEXT_TIMEOUT }}
-          CALENDAR_ENABLED: ${{ vars.CALENDAR_ENABLED }}
-          CALENDAR_EVENTS_PATH: ${{ vars.CALENDAR_EVENTS_PATH }}
-          CALENDAR_CONFERENCES_PATH: ${{ vars.CALENDAR_CONFERENCES_PATH }}
-          SOURCES_ENABLED: ${{ vars.SOURCES_ENABLED }}
-          SOURCES_PATH: ${{ vars.SOURCES_PATH }}
-          SOURCES_MAX_ITEMS: ${{ vars.SOURCES_MAX_ITEMS }}
-          STATE_PATH: ${{ vars.STATE_PATH }}
-          TREND_ENABLED: ${{ vars.TREND_ENABLED }}
-          ZOTERO_API_KEY: ${{ secrets.ZOTERO_API_KEY }}
-          ZOTERO_USER_ID: ${{ secrets.ZOTERO_USER_ID }}
-          ZOTERO_LIBRARY_TYPE: ${{ vars.ZOTERO_LIBRARY_TYPE }}
-          ZOTERO_COLLECTION_ID: ${{ vars.ZOTERO_COLLECTION_ID }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
+
+          # ── 可选：同上页面 → Variables。留空即用代码里的默认值 ──
+          # 模型端点
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          # 内容
+          FIELDS: ${{ vars.FIELDS }}
+          DEEP_PAPERS: ${{ vars.DEEP_PAPERS }}
+          BRIEF_PAPERS: ${{ vars.BRIEF_PAPERS }}
+          ANALYSIS_ENABLED: ${{ vars.ANALYSIS_ENABLED }}
+          ANALYSIS_EXTRACT_MODEL: ${{ vars.ANALYSIS_EXTRACT_MODEL }}
+          ANALYSIS_ASSESS_MODEL: ${{ vars.ANALYSIS_ASSESS_MODEL }}
+          FULLTEXT_ENABLED: ${{ vars.FULLTEXT_ENABLED }}
+          # 板块开关
+          PULSE_ENABLED: ${{ vars.PULSE_ENABLED }}
+          RADAR_ENABLED: ${{ vars.RADAR_ENABLED }}
+          CALENDAR_ENABLED: ${{ vars.CALENDAR_ENABLED }}
+          TRANSLATE_ENABLED: ${{ vars.TRANSLATE_ENABLED }}
+          # 样式
+          EMAIL_THEME: ${{ vars.EMAIL_THEME }}
+          EMAIL_ATTACH_HTML: ${{ vars.EMAIL_ATTACH_HTML }}
+          # 时区
+          DIGEST_TIMEZONE: ${{ vars.DIGEST_TIMEZONE }}
         run: python -m arxiv_digest.main
 
+      # 把 state.json 提交回来：跨天去重靠它；顺便让仓库保持活动，定时任务不会被停
       - name: Persist state
         if: always()
         run: |
