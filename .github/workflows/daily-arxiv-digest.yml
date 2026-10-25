@@ -99,16 +99,41 @@ jobs:
       - name: Persist state
         if: always()
         run: |
+          BRANCH="${GITHUB_REF_NAME}"
           if [ ! -f state.json ]; then
             echo "没有 state.json，跳过"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add state.json
-          if git diff --cached --quiet; then
-            echo "state.json 没有变化"
-            exit 0
-          fi
-          git commit -m "chore: update digest state $(date -u +%F)"
-          git push
+
+          # 这次跑出来的状态先存到临时位置，后面每轮重试都从它恢复
+          cp state.json /tmp/state.json
+
+          # 为什么这么做：定时任务和你本地提交会同时改这个分支，直接 push 必然被拒。
+          # 做法是先把仓库挪到远端最新，再贴回这一份 state.json —— 永远只提交这一个文件，
+          # 不合并、不 rebase，所以不会产生冲突，也不会把别人推的内容覆盖掉。
+          for attempt in 1 2 3; do
+            git fetch --quiet origin "$BRANCH"
+            git reset --mixed --quiet "origin/$BRANCH"
+            cp /tmp/state.json state.json
+            git add state.json
+
+            if git diff --cached --quiet; then
+              echo "state.json 与远端一致，无需提交"
+              exit 0
+            fi
+
+            git commit --quiet -m "chore: update digest state $(TZ=${DIGEST_TIMEZONE:-Asia/Shanghai} date +%F)"
+
+            if git push --quiet origin "HEAD:$BRANCH"; then
+              echo "状态已提交并推送"
+              exit 0
+            fi
+
+            echo "第 ${attempt} 次推送被拒（远端又动了），重试"
+            sleep 5
+          done
+
+          echo "状态推送失败：邮件已发出，但去重记录没写回，下次可能重复推送。" >&2
+          exit 1
