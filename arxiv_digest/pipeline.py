@@ -188,6 +188,11 @@ def _collect_world(
     mark_seen(state, secondary, day=day)
     mark_seen(state, talks, day=day)
 
+    if not results:
+        LOGGER.warning(
+            "「世界在动」没有内容：没有任何源被实际抓取。"
+            "检查 SOURCES_ENABLED、config/sources.yaml 是否存在、FIELDS 是否把它们全过滤掉了。"
+        )
     for result in results:
         if result.ok:
             LOGGER.info("源 %s：%d 条", result.name, len(result.items))
