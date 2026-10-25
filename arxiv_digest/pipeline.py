@@ -6,6 +6,7 @@ from dataclasses import dataclass, replace
 from datetime import date, datetime
 from pathlib import Path
 from typing import Sequence
+from zoneinfo import ZoneInfo
 
 from .analysis import PROMPT_VERSION, analyze_papers
 from .arxiv_client import fetch_recent_papers
@@ -168,6 +169,8 @@ def _collect_world(
         cadences = source_ids(config.sources_path)
         today = date.fromisoformat(day)
         skip = due_ids(state, cadences, today=today)
+        if skip:
+            LOGGER.info("按抓取频率跳过：%s（今天已经抓过）", "、".join(sorted(skip)))
         results = collect_sources(
             config.sources_path,
             fields=tuple(config.fields),
@@ -190,6 +193,12 @@ def _collect_world(
             LOGGER.info("源 %s：%d 条", result.name, len(result.items))
         else:
             LOGGER.info("源 %s 失败：%s", result.name, result.error)
+    if results and not secondary and not talks:
+        LOGGER.warning(
+            "「世界在动」为空：%d 个源都拿到了内容，但全部已在 state.json 里推送过。"
+            "想重看就往 state.json 里删掉对应的 seen/fetched 记录。",
+            len(results),
+        )
     return results, secondary, talks
 
 
@@ -478,8 +487,23 @@ def _fetch_with_adaptive_window(config: Config) -> tuple[list[Paper], int]:
     return papers, used
 
 
+def _digest_today(config: Config) -> date:
+    """"今天"按 DIGEST_TIMEZONE 算，不按运行机器的时区。
+
+    GitHub Actions 跑在 UTC：北京时间 01:22 触发时，UTC 还是前一天
+    17:22。若按系统时区取日期，就会和昨天的 state.json 撞成同一天，
+    导致所有"每天抓一次"的源被当成"今天已经抓过"而整体跳过。
+    """
+
+    try:
+        return datetime.now(ZoneInfo(config.digest_timezone)).date()
+    except Exception:  # 时区名写错时不致命，退回系统本地时间
+        LOGGER.warning("时区 %r 无法识别，改用系统本地时间。", config.digest_timezone)
+        return datetime.now().date()
+
+
 def run_pipeline(config: Config, *, persist_state: bool = True) -> PipelineResult:
-    today = datetime.now().date()
+    today = _digest_today(config)
     day = today.isoformat()
     state = load_state(config.state_path)
 

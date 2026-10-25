@@ -1,6 +1,6 @@
 [project]
 name = "daily-arxiv-digest"
-version = "0.11.1"
+version = "0.11.2"
 description = "Daily arXiv paper digest with Chinese summaries"
 requires-python = ">=3.11"
 dependencies = [
