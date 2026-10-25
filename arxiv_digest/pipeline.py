@@ -16,7 +16,7 @@ from .fulltext import DEFAULT_MAX_PAGES, fetch_fulltext, pdf_url_for
 from .feedback import apply_feedback, load_feedback
 from .llm import generate_digest_content
 from .models import Paper
-from .packs import load_packs, select_packs
+from .packs import collect_categories, dispatch, load_packs, select_packs
 from .profile import load_profile
 from .pulse import Pulse, compose_pulse, count_topics, fallback_pulse, materials_from
 from .radar import Radar, all_categories, annotate_radar, load_radar, select_hits
@@ -449,6 +449,54 @@ def _write_digest_json(
         LOGGER.warning("写入 digest JSON 失败（%s）：%s", path_text, exc)
 
 
+def _resolve_categories(config: Config) -> list[str]:
+    """抓哪些分类：显式配了 ARXIV_CATEGORIES 就用它，否则由所选领域包取并集。
+
+    这样"勾领域包"才是真的生效——不然用户改了 `FIELDS` 却发现抓来的还是
+    astro-ph.GA/CO，领域包就只是个装饰。都没有时退回天文两分类。
+    """
+
+    if config.arxiv_categories:
+        return list(config.arxiv_categories)
+    try:
+        packs = select_packs(load_packs(config.packs_dir), config.fields)
+        categories = list(collect_categories(packs))
+    except Exception as exc:
+        LOGGER.warning("领域包读取失败（%s），退回默认分类。", exc)
+        categories = []
+    if categories:
+        LOGGER.info("按领域包解析出抓取分类：%s", ", ".join(categories))
+        return categories
+    return ["astro-ph.GA", "astro-ph.CO"]
+
+
+def _annotate_pack_reasons(config: Config, papers: list[Paper]) -> list[Paper]:
+    """给每篇补一条"为什么它在"的真实理由。
+
+    排序分只由关键词与 Zotero 相似度解释，分类匹配的贡献却是隐形的；
+    于是没设关键词时整列显示一句英文占位符，读者误以为是判据。
+    这里用领域包分派结果补上，让"按领域包匹配"真的可见。
+    """
+
+    try:
+        packs = select_packs(load_packs(config.packs_dir), config.fields)
+    except Exception as exc:
+        LOGGER.warning("领域包读取失败（%s），跳过匹配理由。", exc)
+        return papers
+    if not packs:
+        return papers
+
+    annotated: list[Paper] = []
+    for paper in papers:
+        pack = dispatch(packs, paper.categories)
+        label = "通用判断" if pack is None or pack.is_generic else f"领域包：{pack.name}"
+        if label in paper.score_reasons:
+            annotated.append(paper)
+            continue
+        annotated.append(replace(paper, score_reasons=[*paper.score_reasons, label]))
+    return annotated
+
+
 def _fetch_with_adaptive_window(config: Config) -> tuple[list[Paper], int]:
     """回看窗口自适应。
 
@@ -463,10 +511,11 @@ def _fetch_with_adaptive_window(config: Config) -> tuple[list[Paper], int]:
 
     papers: list[Paper] = []
     used = configured
+    categories = _resolve_categories(config)
     for days in candidates:
         used = days
         papers = fetch_recent_papers(
-            config.arxiv_categories,
+            categories,
             days,
             max_results=config.arxiv_fetch_max_results,
             page_size=config.arxiv_page_size,
@@ -535,6 +584,7 @@ def run_pipeline(config: Config, *, persist_state: bool = True) -> PipelineResul
         ranked_candidates = apply_feedback(feedback, ranked_candidates)
         LOGGER.info("已应用反馈偏好：%d 条记录", len(feedback.votes))
     ranked = filter_by_min_rating(ranked_candidates, config.min_rating)[: config.max_papers]
+    ranked = _annotate_pack_reasons(config, ranked)
     summary, enriched = generate_digest_content(
         config.openai_api_key,
         config.openai_model,

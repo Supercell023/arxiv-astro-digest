@@ -171,7 +171,7 @@ def load_config() -> Config:
     _load_dotenv_if_available()
 
     return Config(
-        arxiv_categories=_split_csv(_env("ARXIV_CATEGORIES", "astro-ph.GA,astro-ph.CO")),
+        arxiv_categories=_split_csv(_env("ARXIV_CATEGORIES", "")),
         arxiv_keywords=_split_csv(_env("ARXIV_KEYWORDS", "")),
         digest_timezone=_env("DIGEST_TIMEZONE", "Asia/Shanghai"),
         arxiv_fetch_max_results=_env_int("ARXIV_FETCH_MAX_RESULTS", 100),
