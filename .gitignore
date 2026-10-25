@@ -10,3 +10,7 @@ build/
 .vscode/
 preview.html
 preview*.html
+readme_*.html
+readme_*.png
+shot_*.png
+preview_dark_*.png
