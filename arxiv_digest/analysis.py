@@ -103,6 +103,36 @@ def _clip(text: str, limit: int = MAX_TEXT_CHARS) -> str:
     return text[:limit].rstrip() + " …"
 
 
+def _excerpt(text: str, limit: int = MAX_FULLTEXT_PROMPT_CHARS) -> str:
+    """在 prompt 预算内挑全文：保留开头，再补含样本/筛选/系统误差关键词的句子。
+
+    以前直接截前 N 个字符，论文一长就只剩引言：数据、处理、系统误差都被截在
+    预算之外，精读卡于是满屏"全文节选未检出"（2026-10-26 本地实跑复现）。
+    """
+    if limit <= 0 or len(text) <= limit:
+        return text
+    from .fulltext import condense  # 局部导入：fulltext 不依赖 analysis，避免模块级耦合
+
+    return condense(text, limit)
+
+
+def _strip_missing_notes(value: str) -> str:
+    """去掉正文里"全文节选未检出"这类内部占位句，别把它们写进邮件正文。
+
+    只删标记本身、收拾留下的重复标点，不整句丢弃——标记常和真实信息同句。
+    """
+    if not value:
+        return value
+    cleaned = value
+    for note in (MISSING_FULLTEXT, MISSING):  # 长的先删，避免留下"全文节选"
+        cleaned = cleaned.replace(note, "")
+    cleaned = re.sub(r"([，、；：])\s*[。；]", r"\1", cleaned)
+    cleaned = re.sub(r"([，。！？；：、])\1+", r"\1", cleaned)
+    cleaned = re.sub(r"[，、；：]\s*$", "", cleaned)
+    cleaned = re.sub(r"^[，、；：\s]+", "", cleaned)
+    return "" if not cleaned.strip("，。；、！？：;:, \t") else cleaned.strip()
+
+
 def _text(value: Any, default: str = "") -> str:
     if isinstance(value, str):
         return " ".join(value.split())
@@ -119,7 +149,7 @@ def build_extract_prompt(paper: Paper, *, fulltext: str | None = None) -> str:
             "下面是论文全文的节选：去掉了参考文献，保留开头与含样本/筛选/系统误差关键词的句子。\n"
             "图表数字与公式可能缺失，缺失的就当原文没提。"
         )
-        source_text = _clip(fulltext, MAX_FULLTEXT_PROMPT_CHARS)
+        source_text = _excerpt(fulltext)
     else:
         source_label = "摘要"
         source_note = "下面只有摘要。摘要通常不写样本筛选与误差校正，读不到就是没提。"
@@ -228,7 +258,7 @@ def extract_bundle(
     options: LLMOptions | None = None,
     cache_dir: str = "",
 ) -> ExtractBundle:
-    source = _clip(fulltext, MAX_FULLTEXT_PROMPT_CHARS) if fulltext else _clip(paper.summary)
+    source = _excerpt(fulltext) if fulltext else _clip(paper.summary)
     prompt = build_extract_prompt(paper, fulltext=fulltext)
     # 缓存键必须带上调用形状（thinking/temperature/max_tokens），否则改了开关仍会命中旧产物。
     option_key = json.dumps(asdict(options), sort_keys=True, ensure_ascii=False) if options else ""
@@ -565,13 +595,18 @@ def assess(
         else:
             LOGGER.warning("过滤评论中数字无法回查的字段：%s", key)
             values[key] = MISSING_FULLTEXT if basis == "fulltext" else MISSING
-    background_value = values.get("background", analysis.background)
+    for key in ("background", "method_detail"):
+        value = values.get(key)
+        if value:
+            values[key] = _strip_missing_notes(value)
+    background_value = values.get("background") or ""
     if facts.get("motivation", Fact()).is_missing and not background_value:
         values["background"] = "原文未提供可核对的研究动机"
-    if values.get("verdict") in (MISSING, MISSING_FULLTEXT):
-        fallback = values.get("result") or analysis.result
-        if fallback and not fallback.startswith(("摘要未提", "全文未提")):
-            values["verdict"] = fallback[:60]
+    verdict = _strip_missing_notes(values.get("verdict") or "")
+    if not verdict or verdict in (MISSING, MISSING_FULLTEXT):
+        fallback = _strip_missing_notes(values.get("result") or analysis.result)
+        verdict = fallback[:60] if fallback and fallback not in (MISSING, MISSING_FULLTEXT) else "原文未提供可核对的一句话结论"
+    values["verdict"] = verdict
     for key in ("for_you", "read_reason", "relevance_reason"):
         value = getattr(analysis, key)
         if not advice_supported(value, supported_text):
@@ -627,7 +662,7 @@ def analyze_paper(
         figures=figures,
         library=library,
         options=assess_options,
-        source_text=_clip(fulltext, MAX_FULLTEXT_PROMPT_CHARS) if fulltext else _clip(paper.summary),
+        source_text=_excerpt(fulltext) if fulltext else _clip(paper.summary),
     )
     summary = paper.chinese_summary if numbers_supported(paper.chinese_summary, paper.summary) else ""
     summary = summary or analysis.result

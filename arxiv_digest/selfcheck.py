@@ -478,6 +478,8 @@ def _check_render(preview_path: Path | None) -> str:
     for label in ("关键词", "Zotero", "分类"):
         assert label in html2, f"分数构成里缺「{label}」"
     assert "+2.40" in html2 and "+1.10" in html2, "分数构成没有显示数值"
+    # 推荐依据用真实字符分隔；写成 "&middot;" 会被 autoescape 二次转义成 "&amp;middot;"
+    assert "&amp;middot;" not in html2, "推荐依据的分隔符被二次转义"
 
     # ②研究背景 / 研究方法：不再受 20 分钟预算限制
     assert "研究背景" in html2 and "自检占位研究背景" in html2, "缺少研究背景模块"

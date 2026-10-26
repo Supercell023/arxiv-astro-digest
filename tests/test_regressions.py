@@ -19,7 +19,7 @@ from unittest.mock import patch, MagicMock
 from xml.etree.ElementTree import fromstring
 
 from arxiv_digest import main as entry, pipeline
-from arxiv_digest.analysis import analyze_paper, coerce_analysis, extract_bundle
+from arxiv_digest.analysis import _excerpt, _strip_missing_notes, analyze_paper, coerce_analysis, extract_bundle
 from arxiv_digest.calendar import empty_bundle
 from arxiv_digest.config import load_config
 from arxiv_digest.contracts import paper_from_dict, paper_to_dict
@@ -396,8 +396,29 @@ class EvidenceTests(WorkspaceCase):
         self.assertEqual(to_unicode(r'$\sqrt{x+y}$'), '√(x+y)')
         self.assertEqual(to_unicode(r'$\frac{a}{b}$'), 'a/b')
 
+    def test_fulltext_excerpt_keeps_method_sections_beyond_the_head(self):
+        filler = "Intro paragraph. " * 4000           # ~68k 字符，方法节被推到截断点之后
+        text = filler + "The covariance matrix comes from mock catalogs. " + filler
+        old = text[:36_000]
+        new = _excerpt(text, 36_000)
+        self.assertNotIn("covariance", old)
+        self.assertIn("covariance", new)
+        self.assertLessEqual(len(new), 36_000)
+
+    def test_missing_markers_are_not_written_back_into_prose(self):
+        self.assertEqual(_strip_missing_notes("样本量 245,236 个星系。全文节选未检出。"),
+                         "样本量 245,236 个星系。")
+        self.assertEqual(_strip_missing_notes("数据来自 MaNGA，全文节选未检出，样本 1787 个。"),
+                         "数据来自 MaNGA，样本 1787 个。")
+        self.assertEqual(_strip_missing_notes("摘要未提"), "")
+
 
 class IntegrationBoundaryTests(WorkspaceCase):
+    def test_duplicate_keywords_do_not_double_count_or_repeat(self):
+        with patch.dict(os.environ, {"ARXIV_KEYWORDS": "galaxy evolution, galaxy, Galaxy Evolution , "}, clear=False):
+            config = load_config()
+        self.assertEqual(config.arxiv_keywords, ["galaxy evolution", "galaxy"])
+
     def test_flag_comments_and_auto_preserve_defaults(self):
         from arxiv_digest.config import _env_bool, _env_tristate
         with patch.dict(os.environ, {"LLM_THINKING": " # use model default", "ANALYSIS_ENABLED": "true # enable"}):

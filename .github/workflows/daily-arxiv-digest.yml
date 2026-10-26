@@ -185,6 +185,10 @@ jobs:
           WORLD_NEWS_MAX_AGE_DAYS: ${{ vars.WORLD_NEWS_MAX_AGE_DAYS }}
           LLM_TIMEOUT: ${{ vars.LLM_TIMEOUT }}
           FULLTEXT_PARSE_TIMEOUT: ${{ vars.FULLTEXT_PARSE_TIMEOUT }}
+          PREPRINT_ENABLED: ${{ vars.PREPRINT_ENABLED }}
+          PREPRINT_TIMEOUT: ${{ vars.PREPRINT_TIMEOUT }}
+          PREPRINT_MAX_RESULTS: ${{ vars.PREPRINT_MAX_RESULTS }}
+          PREPRINT_ABSTRACT_LOOKUPS: ${{ vars.PREPRINT_ABSTRACT_LOOKUPS }}
           ZOTERO_SHARE_WITH_MODEL: ${{ vars.ZOTERO_SHARE_WITH_MODEL }}
           FEEDBACK_SIGNING_KEY: ${{ secrets.FEEDBACK_SIGNING_KEY }}
         run: python -B -m arxiv_digest.main

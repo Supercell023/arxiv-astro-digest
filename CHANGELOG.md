@@ -1,5 +1,15 @@
 # 变更记录
 
+## v0.15.1 — 本地试跑复查：全文节选不再只剩引言、推荐依据不再二次转义（2026-10-26，工作区）
+
+- **全文节选用"节选"而不是"前 N 字符"**：`analysis._excerpt` 超预算时走 `fulltext.condense`（开头 45% + 含样本/筛选/系统误差/协方差关键词的句子）。此前 `_clip(text, 36_000)` 直接截断，PDF 一长就只剩引言，精读卡满屏"全文节选未检出"（用户 22:16 的预览里 4 篇精读的 data/processing/method 都在截断点之后）。同一份缓存 PDF 复核：旧节选缺 `sampling`/`systematics`/`covariance`，新节选三者全含。
+- **不再把内部占位句写进正文**：新增 `_strip_missing_notes`，从 `background`/`method_detail`/`verdict` 里删掉"摘要未提/全文节选未检出"并收拾残留标点；`verdict` 为空时退回 `result` 前 60 字，再不行才写"原文未提供可核对的一句话结论"（此前会把"全文节选未检出"原样当结论显示）。
+- **推荐依据分隔符**：模板 `score_reasons|join(" &middot; ")` 被 autoescape 二次转义成 `&amp;middot;`，改为真实字符 `" · "`；自检加断言防回归。
+- **关键词去重**：`ARXIV_KEYWORDS` 里重复一项会重复计分、并在推荐依据里重复出现。`load_config()` 现在按顺序忽略大小写去重 `arxiv_keywords` / `arxiv_categories`（用户 `.env` 不必改）。
+- **CI 暴露 `PREPRINT_*`**：workflow `Send digest` 的 env 补上四个预印本开关，云端可用仓库变量覆盖。
+- **验证**：129 项离线测试（新增 3 项）、26 项自检通过；回放快照重渲染确认 `&amp;middot;` 计数为 0、` · ` 出现 51 次。
+- 仍未验收：真实模型输出的抽取质量（`deepseek-flash` 在 36k 字符节选上会把 data/processing/result 抽空，属模型能力边界，非代码缺陷）、SMTP/Zotero/反馈端点/云端 Actions。
+
 ## v0.15.0 — 期刊论文也能读全文：DOI 反查 arXiv 预印本（2026-10-26，工作区）
 
 - **期刊全文兜底**：新增 `arxiv_digest/preprints.py`，按标题反查 arXiv（标题相似度 ≥0.90、作者姓氏、年份 ±2 三道校验），命中就用预印本 PDF 做精读；`venue`、`doi`、`id` 仍是期刊，来源徽标不改写成 arXiv。未命中一律回退摘要，不会因为没有预印本而丢论文。

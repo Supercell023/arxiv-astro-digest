@@ -9,6 +9,23 @@ def _split_csv(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
+def _dedupe(items: list[str]) -> list[str]:
+    """按出现顺序去重（忽略大小写空白）。
+
+    关键词列表里重复一项会重复计分、并在"推荐依据"里重复出现；
+    用户手写 ARXIV_KEYWORDS 时很容易重复，所以在入口就收干净。
+    """
+    seen: set[str] = set()
+    unique: list[str] = []
+    for item in items:
+        key = item.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(item)
+    return unique
+
+
 def _env(name: str, default: str) -> str:
     return os.getenv(name) or default
 
@@ -248,8 +265,8 @@ def load_config() -> Config:
     _load_dotenv_if_available()
 
     return Config(
-        arxiv_categories=_split_csv(_env("ARXIV_CATEGORIES", "")),
-        arxiv_keywords=_split_csv(_env("ARXIV_KEYWORDS", "")),
+        arxiv_categories=_dedupe(_split_csv(_env("ARXIV_CATEGORIES", ""))),
+        arxiv_keywords=_dedupe(_split_csv(_env("ARXIV_KEYWORDS", ""))),
         digest_timezone=_env("DIGEST_TIMEZONE", "Asia/Shanghai"),
         arxiv_fetch_max_results=_env_int("ARXIV_FETCH_MAX_RESULTS", 100),
         arxiv_page_size=_env_int("ARXIV_PAGE_SIZE", 25),

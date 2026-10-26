@@ -1,6 +1,13 @@
 # 给下一位 AI 的交接说明
 
-最后更新：2026-10-26，**v0.15.0 工作区**。先读 [期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+最后更新：2026-10-26，**v0.15.1 工作区**。先读 [期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+
+## v0.15.1 当前进展：本地试跑复查（在 v0.15.0 之上）
+
+- 用户 22:16 的本地预览暴露三处：精读卡"全文节选未检出"满屏、一句话结论直接显示"全文节选未检出"、推荐依据显示 `&amp;middot;`。
+- 修复：`analysis._excerpt` 不再 `text[:36000]` 硬截断，改用 `fulltext.condense`（开头 45% + 样本/筛选/系统误差/协方差关键词句），同一份缓存 PDF 复核 `sampling`/`systematics`/`covariance` 三项从"旧节选缺"变为"新节选全含"；`_strip_missing_notes` 从 `background`/`method_detail`/`verdict` 删占位标记并收拾标点，verdict 空则退 `result[:60]`；模板分隔符改真实 `" · "`；`load_config()` 对 `ARXIV_KEYWORDS`/`ARXIV_CATEGORIES` 去重（重复关键词会重复计分）；workflow 补 `PREPRINT_*` 映射。
+- 验证：**129 项 Python 回归、26 项自检、`pip check` 通过**；回放快照重渲染 `&amp;middot;` 为 0、` · ` 为 51。仍未验收：SMTP、反馈端点、Zotero、云端 Actions、真实模型抽取质量（`deepseek-flash` 在 36k 字符节选上仍可能把 data/processing/result 抽空，属模型能力边界）。
+- 已知设计：预览只写 `runs/<run_id>.json`；`DIGEST_JSON_PATH` 默认 `digest.json`；`run_pipeline` 不确认投递，只有 `commit_delivery` 在发信成功后消费条目。
 
 ## v0.15 当前进展：期刊论文也能读全文
 
