@@ -278,7 +278,7 @@ def load_config() -> Config:
         else False,
         analysis_assess_thinking=_env_tristate("ANALYSIS_ASSESS_THINKING"),
         llm_thinking=_env_tristate("LLM_THINKING", _default_thinking()),
-        digest_json_path=_env("DIGEST_JSON_PATH", ""),
+        digest_json_path=_env("DIGEST_JSON_PATH", "digest.json"),
         profile_path=_env("PROFILE_PATH", "config/profile.yaml"),
         packs_dir=_env("PACKS_DIR", "config/packs"),
         fields=_split_csv(_env("FIELDS", "")),

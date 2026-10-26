@@ -577,6 +577,11 @@ class IntegrationBoundaryTests(WorkspaceCase):
         self.assertEqual(_safe_url("javascript:alert(1)"), "")
         self.assertEqual(_safe_url("https://example.invalid"), "https://example.invalid")
 
+    def test_default_digest_path_supports_feedback_metadata(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(load_config().digest_json_path, "digest.json",
+                             "默认要落 digest.json，否则反馈 CLI/服务学不到作者与分类")
+
     def test_merge_state_falls_back_when_report_missing(self):
         from scripts.merge_state import main as merge_main
         remote = self.root / "remote.json"
