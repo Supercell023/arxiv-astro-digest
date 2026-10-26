@@ -14,25 +14,34 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+import hashlib
+import json
+import re
+from pathlib import Path
+from .evidence import quote_in_source, numbers_supported, advice_supported
+import math
+from dataclasses import asdict, dataclass, replace
 from typing import Any, Mapping, Sequence
 
 from .fulltext import extract_figure_captions
-from .models import Analysis, Concept, Fact, KeyNumber, Paper, RedFlag
+from .models import Analysis, Concept, Fact, KeyNumber, Paper, RedFlag, ZoteroItem
 from .packs import Pack, dispatch
 from .profile import Profile
 from .llm_client import LLMOptions, call_json
+from .storage import atomic_json
 
 LOGGER = logging.getLogger(__name__)
 
-PROMPT_VERSION = "a2-b2"
+PROMPT_VERSION = "a4-b2-validated"
 FACT_KEYS: tuple[str, ...] = ("data", "processing", "systematics", "method", "result", "caveat")
+# motivation 只做背景模块的原料，不进七问面板（七问是"这篇做了什么"，背景是"为什么做"）
+EXTRACT_KEYS: tuple[str, ...] = FACT_KEYS + ("motivation",)
 MAX_TEXT_CHARS = 2200
 MAX_FULLTEXT_PROMPT_CHARS = 36_000
 MAX_NUMBERS = 6
 MAX_CONCEPTS = 4
 MISSING = "摘要未提"
-MISSING_FULLTEXT = "全文未提"
+MISSING_FULLTEXT = "全文节选未检出"
 
 _SYSTEM_EXTRACT = "你是严谨的论文信息抽取器。只抽取原文明确写出的内容，不推断、不补充领域常识。"
 _SYSTEM_ASSESS = "你是谨慎的领域评审助手。所有判断必须能追溯到给定事实；读不到就明说，不许编。"
@@ -44,6 +53,7 @@ _EXTRACT_SCHEMA = """{
   "method":      {"value": "...", "quote": "..."},
   "result":      {"value": "...", "quote": "..."},
   "caveat":      {"value": "...", "quote": "..."},
+  "motivation":  {"value": "这项研究为什么值得做：原文点明的空白、矛盾或未检验的假设", "quote": "原文中的连续英文原句"},
   "numbers": [
     {"label": "样本量", "value": "4.2 万星系团", "quote": "原文原句"},
     {"label": "红移范围", "value": "0.05 < z < 0.3", "quote": "原文原句"}
@@ -60,9 +70,11 @@ _ASSESS_SCHEMA = """{
   "verdict": "一句话结论（≤40 字）：这篇做了什么、结果是什么",
   "read_advice": "read|skim|archive",
   "read_reason": "为什么建议这样读（≤30 字）",
+  "background": "研究背景：这个方向现在卡在哪、本文要回答什么（≤220 字）",
+  "method_detail": "方法详解：数据怎么处理、估计量怎么定义、拟合与协方差怎么设（≤360 字）",
   "data": "...", "processing": "...", "systematics": "...",
   "method": "...", "result": "...", "caveat": "...", "for_you": "...",
-  "chain": ["数据/样本", "切选与完备性", "误差与标定", "估计量/统计量", "结论"],
+  "chain": ["数据/样本", "切选与完备性", "误差与标定", "估计量/统计量", "拟合设定", "结论"],
   "actions": ["具体动作 1", "具体动作 2", "具体动作 3"],
   "red_flags": [{"flag": "领域包里的某条红旗", "status": "discussed|partial|missing", "note": "一句话"}],
   "concepts": [{"term": "术语", "gloss": "一句话解释"}],
@@ -127,13 +139,18 @@ JSON 输出格式：
 - method：估计量、建模、拟合设定、协方差
 - result：主要结果，含关键数字
 - caveat：作者自己承认的局限
+- motivation：这项研究为什么值得做。要抓的是原文引子里那句"已知哪里不够"，
+  比如"不同巡天给出的 SZ 质量标定相差 20%，尚未判断是测量误差还是物理"。
+  只写原文说了的动机，不要替作者写领域综述。
 - numbers：从原文里摘出 3-6 个**能被独立引用的数**（样本量、红移范围、拟合区间、
   误差棒、显著性、偏差幅度）。label 用中文短语（如"样本量""红移范围""质量偏差"），
   value 保留原有单位与量级，quote 必须是原文原句。数不出来就返回空数组。
 - concepts：原文出现、而读者画像词表里没有的生僻术语，2-4 条。gloss 一句话说清它
   在这篇论文里指什么，不要写成教科书定义。
 
-value 用中文概括（不超过 60 字），quote 必须是原文中的连续英文片段（不超过 200 字符）。
+value 用中文概括：一般字段不超过 90 字，method 与 motivation 可以到 200 字
+（方法细节和动机常常一句话说不完，宁肯长一点也不要丢条件）。
+quote 必须是原文中的连续英文片段（不超过 200 字符）。
 
 标题：{paper.title}
 分类：{", ".join(paper.categories)}
@@ -150,7 +167,7 @@ def _coerce_fact(raw: Any) -> Fact:
 
 
 def coerce_facts(payload: Mapping[str, Any]) -> dict[str, Fact]:
-    return {key: _coerce_fact(payload.get(key)) for key in FACT_KEYS}
+    return {key: _coerce_fact(payload.get(key)) for key in EXTRACT_KEYS}
 
 
 def coerce_numbers(payload: Mapping[str, Any], *, limit: int = MAX_NUMBERS) -> tuple[KeyNumber, ...]:
@@ -207,21 +224,38 @@ def extract_bundle(
     *,
     fulltext: str | None = None,
     options: LLMOptions | None = None,
+    cache_dir: str = "",
 ) -> ExtractBundle:
-    payload = _chat_json(
-        client,
-        model,
-        _SYSTEM_EXTRACT,
-        build_extract_prompt(paper, fulltext=fulltext),
-        options=options,
-    )
-    facts = coerce_facts(payload)
+    source = _clip(fulltext, MAX_FULLTEXT_PROMPT_CHARS) if fulltext else _clip(paper.summary)
+    prompt = build_extract_prompt(paper, fulltext=fulltext)
+    cache_key = hashlib.sha256((PROMPT_VERSION + model + prompt).encode("utf-8")).hexdigest()
+    cache_path = Path(cache_dir) / "extract" / (cache_key + ".json") if cache_dir else None
+    payload = None
+    if cache_path and cache_path.is_file():
+        try:
+            loaded = json.loads(cache_path.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                payload = loaded
+        except (OSError, ValueError):
+            pass
+    if payload is None:
+        payload = _chat_json(client, model, _SYSTEM_EXTRACT, prompt, options=options)
+    facts = {key: fact if quote_in_source(fact.quote, source) and numbers_supported(fact.value, fact.quote or "") else Fact()
+             for key, fact in coerce_facts(payload).items()}
+    numbers = tuple(number for number in coerce_numbers(payload)
+                    if quote_in_source(number.quote, source)
+                    and numbers_supported(number.label + " " + number.value, number.quote or ""))
+    if cache_path and (any(not fact.is_missing for fact in facts.values()) or numbers):
+        try:
+            atomic_json(cache_path, payload)
+        except OSError:
+            LOGGER.warning("Stage A 缓存写入失败，继续本次分析。")
     missing = [key for key, fact in facts.items() if fact.is_missing]
     if missing:
         LOGGER.debug("%s 未能抽取：%s", paper.id, ", ".join(missing))
     return ExtractBundle(
         facts=facts,
-        numbers=coerce_numbers(payload),
+        numbers=numbers,
         concepts=coerce_concepts(payload),
     )
 
@@ -241,13 +275,27 @@ def extract_facts(
 
 def _facts_block(facts: Mapping[str, Fact]) -> str:
     lines: list[str] = []
-    for key in FACT_KEYS:
+    for key in EXTRACT_KEYS:
         fact = facts.get(key)
         if fact is None or fact.is_missing:
             lines.append(f"- {key}: null（原文未提）")
             continue
         quote = f"  ← \"{fact.quote}\"" if fact.quote else ""
         lines.append(f"- {key}: {fact.value}{quote}")
+    return "\n".join(lines)
+
+
+def _library_block(items: Sequence[ZoteroItem], *, limit: int = 24) -> str:
+    """把读者的 Zotero 库压成一段短清单，给 Stage B 当"我已经有什么"的坐标。"""
+
+    if not items:
+        return "（未配置 Zotero 或库为空）"
+    lines: list[str] = []
+    for item in items[:limit]:
+        tags = f"（{', '.join(item.tags)}）" if item.tags else ""
+        lines.append(f"- {item.title[:90]}{tags}")
+    if len(items) > limit:
+        lines.append(f"- ……另有 {len(items) - limit} 条")
     return "\n".join(lines)
 
 
@@ -261,6 +309,7 @@ def build_assess_prompt(
     basis: str = "abstract",
     numbers: Sequence[KeyNumber] = (),
     figures: Sequence[str] = (),
+    library: Sequence[ZoteroItem] = (),
 ) -> str:
     pack_block = pack.render_prompt_block() if pack is not None else "领域：未归类（判断能力低，请标注）"
     depth = depth_deep or profile.depth_deep
@@ -286,9 +335,13 @@ def build_assess_prompt(
 【论文所属领域】
 {pack_block}
 
+【读者已收藏（Zotero 库）】
+{_library_block(library)}
+
 【论文】
 标题：{paper.title}
-分类：{", ".join(paper.categories)}
+分类：{", ".join(paper.categories) or "（非 arXiv，期刊直投）"}
+期刊：{paper.venue or "arXiv 预印本"}
 发表：{paper.published:%Y-%m-%d}
 
 【已抽取事实（唯一可用信息源）】
@@ -310,6 +363,10 @@ def build_assess_prompt(
 4. relevance 衡量的是"对这位读者是否有用"，不是论文质量。
 5. for_you 必须是一个具体动作（"可以把它的质量标定流程用到 XX"），不许写"值得关注"。
 6. 每条正文 {depth}。
+7. **不要为阅读时长删内容**。这是存档文档，读者会按需翻，不是通勤路上读完的摘要。
+   背景与方法这两块宁长勿短，唯一的上限是"每句都要带信息"，不要写"具有重要意义"这类空话。
+8. 如果本文与【读者已收藏】里某条高度重合（同一对象、同一测量、只是样本更大），
+   在 for_you 或 caveat 里直接点名"与已收藏的《…》重复/增量"，不要当成全新方向推荐。
 {caveat_rule}
 
 【relevance_kind 取值】{kinds}
@@ -317,9 +374,16 @@ def build_assess_prompt(
 【要额外产出的分区】
 - verdict：一句话说清"这篇做了什么、结果是什么"，≤40 字。写在卡片最上方，读者只读这一句也能决定要不要点开。
 - read_advice + read_reason：read（值得今天花 3 分钟读）/ skim（看图表与方法即可）/ archive（留档，别今天读）。
-- chain：方法链条 4-6 步，每步一个短语（如"DES Y3 弱透镜 ΔΣ"→"richness 分箱"→"miscentering 建模"→"联合拟合"→"γ_cm 约束"）。
+- background：研究背景，≤220 字，回答"为什么要有这篇"。顺序：这个方向已知什么 → 卡在哪（矛盾/未检验假设/样本限制）
+  → 本文具体补哪一块。用 motivation 事实作骨架，可以补一两句领域坐标（如"同类测量在 XX 上差 2σ"），
+  但坐标必须能从 facts 里推出来，不能引入新数字。不要写教科书式定义（读者是博士生）。
+- method_detail：方法详解，≤360 字。比七问里的"方法"更具体：样本怎么选的、关键量怎么估的、
+  拟合的自由参数与先验、协方差/似然怎么搭的、有没有做 null test 或注入测试。
+  细节只能来自 facts；facts 里没有的环节就跳过，不要用"通常采用标准流程"填字数。
+- chain：方法链条 5-8 步，每步一个短语（如"DES Y3 弱透镜 ΔΣ"→"richness 分箱"→"miscentering 建模"→"联合拟合"→"γ_cm 约束"）。
   目的：让人 3 秒看懂这篇的骨架，而不是读完七问才知道它怎么做的。
 - actions：3 条**今天就能做**的动作（复用的流程、能对比的数据、能引用的结论），动宾结构，不要写"关注"。
+  行动数量如需自拟，使用“建议抽查 3 篇”这样的明确建议；论文的测量/样本数字仍只能来自 facts。
 - red_flags：把【本领域预置红旗】逐条反查，status 只能是 discussed / partial / missing；note 一句话说明依据。
   红旗一条都没踩也要照实写 discussed。
 - concepts：原文出现、读者画像词表外的术语 2-4 条，gloss 说明它在这篇里指什么。
@@ -342,7 +406,7 @@ def _clamp(value: Any, low: float = 0.0, high: float = 1.0) -> float:
         number = float(value)
     except (TypeError, ValueError):
         return low
-    return max(low, min(high, number))
+    return max(low, min(high, number)) if math.isfinite(number) else low
 
 
 def _confidence(value: Any) -> str:
@@ -369,9 +433,7 @@ def coerce_analysis(
     if isinstance(evidence_raw, (list, tuple)):
         evidence = tuple(text for item in evidence_raw if (text := _text(item)))
 
-    basis_text = _text(payload.get("basis"), basis).lower()
-    if basis_text not in {"abstract", "fulltext"}:
-        basis_text = basis
+    basis_text = basis  # input provenance belongs to the program, never the model
 
     missing_label = MISSING_FULLTEXT if basis_text == "fulltext" else MISSING
 
@@ -422,7 +484,9 @@ def coerce_analysis(
         verdict=_text(payload.get("verdict")),
         read_advice=advice,
         read_reason=_text(payload.get("read_reason")),
-        chain=string_tuple("chain", 6),
+        background=_text(payload.get("background")),
+        method_detail=_text(payload.get("method_detail")),
+        chain=string_tuple("chain", 8),
         numbers=tuple(numbers),
         figures=tuple(figures),
         actions=string_tuple("actions", 3),
@@ -442,13 +506,22 @@ def assess(
     basis: str = "abstract",
     numbers: Sequence[KeyNumber] = (),
     figures: Sequence[str] = (),
+    library: Sequence[ZoteroItem] = (),
     options: LLMOptions | None = None,
+    source_text: str = "",
 ) -> Analysis:
     prompt = build_assess_prompt(
-        paper, facts, profile, pack, basis=basis, numbers=numbers, figures=figures
+        paper,
+        facts,
+        profile,
+        pack,
+        basis=basis,
+        numbers=numbers,
+        figures=figures,
+        library=library,
     )
     payload = _chat_json(client, model, _SYSTEM_ASSESS, prompt, options=options)
-    return coerce_analysis(
+    analysis = coerce_analysis(
         payload,
         profile=profile,
         model=model,
@@ -456,6 +529,34 @@ def assess(
         numbers=numbers,
         figures=figures,
     )
+    values = {key: getattr(analysis, key) if not facts.get(key, Fact()).is_missing
+              else (MISSING_FULLTEXT if basis == "fulltext" else MISSING)
+              for key in FACT_KEYS}
+    supported_text = " ".join([fact.quote or "" for fact in facts.values()]
+                              + [number.quote or "" for number in numbers] + list(figures))
+    for key in (*FACT_KEYS, "background", "method_detail", "verdict"):
+        value = values.get(key, getattr(analysis, key))
+        if not numbers_supported(value, supported_text):
+            LOGGER.warning("过滤评论中数字无法回查的字段：%s", key)
+            values[key] = MISSING_FULLTEXT if basis == "fulltext" else MISSING
+    if facts.get("motivation", Fact()).is_missing:
+        values["background"] = "原文未提供可核对的研究动机"
+    for key in ("for_you", "read_reason", "relevance_reason"):
+        value = getattr(analysis, key)
+        if not advice_supported(value, supported_text):
+            values[key] = "未生成可核对的建议" if key == "for_you" else ""
+    values["actions"] = tuple(value for value in analysis.actions if advice_supported(value, supported_text))
+    values["chain"] = tuple(value for value in analysis.chain if numbers_supported(value, supported_text))
+    values["red_flags"] = tuple(flag for flag in analysis.red_flags
+        if numbers_supported(flag.note, supported_text)
+        and ((pack is not None and flag.flag in pack.red_flags) or numbers_supported(flag.flag, supported_text)))
+    values["concepts"] = tuple(concept for concept in analysis.concepts
+                                if numbers_supported(concept.term + " " + concept.gloss, source_text))
+    evidence = tuple(quote for quote in analysis.evidence if quote_in_source(quote, source_text))
+    return replace(analysis, **values, evidence=evidence, facts=dict(facts), source_text=source_text,
+                   source_sha256=hashlib.sha256(source_text.encode("utf-8")).hexdigest(),
+                   source_scope="excerpt" if basis == "fulltext" else "abstract",
+                   confidence=analysis.confidence if evidence else "low")
 
 
 # —— 编排 ——
@@ -474,12 +575,14 @@ def analyze_paper(
     extract_model: str,
     assess_model: str,
     fulltext: str | None = None,
+    library: Sequence[ZoteroItem] = (),
     extract_options: LLMOptions | None = None,
     assess_options: LLMOptions | None = None,
+    cache_dir: str = "",
 ) -> Paper:
-    pack = dispatch(packs, paper.categories)
+    pack = dispatch(packs, paper.categories, hint=paper.pack_hint, title=paper.title)
     basis = "fulltext" if fulltext else "abstract"
-    bundle = extract_bundle(client, extract_model, paper, fulltext=fulltext, options=extract_options)
+    bundle = extract_bundle(client, extract_model, paper, fulltext=fulltext, options=extract_options, cache_dir=cache_dir)
     figures = extract_figure_captions(fulltext) if fulltext else ()
     analysis = assess(
         client,
@@ -491,9 +594,12 @@ def analyze_paper(
         basis=basis,
         numbers=bundle.numbers,
         figures=figures,
+        library=library,
         options=assess_options,
+        source_text=_clip(fulltext, MAX_FULLTEXT_PROMPT_CHARS) if fulltext else _clip(paper.summary),
     )
-    summary = paper.chinese_summary or analysis.result
+    summary = paper.chinese_summary if numbers_supported(paper.chinese_summary, paper.summary) else ""
+    summary = summary or analysis.result
     return _copy_paper(paper, analysis=analysis, chinese_summary=summary)
 
 
@@ -507,8 +613,10 @@ def analyze_papers(
     assess_model: str,
     limit: int = 0,
     fulltexts: Mapping[str, str] | None = None,
+    library: Sequence[ZoteroItem] = (),
     extract_options: LLMOptions | None = None,
     assess_options: LLMOptions | None = None,
+    cache_dir: str = "",
 ) -> list[Paper]:
     """逐篇两阶段分析。单篇失败只影响那一篇（保留旧摘要），不中断整封信。"""
     targets = list(papers[:limit]) if limit and limit > 0 else list(papers)
@@ -526,8 +634,10 @@ def analyze_papers(
                 extract_model=extract_model,
                 assess_model=assess_model,
                 fulltext=texts.get(paper.id),
+                library=library,
                 extract_options=extract_options,
                 assess_options=assess_options,
+                cache_dir=cache_dir,
             )
         except Exception as exc:
             LOGGER.warning("两阶段分析失败（%s）：%s，保留原摘要。", paper.id, exc)

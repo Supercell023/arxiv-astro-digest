@@ -107,7 +107,16 @@
             "gloss": "改动复合历史，用它做 mock 检验 H0 回收是否无偏"
           }
         ],
-        "prompt_version": "a2-b2"
+        "prompt_version": "a3-b1",
+        "background": "星系团丰度函数的宇宙学约束力，取决于质量标定有多准。弱透镜标定给出的是统计意义上的平均质量，但投影的大尺度结构会额外贡献相关信号，把标定推偏；这一步偏多少，直接落到 σ8–Ωm 上。作者要回答的是：这类投影效应该不该在下一代巡天的误差预算里单列一项。",
+        "method_detail": "先用 N 体模拟构造带巡天选择函数的星系团光锥，再在同一批天区上叠加不同幅度的大尺度结构实现，得到「有/无投影」两套 mock。每套都跑完整的弱透镜剪切测量流程（测光红移、形状测量、ΔΣ 堆叠），把测得的质量偏差拟合成 richness、红移与投影尺度的函数。最后把该函数作为系统误差项注入丰度函数拟合，比较加入前后的参数偏移。"
+      },
+      "score_breakdown": {
+        "keyword": 5.6,
+        "zotero": 1.6,
+        "category": 0.2,
+        "library": 0.0,
+        "feedback": 0.0
       }
     },
     {
@@ -218,7 +227,16 @@
             "gloss": "同一批星系在不同巡天表里的测光与标签口径差异"
           }
         ],
-        "prompt_version": "a2-b2"
+        "prompt_version": "a3-b1",
+        "background": "星系的恒星形成历史通常用「主序 + 淬灭」两段来概括，但这两段的转折质量与环境依赖到底由什么物理决定，仍没有定论。如果转折质量随环境移动，说明环境里有额外的加热或剥离机制；如果不动，则更支持内禀的质量驱动。",
+        "method_detail": "从巡天光谱样本里按环境和恒星质量分箱，用 Hα 与 [OII] 的等值宽估计比恒星形成率，并对光纤孔径损失与消光做逐源校正。每个箱里拟合主序的斜率与弥散，再用双峰拟合定位转折点；箱间差异用自助法（bootstrap）估误差，并与模拟目录的同一流程结果对照。"
+      },
+      "score_breakdown": {
+        "keyword": 5.4,
+        "zotero": 1.2,
+        "category": 0.2,
+        "library": 0.0,
+        "feedback": 0.0
       }
     },
     {
@@ -313,8 +331,19 @@
             "gloss": "拟合铁发射的模板谱，用来把 FeII 混入从 Hβ 等线里剥出来"
           }
         ],
-        "prompt_version": "a2-b2"
-      }
+        "prompt_version": "a3-b1",
+        "background": "光度红移的离群率是弱透镜与星系聚类分析的主要系统误差来源之一。现有模板法在低信噪比端会系统性低估红移，而这一端的星系恰好是透镜信号的主要贡献者，于是偏差会顺着放大率估计传进宇宙学参数。",
+        "method_detail": "先把光谱样本按信噪比分层，训练一组随信噪比变化的红移估计器。再用交叉验证选出每层的阈值，避免过拟合；对离群率则改成对残差分布尾部直接建模，而不是假设高斯。最后把新流程套到完整的测光样本上，用剪切-红移交叉相关检验残留偏差。"
+      },
+      "score_breakdown": {
+        "keyword": 5.8,
+        "zotero": 0.0,
+        "category": 0.4,
+        "library": 0.0,
+        "feedback": 0.0
+      },
+      "venue": "ApJ",
+      "doi": "10.3847/1538-4357/ad8f21"
     },
     {
       "id": "2610.31181v1",
@@ -399,7 +428,16 @@
             "gloss": "用密度场反推星系本动速度，据此改正红移到距离的映射"
           }
         ],
-        "prompt_version": "a2-b2"
+        "prompt_version": "a3-b1",
+        "background": "本星系群之外的矮星系，是检验小尺度 ΛCDM 的关键对象，但它们的探测严重依赖成像深度与算法。在已知巡天里漏掉多少、漏掉的是哪一类，直接决定「卫星星系缺失」这个问题是真物理还是选择效应。",
+        "method_detail": "用注入-回收（injection-recovery）标定完备性：把人工矮星系按不同面亮度、有效半径与颜色注入真实图像，再跑一遍探测流程。把回收率拟合成面亮度与半径的二维函数，得到选择函数；最后把该函数作为权重施加到样本上，重估光度函数与空间分布。"
+      },
+      "score_breakdown": {
+        "keyword": 4.6,
+        "zotero": 0.6,
+        "category": 0.2,
+        "library": 0.0,
+        "feedback": 0.0
       }
     },
     {
@@ -425,7 +463,14 @@
       "rating": 3,
       "fetch_fulltext": false,
       "summary_zh": "LOFAR/uGMRT/MeerKAT 50–1284 MHz 观测 ORC J1555+2726，谱指数图支持激波再加速化石等离体子。",
-      "analysis": null
+      "analysis": null,
+      "score_breakdown": {
+        "keyword": 4.2,
+        "zotero": 0.0,
+        "category": 0.4,
+        "library": 0.0,
+        "feedback": 0.0
+      }
     },
     {
       "id": "2610.31469v1",
@@ -449,7 +494,14 @@
       "rating": 3,
       "fetch_fulltext": false,
       "summary_zh": "QUIJOTE-MFI 偏振同步辐射功率谱：EE/BB 都是单一幂律，α_EE=−3.24±0.12、α_BB=−3.81±0.34。",
-      "analysis": null
+      "analysis": null,
+      "score_breakdown": {
+        "keyword": 4.1,
+        "zotero": 0.0,
+        "category": 0.4,
+        "library": 0.0,
+        "feedback": 0.0
+      }
     },
     {
       "id": "2610.31441v1",
@@ -473,7 +525,14 @@
       "rating": 3,
       "fetch_fulltext": false,
       "summary_zh": "引力波衍射像的频率演化编码透镜投影质量分布，给出与核散射质量形状因子类比的理论框架。",
-      "analysis": null
+      "analysis": null,
+      "score_breakdown": {
+        "keyword": 3.4,
+        "zotero": 0.0,
+        "category": 0.2,
+        "library": 0.0,
+        "feedback": 0.0
+      }
     },
     {
       "id": "2610.31182v1",
@@ -498,7 +557,14 @@
       "rating": 3,
       "fetch_fulltext": false,
       "summary_zh": "XMM-Newton 等多波段数据刻画 LMC 的 DEM L36 超级气泡，中心存在显著的热气体 X 射线辐射。",
-      "analysis": null
+      "analysis": null,
+      "score_breakdown": {
+        "keyword": 3.0,
+        "zotero": 0.0,
+        "category": 0.4,
+        "library": 0.0,
+        "feedback": 0.0
+      }
     },
     {
       "id": "2610.31482v1",
@@ -521,7 +587,14 @@
       "rating": 3,
       "fetch_fulltext": false,
       "summary_zh": "用吸积演化模型解释 O 型星 ZAMS 缺失：大质量星在吸积结束前就开始氢燃烧，可见位置偏离标准零龄主序。",
-      "analysis": null
+      "analysis": null,
+      "score_breakdown": {
+        "keyword": 3.0,
+        "zotero": 0.0,
+        "category": 0.2,
+        "library": 0.0,
+        "feedback": 0.0
+      }
     },
     {
       "id": "2610.31626v1",
@@ -544,7 +617,16 @@
       "rating": 3,
       "fetch_fulltext": false,
       "summary_zh": "高红移 Lyα 森林一维功率谱的似然估计器，用像素级协方差处理缺测与观测效应。",
-      "analysis": null
+      "analysis": null,
+      "score_breakdown": {
+        "keyword": 2.6,
+        "zotero": 0.0,
+        "category": 0.4,
+        "library": 0.0,
+        "feedback": 0.0
+      },
+      "venue": "MNRAS",
+      "doi": "10.1093/mnras/stae2174"
     },
     {
       "id": "2610.31175v1",
@@ -562,7 +644,14 @@
       "abs_url": "https://arxiv.org/abs/2610.31175v1",
       "pdf_url": "https://arxiv.org/pdf/2610.31175v1",
       "score": 3.2,
-      "rating": 3
+      "rating": 3,
+      "score_breakdown": {
+        "keyword": 2.8,
+        "zotero": 0.0,
+        "category": 0.4,
+        "library": 0.0,
+        "feedback": 0.0
+      }
     },
     {
       "id": "2610.31168v1",
@@ -583,7 +672,14 @@
       "abs_url": "https://arxiv.org/abs/2610.31168v1",
       "pdf_url": "https://arxiv.org/pdf/2610.31168v1",
       "score": 3.2,
-      "rating": 3
+      "rating": 3,
+      "score_breakdown": {
+        "keyword": 3.0,
+        "zotero": 0.0,
+        "category": 0.2,
+        "library": 0.0,
+        "feedback": 0.0
+      }
     },
     {
       "id": "2610.31101v1",
@@ -601,7 +697,14 @@
       "abs_url": "https://arxiv.org/abs/2610.31101v1",
       "pdf_url": "https://arxiv.org/pdf/2610.31101v1",
       "score": 3.2,
-      "rating": 3
+      "rating": 3,
+      "score_breakdown": {
+        "keyword": 2.8,
+        "zotero": 0.0,
+        "category": 0.4,
+        "library": 0.0,
+        "feedback": 0.0
+      }
     },
     {
       "id": "2610.31081v1",
@@ -621,7 +724,14 @@
       "abs_url": "https://arxiv.org/abs/2610.31081v1",
       "pdf_url": "https://arxiv.org/pdf/2610.31081v1",
       "score": 3.2,
-      "rating": 3
+      "rating": 3,
+      "score_breakdown": {
+        "keyword": 3.0,
+        "zotero": 0.0,
+        "category": 0.2,
+        "library": 0.0,
+        "feedback": 0.0
+      }
     }
   ],
   "world": {

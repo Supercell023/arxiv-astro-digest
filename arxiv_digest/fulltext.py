@@ -13,12 +13,18 @@
 from __future__ import annotations
 
 import io
+import json
 import logging
 import re
 import ssl
 import time
 import urllib.error
 import urllib.request
+import hashlib
+import multiprocessing
+from pathlib import Path
+from itertools import islice
+from .storage import atomic_json
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,6 +32,8 @@ DEFAULT_MAX_CHARS = 40_000
 DEFAULT_MAX_PAGES = 40
 DEFAULT_TIMEOUT = 120
 DOWNLOAD_ATTEMPTS = 2
+MAX_PDF_BYTES = 25 * 1024 * 1024
+MAX_EXTRACT_CHARS = 500_000
 
 _REFERENCE_RE = re.compile(
     r"\n\s*(?:\d+\.?\s*)?(?:References|REFERENCES|Bibliography|BIBLIOGRAPHY)\s*(?:\n|$)"
@@ -101,7 +109,10 @@ def download_pdf(url: str, *, timeout: int = DEFAULT_TIMEOUT) -> bytes | None:
             with urllib.request.urlopen(  # noqa: S310 - 固定来自 arXiv 的 https 地址
                 request, timeout=timeout, context=_ssl_context()
             ) as response:
-                data = response.read()
+                data = response.read(MAX_PDF_BYTES + 1)
+                if len(data) > MAX_PDF_BYTES:
+                    LOGGER.warning("PDF 超过 25 MiB 上限，回退摘要。")
+                    return None
             break
         except Exception as exc:  # 网络抖动很常见，重试一次比整篇退回摘要划算
             last_error = exc
@@ -116,7 +127,7 @@ def download_pdf(url: str, *, timeout: int = DEFAULT_TIMEOUT) -> bytes | None:
     return data
 
 
-def extract_pdf_text(pdf_bytes: bytes, *, max_pages: int = DEFAULT_MAX_PAGES) -> str:
+def _extract_pdf_text(pdf_bytes: bytes, *, max_pages: int = DEFAULT_MAX_PAGES) -> str:
     """用 pypdf 抽文本。未安装或解析失败返回空串。"""
     try:
         from pypdf import PdfReader
@@ -126,18 +137,58 @@ def extract_pdf_text(pdf_bytes: bytes, *, max_pages: int = DEFAULT_MAX_PAGES) ->
 
     try:
         reader = PdfReader(io.BytesIO(pdf_bytes))
-        pages = list(reader.pages)[:max_pages]
+        pages = islice(reader.pages, max(0, max_pages))
     except Exception as exc:
         LOGGER.warning("解析 PDF 失败：%s", exc)
         return ""
 
     chunks: list[str] = []
+    used = 0
     for page in pages:
         try:
-            chunks.append(page.extract_text() or "")
+            chunk = (page.extract_text() or "")[:MAX_EXTRACT_CHARS - used]
+            chunks.append(chunk)
+            used += len(chunk)
+            if used >= MAX_EXTRACT_CHARS:
+                break
         except Exception as exc:  # 单页坏掉不该毁掉整篇
             LOGGER.debug("单页抽取失败：%s", exc)
     return "\n".join(chunks)
+
+
+def _pdf_worker(data: bytes, pages: int, connection) -> None:
+    try:
+        connection.send(_extract_pdf_text(data, max_pages=pages))
+    except Exception:
+        connection.send("")
+    finally:
+        connection.close()
+
+
+def extract_pdf_text(pdf_bytes: bytes, *, max_pages: int = DEFAULT_MAX_PAGES, timeout: int = 30) -> str:
+    """Parse in a disposable process so a stuck parser can actually be stopped."""
+    if len(pdf_bytes) > MAX_PDF_BYTES:
+        return ""
+    context = multiprocessing.get_context("spawn")
+    receiver, sender = context.Pipe(duplex=False)
+    process = context.Process(target=_pdf_worker, args=(pdf_bytes, max_pages, sender), daemon=True)
+    try:
+        process.start()
+        sender.close()
+        if receiver.poll(timeout):
+            return receiver.recv()
+        LOGGER.warning("PDF 解析超过 %s 秒，回退摘要。", timeout)
+        return ""
+    except (OSError, EOFError, RuntimeError):
+        LOGGER.warning("无法完成隔离 PDF 解析，回退摘要。")
+        return ""
+    finally:
+        if process.pid is not None:
+            if process.is_alive():
+                process.terminate()
+            process.join(timeout=5)
+        receiver.close()
+        sender.close()
 
 
 def clean_text(raw: str) -> str:
@@ -220,18 +271,35 @@ def fetch_fulltext(
     max_chars: int = DEFAULT_MAX_CHARS,
     max_pages: int = DEFAULT_MAX_PAGES,
     timeout: int = DEFAULT_TIMEOUT,
+    parse_timeout: int = 30,
+    cache_dir: str = "",
 ) -> str | None:
     """下载 + 抽取 + 清洗 + 裁剪。任何一步失败返回 None（调用方回退摘要）。"""
     if not url:
         return None
+    cache_key = hashlib.sha256(f"v1:{url}:{max_pages}".encode("utf-8")).hexdigest()
+    cache_path = Path(cache_dir) / "fulltext" / (cache_key + ".json") if cache_dir else None
+    if cache_path and cache_path.is_file():
+        try:
+            text = json.loads(cache_path.read_text(encoding="utf-8")).get("text")
+            if isinstance(text, str) and len(text) >= 800:
+                return condense(text, max_chars)
+        except (OSError, ValueError, AttributeError):
+            pass
     pdf_bytes = download_pdf(url, timeout=timeout)
     if pdf_bytes is None:
         return None
-    text = clean_text(extract_pdf_text(pdf_bytes, max_pages=max_pages))
+    text = clean_text(extract_pdf_text(pdf_bytes, max_pages=max_pages, timeout=parse_timeout))
     if len(text) < 800:
         LOGGER.warning("全文过短（%d 字符），回退摘要：%s", len(text), url)
         return None
-    return condense(cut_references(text), max_chars)
+    text = cut_references(text)
+    if cache_path:
+        try:
+            atomic_json(cache_path, {"text": text})
+        except OSError:
+            LOGGER.warning("全文缓存不可写，继续本次分析。")
+    return condense(text, max_chars)
 
 
 def pdf_url_for(abs_url: str, pdf_url: str = "") -> str:

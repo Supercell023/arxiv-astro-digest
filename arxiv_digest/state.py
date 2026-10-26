@@ -11,13 +11,17 @@ from __future__ import annotations
 import json
 import logging
 import os
+from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+from .identity import canonical_id
+from .storage import atomic_json
+
 LOGGER = logging.getLogger(__name__)
 
-STATE_VERSION = 1
+STATE_VERSION = 2
 MAX_SEEN = 5000
 KEEP_DAYS = 120
 WEEK = 7
@@ -32,6 +36,10 @@ class State:
     daily: dict[str, dict[str, int]] = field(default_factory=dict)
     # 源 id -> 上次抓取日期（按 cadence 控制每日/每周）
     fetched: dict[str, str] = field(default_factory=dict)
+    observations: dict[str, dict[str, str]] = field(default_factory=dict)
+    materials: dict[str, dict] = field(default_factory=dict)
+    feedback: dict = field(default_factory=dict)
+    editions: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -82,20 +90,38 @@ def load_state(path: str | Path) -> State:
 
     if not isinstance(raw, dict):
         return empty_state()
-    if int(raw.get("version") or 0) != STATE_VERSION:
+    if raw.get("version") not in (1, STATE_VERSION):
         LOGGER.warning("状态文件版本不是 %d，忽略旧状态。", STATE_VERSION)
         return empty_state()
 
     seen = raw.get("seen")
-    daily = raw.get("daily")
+    daily = raw.get("daily") if raw.get("version") == STATE_VERSION else {}
     fetched = raw.get("fetched")
+    clean_daily: dict[str, dict[str, int]] = {}
+    if isinstance(daily, dict):
+        for day, counts in daily.items():
+            if not isinstance(counts, dict):
+                continue
+            clean_daily[str(day)] = {}
+            for category, count in counts.items():
+                if isinstance(count, int) and not isinstance(count, bool) and count >= 0:
+                    clean_daily[str(day)][str(category)] = count
+    observations = raw.get("observations") or {}
+    materials = raw.get("materials") or {}
     return State(
         version=STATE_VERSION,
-        seen={str(k): str(v) for k, v in seen.items()} if isinstance(seen, dict) else {},
-        daily={str(k): {str(c): int(n) for c, n in v.items()} for k, v in daily.items() if isinstance(v, dict)}
-        if isinstance(daily, dict)
-        else {},
+        seen={canonical_id(k): str(v) for k, v in seen.items()} if isinstance(seen, dict) else {},
+        daily=clean_daily,
         fetched={str(k): str(v) for k, v in fetched.items()} if isinstance(fetched, dict) else {},
+        observations={canonical_id(k): v for k, v in observations.items()
+                      if isinstance(v, dict) and isinstance(v.get("day"), str) and isinstance(v.get("category"), str)}
+        if isinstance(observations, dict) else {},
+        materials={str(k): v for k, v in materials.items() if isinstance(v, dict)
+                   and all(isinstance(v.get(name), str) for name in ("id", "kind", "title", "source", "date"))}
+        if isinstance(materials, dict) else {},
+        feedback=raw.get("feedback") if isinstance(raw.get("feedback"), dict) else {},
+        editions={str(k): str(v) for k, v in (raw.get("editions") or {}).items()
+                  if isinstance(k, str) and isinstance(v, str)} if isinstance(raw.get("editions"), dict) else {},
     )
 
 
@@ -103,11 +129,7 @@ def save_state(state: State, path: str | Path) -> bool:
     """原子写：先写 `.tmp` 再替换，避免半个文件把明天的运行毁掉。"""
 
     try:
-        target = Path(path)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        tmp = target.with_suffix(target.suffix + ".tmp")
-        tmp.write_text(json.dumps(state.__dict__, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-        os.replace(tmp, target)
+        atomic_json(path, state.__dict__)
         return True
     except OSError as exc:
         LOGGER.warning("状态写入失败（%s）：%s", path, exc)
@@ -117,19 +139,26 @@ def save_state(state: State, path: str | Path) -> bool:
 def filter_unseen(state: State, items):
     """过滤掉已经推送过的条目；没有 id 的条目一律保留。"""
 
-    return [item for item in items if not item.id or item.id not in state.seen]
+    return [item for item in items if not item.id or canonical_id(item.id) not in state.seen]
 
 
 def mark_seen(state: State, items, *, day: str) -> None:
     for item in items:
         if item.id:
-            state.seen.setdefault(item.id, day)
+            state.seen.setdefault(canonical_id(item.id), day)
 
 
 def prune(state: State, *, today: date, keep_days: int = KEEP_DAYS, max_seen: int = MAX_SEEN) -> None:
     cutoff = (today - timedelta(days=keep_days)).isoformat()
     state.seen = {key: stamp for key, stamp in state.seen.items() if stamp >= cutoff}
     state.daily = {key: value for key, value in state.daily.items() if key >= cutoff}
+    state.observations = {key: value for key, value in state.observations.items() if value["day"] >= cutoff}
+    state.editions = {key: stamp for key, stamp in state.editions.items() if cutoff <= stamp <= today.isoformat()}
+    material_cutoff = (today - timedelta(days=6)).isoformat()
+    state.materials = {key: value for key, value in state.materials.items()
+                       if material_cutoff <= str(value.get("date") or "")[:10] <= today.isoformat()}
+    if len(state.materials) > 1000:
+        state.materials = dict(sorted(state.materials.items(), key=lambda kv: str(kv[1].get("date", "")), reverse=True)[:1000])
     if len(state.seen) > max_seen:
         newest = sorted(state.seen.items(), key=lambda kv: kv[1], reverse=True)[:max_seen]
         state.seen = dict(newest)
@@ -172,9 +201,24 @@ def mark_fetched(state: State, keys, *, day: str) -> None:
 def record_day(state: State, *, day: str, categories: list[str]) -> None:
     """记录当天每个分类的论文数（同一篇只算主分类，避免 cross-list 灌水）。"""
 
-    bucket = state.daily.setdefault(day, {})
-    for category in categories:
+    state.daily[day] = dict(Counter(categories))
+
+
+def record_observations(state: State, papers, *, timezone_name: str) -> None:
+    """Count sampled arXiv papers by publication date and canonical identity, once."""
+    from zoneinfo import ZoneInfo
+    zone = ZoneInfo(timezone_name)
+    for paper in papers:
+        if not paper.categories or paper.id.startswith("doi:"):
+            continue
+        stamp = paper.published.astimezone(zone).date().isoformat()
+        state.observations.setdefault(canonical_id(paper.id), {"day": stamp, "category": paper.categories[0]})
+    daily: dict[str, dict[str, int]] = {}
+    for observation in state.observations.values():
+        bucket = daily.setdefault(observation["day"], {})
+        category = observation["category"]
         bucket[category] = bucket.get(category, 0) + 1
+    state.daily = daily
 
 
 def weekly_trend(
@@ -196,13 +240,13 @@ def weekly_trend(
 
     this_week = window(0, WEEK)
     last_week = window(WEEK, 2 * WEEK)
-    if not this_week or len(state.daily) < 2:
+    if not (this_week or last_week) or len(state.daily) < 2:
         return []
 
     rows = [
-        TrendRow(label=label, this_week=count, last_week=last_week.get(label, 0))
-        for label, count in this_week.items()
-        if count >= min_total or last_week.get(label, 0) >= min_total
+        TrendRow(label=label, this_week=this_week.get(label, 0), last_week=last_week.get(label, 0))
+        for label in this_week.keys() | last_week.keys()
+        if this_week.get(label, 0) >= min_total or last_week.get(label, 0) >= min_total
     ]
     rows.sort(key=lambda row: (row.this_week, row.label), reverse=True)
     return rows[:limit]
@@ -210,3 +254,26 @@ def weekly_trend(
 
 def today_str(now: datetime | None = None) -> str:
     return (now or datetime.now()).date().isoformat()
+
+
+def merge_states(remote: State, local: State, *, today: date | None = None,
+                 timezone_name: str = "UTC") -> State:
+    """Merge successful deliveries after a concurrent repository update."""
+    merged = State(
+        seen=dict(remote.seen), observations={**remote.observations, **local.observations},
+        materials={**remote.materials, **local.materials}, fetched=dict(remote.fetched),
+        editions={**remote.editions, **local.editions})
+    for key, stamp in local.seen.items():
+        merged.seen[key] = min(merged.seen.get(key, stamp), stamp)
+    for key, stamp in local.fetched.items():
+        merged.fetched[key] = max(merged.fetched.get(key, stamp), stamp)
+    history = dict(remote.feedback.get("history") or {})
+    for key, meta in (local.feedback.get("history") or {}).items():
+        history.setdefault(key, {}).update({name: value for name, value in meta.items() if value})
+    merged.feedback = {"version": 2, "votes": {}, "history": dict(list(history.items())[-5000:])}
+    record_observations(merged, [], timezone_name=timezone_name)
+    if today is None:
+        from zoneinfo import ZoneInfo
+        today = datetime.now(ZoneInfo(timezone_name)).date()
+    prune(merged, today=today)
+    return merged

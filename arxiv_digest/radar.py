@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 from .models import Paper
+from .identity import canonical_id
 from .llm_client import LLMOptions, call_json
 
 LOGGER = logging.getLogger(__name__)
@@ -95,6 +96,7 @@ class RadarHit:
     summary: str = ""
     abstract: str = ""
     authors: tuple[str, ...] = ()
+    id: str = ""
 
     @property
     def display_summary(self) -> str:
@@ -309,10 +311,10 @@ def select_blocks(
     if not neighborhoods or not papers:
         return Radar()
 
-    skip = set(skip_ids)
+    skip = {canonical_id(value) for value in skip_ids}
     by_category: dict[str, list[Paper]] = {}
     for paper in papers:
-        if paper.id in skip:
+        if canonical_id(paper.id) in skip:
             continue
         for category in paper.categories:
             by_category.setdefault(category, []).append(paper)
@@ -349,6 +351,7 @@ def select_blocks(
             reason = _rule_reason(paper.title) or _fallback_reason(neighborhood)
             picked.append(
                 RadarHit(
+                    id=paper.id,
                     neighborhood=neighborhood.label,
                     title=paper.title,
                     url=paper.abs_url or paper.pdf_url,
@@ -511,6 +514,7 @@ def _replace_hit(hit: RadarHit, *, summary: str) -> RadarHit:
         summary=summary,
         abstract=hit.abstract,
         authors=hit.authors,
+        id=hit.id,
     )
 
 

@@ -9,6 +9,12 @@ id: galaxy_cosmology
 name: 星系宇宙学
 capability: high          # high = 我能判断这里的质量；邮件里不必加免责声明
 
+title_keywords: [cluster, clusters, halo, richness, mass calibration, weak lensing, bao, cosmology]
+journal_terms: [galaxy cluster, galaxy clusters, groups and clusters, cluster mass, cluster cosmology,
+  weak lensing, weak-lensing, cosmic shear, mass calibration, mass-observable, richness,
+  photometric redshift, baryon acoustic, redshift-space distortion, dark energy, growth of structure,
+  hydrodynamical simulation, mock catalog, n-body simulation, eddington bias, euclid, desi, rubin, lsst, bao, rsd]
+
 # 主分类在前；cross-list 到别的分类不影响归入本包
 arxiv_categories:
   - astro-ph.CO
@@ -29,7 +35,7 @@ evaluation:
     - mock 未说明是否包含巡天选择函数，却用它做观测对比
     - 把"张力"解释为"新物理"而不先排除系统误差
 
-# —— 术语提示：给 Stage A 抽取时做锚点，也防中文硬翻 ——
+# —— 人工说明；实际标题匹配使用上面的 title_keywords ——
 title_hint: >-
   标题里出现 cluster、group、halo、mass calibration、richness、
   abundance、SZ、X-ray、weak lensing 时，优先归入本包。

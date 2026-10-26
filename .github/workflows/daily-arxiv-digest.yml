@@ -6,46 +6,60 @@ name: Daily arXiv Digest
 # arXiv 每天 20:00 ET 发当日公告，这个点拿到的是"昨天的公告 + 今天凌晨前的新提交"，
 # 不会踩空。别改成 0:37 UTC —— 那是 19:37 ET，冬令时比公告早 23 分钟，会整天空跑。
 on:
+  push:
+  pull_request:
   schedule:
     - cron: "30 5 * * *"
   workflow_dispatch: # Actions 页面可以手动点一次
 
 # 回写 state.json 需要写权限；同时避免仓库 60 天无活动被 GitHub 停掉定时任务
 permissions:
-  contents: write
+  contents: read
 
 # 防止手动触发与定时任务撞车（两次同时跑会重复发信）
 concurrency:
-  group: daily-digest
+  group: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'digest-delivery' || format('digest-check-{0}', github.ref) }}
   cancel-in-progress: false
 
 jobs:
-  # 先跑 22 项离线自检：不联网、不花钱。挂了就不发信。
+  # 离线自检与事务/契约回归；PR 和 push 只验证，不发信。
   selfcheck:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.11"
           cache: pip
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Dependency consistency
+        run: python -m pip check
       - name: Offline self-check
-        run: python -m arxiv_digest.selfcheck
+        run: python -B -m arxiv_digest.selfcheck
+      - name: Offline regression tests
+        run: python -B -m unittest discover -s tests -v
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+      - name: Offline Apps Script contract tests
+        run: node tests/check_google_feedback.cjs
 
   send-digest:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
     needs: selfcheck
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.11"
           cache: pip
@@ -53,51 +67,143 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Restore analysis and PDF cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ vars.CACHE_DIR || '.cache/arxiv-digest' }}
+          key: ${{ runner.os }}-digest-${{ hashFiles('requirements.txt', 'arxiv_digest/analysis.py', 'arxiv_digest/fulltext.py') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-digest-${{ hashFiles('requirements.txt', 'arxiv_digest/analysis.py', 'arxiv_digest/fulltext.py') }}-
+
       - name: Send digest
+        id: send
         env:
-          # ── 必需：在 Settings → Secrets and variables → Actions → Secrets ──
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          ARXIV_CATEGORIES: ${{ vars.ARXIV_CATEGORIES }}
+          ARXIV_KEYWORDS: ${{ vars.ARXIV_KEYWORDS }}
+          DIGEST_TIMEZONE: ${{ vars.DIGEST_TIMEZONE }}
+          ARXIV_FETCH_MAX_RESULTS: ${{ vars.ARXIV_FETCH_MAX_RESULTS }}
+          ARXIV_PAGE_SIZE: ${{ vars.ARXIV_PAGE_SIZE }}
+          ARXIV_MAX_PAGES: ${{ vars.ARXIV_MAX_PAGES }}
+          ARXIV_PAGE_DELAY_SECONDS: ${{ vars.ARXIV_PAGE_DELAY_SECONDS }}
+          ARXIV_REQUEST_TIMEOUT: ${{ vars.ARXIV_REQUEST_TIMEOUT }}
+          ARXIV_REQUEST_RETRIES: ${{ vars.ARXIV_REQUEST_RETRIES }}
+          ARXIV_RATE_LIMIT_BACKOFF_BASE: ${{ vars.ARXIV_RATE_LIMIT_BACKOFF_BASE }}
+          ARXIV_RATE_LIMIT_BACKOFF_MAX: ${{ vars.ARXIV_RATE_LIMIT_BACKOFF_MAX }}
+          ARXIV_RATE_LIMIT_BACKOFF_JITTER: ${{ vars.ARXIV_RATE_LIMIT_BACKOFF_JITTER }}
+          ARXIV_RATE_LIMIT_GRACEFUL: ${{ vars.ARXIV_RATE_LIMIT_GRACEFUL }}
+          MAX_PAPERS: ${{ vars.MAX_PAPERS }}
+          MAX_LLM_PAPERS: ${{ vars.MAX_LLM_PAPERS }}
+          MAX_ABSTRACT_CHARS: ${{ vars.MAX_ABSTRACT_CHARS }}
+          LLM_BATCH_SIZE: ${{ vars.LLM_BATCH_SIZE }}
+          MIN_RATING: ${{ vars.MIN_RATING }}
+          LOOKBACK_DAYS: ${{ vars.LOOKBACK_DAYS }}
+          DEEP_PAPERS: ${{ vars.DEEP_PAPERS }}
+          BRIEF_PAPERS: ${{ vars.BRIEF_PAPERS }}
+          CALENDAR_ENABLED: ${{ vars.CALENDAR_ENABLED }}
+          CALENDAR_EVENTS_PATH: ${{ vars.CALENDAR_EVENTS_PATH }}
+          CALENDAR_CONFERENCES_PATH: ${{ vars.CALENDAR_CONFERENCES_PATH }}
+          CALENDAR_HORIZON_DAYS: ${{ vars.CALENDAR_HORIZON_DAYS }}
+          CALENDAR_RECENT_DAYS: ${{ vars.CALENDAR_RECENT_DAYS }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANALYSIS_ENABLED: ${{ vars.ANALYSIS_ENABLED }}
+          ANALYSIS_EXTRACT_MODEL: ${{ vars.ANALYSIS_EXTRACT_MODEL }}
+          ANALYSIS_ASSESS_MODEL: ${{ vars.ANALYSIS_ASSESS_MODEL }}
+          ANALYSIS_EXTRACT_THINKING: ${{ vars.ANALYSIS_EXTRACT_THINKING }}
+          ANALYSIS_ASSESS_THINKING: ${{ vars.ANALYSIS_ASSESS_THINKING }}
+          LLM_THINKING: ${{ vars.LLM_THINKING }}
+          DIGEST_JSON_PATH: ${{ vars.DIGEST_JSON_PATH || 'digest.json' }}
+          PROFILE_PATH: ${{ vars.PROFILE_PATH }}
+          PACKS_DIR: ${{ vars.PACKS_DIR }}
+          FIELDS: ${{ vars.FIELDS }}
+          FULLTEXT_ENABLED: ${{ vars.FULLTEXT_ENABLED }}
+          FULLTEXT_MAX_CHARS: ${{ vars.FULLTEXT_MAX_CHARS }}
+          FULLTEXT_MAX_PAGES: ${{ vars.FULLTEXT_MAX_PAGES }}
+          FULLTEXT_TIMEOUT: ${{ vars.FULLTEXT_TIMEOUT }}
+          JOURNALS_ENABLED: ${{ vars.JOURNALS_ENABLED }}
+          JOURNALS_PATH: ${{ vars.JOURNALS_PATH }}
+          JOURNALS_ROWS: ${{ vars.JOURNALS_ROWS }}
+          JOURNALS_MAX_PER: ${{ vars.JOURNALS_MAX_PER }}
+          JOURNALS_TIMEOUT: ${{ vars.JOURNALS_TIMEOUT }}
+          JOURNALS_LOOKBACK_DAYS: ${{ vars.JOURNALS_LOOKBACK_DAYS }}
+          JOURNALS_MAILTO: ${{ vars.JOURNALS_MAILTO }}
+          SOURCES_ENABLED: ${{ vars.SOURCES_ENABLED }}
+          SOURCES_PATH: ${{ vars.SOURCES_PATH }}
+          SOURCES_MAX_ITEMS: ${{ vars.SOURCES_MAX_ITEMS }}
+          SOURCES_TIMEOUT: ${{ vars.SOURCES_TIMEOUT }}
+          STATE_PATH: state.json
+          TREND_ENABLED: ${{ vars.TREND_ENABLED }}
+          TREND_ROWS: ${{ vars.TREND_ROWS }}
+          PULSE_ENABLED: ${{ vars.PULSE_ENABLED }}
+          PULSE_MODEL: ${{ vars.PULSE_MODEL }}
+          PULSE_THREADS: ${{ vars.PULSE_THREADS }}
+          PULSE_MAX_MATERIALS: ${{ vars.PULSE_MAX_MATERIALS }}
+          PULSE_THINKING: ${{ vars.PULSE_THINKING }}
+          RADAR_ENABLED: ${{ vars.RADAR_ENABLED }}
+          RADAR_PATH: ${{ vars.RADAR_PATH }}
+          RADAR_PER_FIELD: ${{ vars.RADAR_PER_FIELD }}
+          RADAR_MAX_FIELDS: ${{ vars.RADAR_MAX_FIELDS }}
+          RADAR_LOOKBACK_DAYS: ${{ vars.RADAR_LOOKBACK_DAYS }}
+          EMAIL_THEME: ${{ vars.EMAIL_THEME }}
+          EMAIL_ATTACH_HTML: ${{ vars.EMAIL_ATTACH_HTML }}
+          TRANSLATE_ENABLED: ${{ vars.TRANSLATE_ENABLED }}
+          TRANSLATE_THINKING: ${{ vars.TRANSLATE_THINKING }}
+          TRANSLATE_LIMIT: ${{ vars.TRANSLATE_LIMIT }}
+          RADAR_THINKING: ${{ vars.RADAR_THINKING }}
+          FEEDBACK_URL: ${{ vars.FEEDBACK_URL }}
+          FEEDBACK_PATH: ${{ vars.FEEDBACK_PATH }}
+          FEEDBACK_SHEET_CSV_URL: ${{ secrets.FEEDBACK_SHEET_CSV_URL || vars.FEEDBACK_SHEET_CSV_URL }}
+          FEEDBACK_SHEET_TIMEOUT: ${{ vars.FEEDBACK_SHEET_TIMEOUT }}
+          ZOTERO_API_KEY: ${{ secrets.ZOTERO_API_KEY }}
+          ZOTERO_USER_ID: ${{ secrets.ZOTERO_USER_ID || vars.ZOTERO_USER_ID }}
+          ZOTERO_LIBRARY_TYPE: ${{ vars.ZOTERO_LIBRARY_TYPE }}
+          ZOTERO_COLLECTION_ID: ${{ vars.ZOTERO_COLLECTION_ID }}
+          ZOTERO_LIMIT: ${{ vars.ZOTERO_LIMIT }}
+          ZOTERO_SKIP_COLLECTED: ${{ vars.ZOTERO_SKIP_COLLECTED }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          SMTP_TIMEOUT: ${{ vars.SMTP_TIMEOUT }}
+          CACHE_DIR: ${{ vars.CACHE_DIR }}
+          RUN_REPORT_PATH: run_report.json
+          DIGEST_EDITION: ${{ vars.DIGEST_EDITION }}
+          WEEKLY_ENABLED: ${{ vars.WEEKLY_ENABLED }}
+          WEEKLY_WEEKDAY: ${{ vars.WEEKLY_WEEKDAY }}
+          WEEKLY_MAX_PAPERS: ${{ vars.WEEKLY_MAX_PAPERS }}
+          WEEKLY_DEEP_PAPERS: ${{ vars.WEEKLY_DEEP_PAPERS }}
+          WEEKLY_FETCH_MAX_RESULTS: ${{ vars.WEEKLY_FETCH_MAX_RESULTS }}
+          WEEKLY_MIN_SIGNALS: ${{ vars.WEEKLY_MIN_SIGNALS }}
+          PAPER_RELEVANCE_ENABLED: ${{ vars.PAPER_RELEVANCE_ENABLED }}
+          PAPER_MIN_SIGNALS: ${{ vars.PAPER_MIN_SIGNALS }}
+          WORLD_NEWS_TARGET: ${{ vars.WORLD_NEWS_TARGET }}
+          WORLD_NEWS_MAX_ITEMS: ${{ vars.WORLD_NEWS_MAX_ITEMS }}
+          WORLD_ASTRONOMY_PERCENT: ${{ vars.WORLD_ASTRONOMY_PERCENT }}
+          WORLD_NEWS_MAX_AGE_DAYS: ${{ vars.WORLD_NEWS_MAX_AGE_DAYS }}
+          LLM_TIMEOUT: ${{ vars.LLM_TIMEOUT }}
+          FULLTEXT_PARSE_TIMEOUT: ${{ vars.FULLTEXT_PARSE_TIMEOUT }}
+          ZOTERO_SHARE_WITH_MODEL: ${{ vars.ZOTERO_SHARE_WITH_MODEL }}
+          FEEDBACK_SIGNING_KEY: ${{ secrets.FEEDBACK_SIGNING_KEY }}
+        run: python -B -m arxiv_digest.main
 
-          # ── 可选：同上页面 → Variables。留空即用代码里的默认值 ──
-          # 模型端点
-          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
-          # 内容
-          FIELDS: ${{ vars.FIELDS }}
-          DEEP_PAPERS: ${{ vars.DEEP_PAPERS }}
-          BRIEF_PAPERS: ${{ vars.BRIEF_PAPERS }}
-          ANALYSIS_ENABLED: ${{ vars.ANALYSIS_ENABLED }}
-          ANALYSIS_EXTRACT_MODEL: ${{ vars.ANALYSIS_EXTRACT_MODEL }}
-          ANALYSIS_ASSESS_MODEL: ${{ vars.ANALYSIS_ASSESS_MODEL }}
-          # 思考模式（留空 = 跟随默认：DeepSeek 端点默认关）
-          ANALYSIS_EXTRACT_THINKING: ${{ vars.ANALYSIS_EXTRACT_THINKING }}
-          ANALYSIS_ASSESS_THINKING: ${{ vars.ANALYSIS_ASSESS_THINKING }}
-          LLM_THINKING: ${{ vars.LLM_THINKING }}
-          PULSE_THINKING: ${{ vars.PULSE_THINKING }}
-          RADAR_THINKING: ${{ vars.RADAR_THINKING }}
-          TRANSLATE_THINKING: ${{ vars.TRANSLATE_THINKING }}
-          FULLTEXT_ENABLED: ${{ vars.FULLTEXT_ENABLED }}
-          # 板块开关
-          PULSE_ENABLED: ${{ vars.PULSE_ENABLED }}
-          RADAR_ENABLED: ${{ vars.RADAR_ENABLED }}
-          CALENDAR_ENABLED: ${{ vars.CALENDAR_ENABLED }}
-          TRANSLATE_ENABLED: ${{ vars.TRANSLATE_ENABLED }}
-          # 样式
-          EMAIL_THEME: ${{ vars.EMAIL_THEME }}
-          EMAIL_ATTACH_HTML: ${{ vars.EMAIL_ATTACH_HTML }}
-          # 时区
-          DIGEST_TIMEZONE: ${{ vars.DIGEST_TIMEZONE }}
-        run: python -m arxiv_digest.main
+      - name: Upload run diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: digest-diagnostics-${{ github.run_id }}
+          path: |
+            run_report.json
+            ${{ vars.DIGEST_JSON_PATH || 'digest.json' }}
+            **/runs/*-????????????????????????????????.json
+          retention-days: 7
+          if-no-files-found: ignore
 
       # 把 state.json 提交回来：跨天去重靠它；顺便让仓库保持活动，定时任务不会被停
       - name: Persist state
-        if: always()
+        if: always() && steps.send.outcome == 'success'
         run: |
           BRANCH="${GITHUB_REF_NAME}"
           if [ ! -f state.json ]; then
@@ -116,7 +222,10 @@ jobs:
           for attempt in 1 2 3; do
             git fetch --quiet origin "$BRANCH"
             git reset --mixed --quiet "origin/$BRANCH"
-            cp /tmp/state.json state.json
+            if ! git show "origin/$BRANCH:state.json" > /tmp/remote-state.json; then
+              echo '{}' > /tmp/remote-state.json
+            fi
+            python -B scripts/merge_state.py /tmp/remote-state.json /tmp/state.json state.json --report run_report.json
             git add state.json
 
             if git diff --cached --quiet; then

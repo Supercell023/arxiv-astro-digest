@@ -16,6 +16,7 @@ import urllib.parse
 import urllib.request
 
 from ..fulltext import _ssl_context
+from ..identity import stable_id
 from .base import KIND_TALK, Item, SourceResult, plain_text
 
 LOGGER = logging.getLogger(__name__)
@@ -117,7 +118,8 @@ def _contribution_to_item(
     speakers = _speakers(contribution)
     stamp = _start_label(contribution)
     return Item(
-        id=f"indico:{urllib.parse.quote(event_name, safe='')}:{abs(hash(title)) % 10**10}",
+        id=stable_id("indico", urllib.parse.quote(event_name, safe=""),
+                     str(contribution.get("id") or contribution.get("url") or title)),
         kind=KIND_TALK,
         title=plain_text(title, limit=180),
         url=url,
@@ -146,12 +148,15 @@ def fetch_event(
         result.error = "url 需形如 https://host/event/1234"
         return result
 
-    request = urllib.request.Request(target, headers={"User-Agent": "arxiv-digest/1.0 (+indico)"})
     try:
+        request = urllib.request.Request(target, headers={"User-Agent": "arxiv-digest/1.0 (+indico)"})
         with urllib.request.urlopen(  # noqa: S310 - 地址来自本地配置
             request, timeout=timeout, context=_ssl_context()
         ) as response:
-            payload = json.loads(response.read())
+            data = response.read(5 * 1024 * 1024 + 1)
+            if len(data) > 5 * 1024 * 1024:
+                raise ValueError("Indico response exceeds 5 MiB")
+            payload = json.loads(data)
     except Exception as exc:
         LOGGER.warning("Indico 抓取失败（%s）：%s", target, exc)
         result.error = f"导出失败：{exc}"

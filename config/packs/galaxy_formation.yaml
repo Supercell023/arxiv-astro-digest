@@ -1,11 +1,18 @@
 # 领域包：星系形成与演化
 #
 # 与 galaxy_cosmology 强相关但关注点不同：这边问"星系为什么长这样"，
-# 那边问"能不能拿它测宇宙学"。同时勾选时两套评价标准会合并（取并集）。
+# 那边问"能不能拿它测宇宙学"。同时勾选时抓取分类取并集；每篇按主分类分派一套评价标准。
 
 id: galaxy_formation
 name: 星系形成与演化
 capability: high
+
+title_keywords: [quenching, star formation history, mass-metallicity, stellar mass function,
+  morphology, satellite galaxies, central galaxy, agn feedback, galaxy evolution]
+journal_terms: [galaxy formation, galaxy evolution, star formation history, stellar mass function,
+  mass-metallicity, quenching, quenched, environmental dependence, satellite galaxies,
+  central galaxies, galaxy cluster, galaxy clusters, chemical enrichment, abundance gradient,
+  hydrodynamical simulation, semi-analytic, mock catalog, subgrid, agn feedback]
 
 arxiv_categories:
   - astro-ph.GA

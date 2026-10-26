@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Sequence
@@ -80,6 +81,8 @@ class Pack:
     sources_events: tuple[str, ...] = ()
     topics: tuple[tuple[str, tuple[str, ...]], ...] = ()
     source_path: str = ""
+    journal_terms: tuple[str, ...] = ()
+    title_keywords: tuple[str, ...] = ()
 
     @property
     def is_generic(self) -> bool:
@@ -126,6 +129,8 @@ def _parse_pack(raw: dict[str, Any], *, source_path: str = "") -> Pack | None:
         sources_events=_str_tuple(sources.get("events")),
         topics=_topic_tuple(pulse.get("topics")),
         source_path=source_path,
+        journal_terms=tuple(term.lower() for term in _str_tuple(raw.get("journal_terms"))),
+        title_keywords=tuple(term.lower() for term in _str_tuple(raw.get("title_keywords"))),
     )
 
 
@@ -212,18 +217,34 @@ def _match_strength(pack: Pack, categories: Sequence[str]) -> int:
     return _MATCH_NONE
 
 
-def dispatch(packs: Sequence[Pack], categories: Sequence[str]) -> Pack | None:
-    """给一篇论文（按它自己的分类）挑一个最合适的包。"""
+def dispatch(packs: Sequence[Pack], categories: Sequence[str], *, hint: str = "", title: str = "") -> Pack | None:
+    """给一篇论文（按它自己的分类）挑一个最合适的包。
+
+    `hint` 是期刊源显式指定的包 id：期刊论文常常没有 arXiv 分类（或只有一个
+    泛分类），靠分类猜会掉到 generic，白白丢掉这个领域的红旗清单。
+    """
+    hint = (hint or "").strip()
+    if hint and not title:
+        for pack in packs:
+            if pack.id == hint:
+                return pack
+
     best: Pack | None = None
-    best_strength = _MATCH_NONE
+    best_strength = 0
     for pack in packs:
         if pack.is_generic:
             continue
-        strength = _match_strength(pack, categories)
+        title_hits = sum(bool(re.search(rf"(?<![a-z0-9]){re.escape(term)}(?![a-z0-9])", title.lower()))
+                         for term in pack.title_keywords)
+        strength = _match_strength(pack, categories) * 100 + min(title_hits, 99)
         if strength > best_strength:
             best, best_strength = pack, strength
     if best is not None:
         return best
+    if hint:
+        for pack in packs:
+            if pack.id == hint:
+                return pack
     for pack in packs:
         if pack.is_generic:
             return pack

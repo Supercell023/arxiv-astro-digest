@@ -120,7 +120,16 @@ def to_unicode(text: str) -> str:
             break
         out = new
 
-    out = _FRAC_RE.sub(lambda m: f"{m.group(1)}/{m.group(2)}", out)
+    def fraction(match: re.Match[str]) -> str:
+        def group(value: str) -> str:
+            return value if re.fullmatch(r"[A-Za-z0-9]+", value) else f"({value})"
+        return f"{group(match.group(1))}/{group(match.group(2))}"
+
+    out = _FRAC_RE.sub(fraction, out)
+    out = re.sub(r"\\sqrt\s*\{([^{}]*)\}", lambda m: f"√({m.group(1)})", out)
+    # Keep unsupported nested grouping instead of silently changing precedence.
+    if re.search(r"\\(?:frac|sqrt)\b", out):
+        return text
     out = _SUB_RE.sub(_sub, out)
     out = _SUP_RE.sub(_sup, out)
     out = _CMD_RE.sub(_cmd, out)
@@ -129,7 +138,7 @@ def to_unicode(text: str) -> str:
     out = out.replace("\\!", "").replace("\\%", "%").replace("\\&", "&")
     out = out.replace("\\_", "_").replace("\\#", "#")
     out = out.replace("\\{", "{").replace("\\}", "}")
-    out = out.replace("{", "").replace("}", "").replace("~", " ")
+    out = out.replace("{", "(").replace("}", ")").replace("~", " ")
     out = _WS_RE.sub(" ", out)
     return out.strip()
 

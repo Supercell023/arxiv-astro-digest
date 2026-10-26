@@ -19,6 +19,7 @@ from typing import Any, Sequence
 
 from .llm_client import LLMOptions, call_json
 from .sources import Item
+from .evidence import numbers_supported
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ BATCH_SIZE = 8
 
 def build_translate_prompt(items: Sequence[Item]) -> str:
     lines = [
-        "把下面每条天文新闻译成中文。读者是中国的研究生，熟悉天文术语，不需要解释概念。",
+        "把下面每条科学或历史新闻译成中文。读者是天文学研究生，也关注物理、化学与历史考古；按原领域翻译，不要把它们强行解释成天文学。",
         "",
     ]
     for index, item in enumerate(items, start=1):
@@ -43,7 +44,7 @@ def build_translate_prompt(items: Sequence[Item]) -> str:
     lines.append("2. 正文译成 150-220 字中文（3-4 句），按这个顺序写：")
     lines.append("   ① 这件事是什么、为什么现在值得说；② 他们做了什么（数据、方法、关键数字）；")
     lines.append("   ③ 结论是什么、边界在哪；④ 对这个领域意味着什么；")
-    lines.append("3. 数字、望远镜名、天体编号照抄，不要换算、不要补充原文没有的结论；")
+    lines.append("3. 数字、专名、年代与编号照抄，不要换算；不要把历史报道写成实验结果，不要补充原文没有的结论；")
     lines.append("4. 原文信息不足以支撑 120 字时，写到多少算多少，正文可以短，但不要编造细节、不要用套话凑长度。")
     lines.append("")
     lines.append('输出 JSON：{"items": [{"id": "…", "title_zh": "…", "text_zh": "…"}]}')
@@ -117,8 +118,8 @@ def translate_items(
         translated.append(
             replace(
                 item,
-                title_zh=patch["title_zh"] or item.title_zh,
-                text_zh=patch["text_zh"] or item.text_zh,
+                title_zh=(patch["title_zh"] or item.title_zh) if numbers_supported(patch["title_zh"], item.title + " " + item.text) else "",
+                text_zh=(patch["text_zh"] or item.text_zh) if numbers_supported(patch["text_zh"], item.title + " " + item.text) else "",
             )
         )
     return translated

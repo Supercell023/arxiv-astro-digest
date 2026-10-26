@@ -20,15 +20,15 @@
       <td style="background: {{ P.header_bg }}; background-image: repeating-linear-gradient(0deg, {{ P.grid }} 0 1px, transparent 1px 24px), repeating-linear-gradient(90deg, {{ P.grid }} 0 1px, transparent 1px 24px); padding: 30px 40px 22px; border-bottom: 1px solid {{ P.header_line }}; border-top: 2px solid {{ P.read }};">
         <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
-          <td style="font-size: 10.5px; letter-spacing: 2.4px; color: {{ P.read }}; font-weight: 700;">DAILY ARXIV DIGEST</td>
+          <td style="font-size: 10.5px; letter-spacing: 2.4px; color: {{ P.read }}; font-weight: 700;">{{ 'WEEKLY RESEARCH DIGEST' if edition == 'weekly' else 'DAILY ARXIV DIGEST' }}</td>
           <td align="right" style="font-size: 11px; color: {{ P.muted2 }};">{{ generated_at }}</td>
         </tr>
         <tr>
-          <td colspan="2" style="padding-top: 10px; font-size: 26px; font-weight: 700; color: {{ P.text }}; letter-spacing: 0.5px;">今日简报</td>
+          <td colspan="2" style="padding-top: 10px; font-size: 26px; font-weight: 700; color: {{ P.text }}; letter-spacing: 0.5px;">{{ '本周研究精选' if edition == 'weekly' else '今日简报' }}</td>
         </tr>
         <tr>
           <td colspan="2" style="padding-top: 8px; font-size: 12px; color: {{ P.muted2 }}; line-height: 1.7;">
-            精读 {{ deep_papers|length }} 篇 · 速览 {{ brief_papers|length }} 篇{% if secondary %} · 二手解读 {{ secondary|length }} 条{% endif %}{% if talks %} · 会议报告 {{ talks|length }} 条{% endif %}{% if window_days and window_days > 1 %} · 覆盖近 {{ window_days }} 天{% endif %} · 按 20 分钟阅读安排
+            精读 {{ deep_papers|length }} 篇 · 速览 {{ brief_papers|length }} 篇{% if secondary %} · 科学与历史资讯 {{ secondary|length }} 条{% endif %}{% if talks %} · 会议报告 {{ talks|length }} 条{% endif %}{% if edition == 'weekly' %}<br>{{ period_label }} · 按兴趣重选，含工作日已推荐论文{% elif window_days and window_days > 1 %} · 覆盖近 {{ window_days }} 天{% endif %}
           </td>
         </tr>
         </table>
@@ -56,17 +56,17 @@
         <table width="100%" cellpadding="0" cellspacing="0" style="background: {{ P.card }}; border: 1px solid {{ P.line }}; border-radius: 8px;">
         <tr>
           <td style="padding: 16px 20px 4px;">
-            <div style="font-size: 14px; font-weight: 700; color: {{ P.pulse }}; letter-spacing: 0.6px; padding-left: 10px; border-left: 4px solid {{ P.pulse }};">本周脉搏 · 大家在关注什么</div>
+            <div style="font-size: 14px; font-weight: 700; color: {{ P.pulse }}; letter-spacing: 0.6px; padding-left: 10px; border-left: 4px solid {{ P.pulse }};">近7天脉搏 · 采集材料中的动向</div>
           </td>
         </tr>
         <tr>
           <td style="padding: 2px 20px 12px;">
             <div style="font-size: 17px; font-weight: 700; color: {{ P.text }}; line-height: 1.55;">
-              {% if pulse.headline_url %}<a href="{{ pulse.headline_url }}" style="color: {{ P.text }}; text-decoration: none;">{{ pulse.headline }}</a>{% else %}{{ pulse.headline }}{% endif %}
+              {% if pulse.headline_url %}<a href="{{ pulse.headline_url | safe_url }}" style="color: {{ P.text }}; text-decoration: none;">{{ pulse.headline }}</a>{% else %}{{ pulse.headline }}{% endif %}
             </div>
             {% if pulse.pick_link %}
             <div style="font-size: 12px; color: {{ P.muted2 }}; line-height: 1.7; padding-top: 8px; border-top: 1px dashed {{ P.line }}; margin-top: 10px;">
-              只看一篇 → <a href="{{ pulse.pick_link[1] }}" style="color: {{ P.pulse }}; text-decoration: none; font-weight: 600;">{{ pulse.pick_link[0] }}</a>
+              只看一篇 → <a href="{{ pulse.pick_link[1] | safe_url }}" style="color: {{ P.pulse }}; text-decoration: none; font-weight: 600;">{{ pulse.pick_link[0] }}</a>
               <span style="color: {{ P.faint }};">（这一周最多人在说的那条里，证据最集中的一篇）</span>
             </div>
             {% endif %}
@@ -88,7 +88,7 @@
             {% endif %}
             {% if thread.links %}
             <div style="font-size: 10.5px; color: {{ P.muted3 }}; line-height: 1.7; padding-top: 4px;">
-              {% for link in thread.links %}<a href="{{ link[1] }}" style="color: {{ P.read }}; text-decoration: none;">{{ link[0] }}</a>{% if not loop.last %} · {% endif %}{% endfor %}
+              {% for link in thread.links %}<a href="{{ link[1] | safe_url }}" style="color: {{ P.read }}; text-decoration: none;">{{ link[0] }}</a>{% if not loop.last %} · {% endif %}{% endfor %}
             </div>
             {% endif %}
           </td>
@@ -98,7 +98,7 @@
         {% if pulse.topics %}
         <tr>
           <td style="padding: 10px 20px 6px; border-top: 1px solid {{ P.line2 }};">
-            <div style="font-size: 10.5px; color: {{ P.muted }}; line-height: 1.72; padding-bottom: 6px;">本周材料里的主题分布（按提及次数）</div>
+            <div style="font-size: 10.5px; color: {{ P.muted }}; line-height: 1.72; padding-bottom: 6px;">统计口径：近7天采集材料的加权命中</div>
             <table width="100%" cellpadding="0" cellspacing="0">
               {% set top = pulse.topics[0].hits if pulse.topics[0].hits > 0 else 1 %}
               {% for topic in pulse.topics[:6] %}
@@ -152,9 +152,9 @@
         {% set hit = block.headline %}
         <tr>
           <td style="padding: 12px 22px 10px; border-top: 1px solid {{ P.tint_pulse2 }};">
-            <div style="font-size: 10.5px; font-weight: 700; color: {{ P.pulse }}; letter-spacing: 0.3px;">{{ block.neighborhood }}<span style="color: {{ P.faint3 }}; font-weight: 400;"> · {{ hit.category }}{% if hit.published %} · {{ hit.published }}{% endif %}</span>{% if block.total %}<span style="color: {{ P.faint4 }}; font-weight: 400;"> · 本周 {{ block.total }} 篇</span>{% endif %}</div>
+            <div style="font-size: 10.5px; font-weight: 700; color: {{ P.pulse }}; letter-spacing: 0.3px;">{{ block.neighborhood }}<span style="color: {{ P.faint3 }}; font-weight: 400;"> · {{ hit.category }}{% if hit.published %} · {{ hit.published }}{% endif %}</span>{% if block.total %}<span style="color: {{ P.faint4 }}; font-weight: 400;"> · 本次采集 {{ block.total }} 篇</span>{% endif %}</div>
             <div style="padding-top: 3px;">
-              <a href="{{ hit.url }}" style="color: {{ P.text }}; text-decoration: none; font-size: 13.5px; font-weight: 600; line-height: 1.5;">{{ hit.title }}</a>
+              <a href="{{ hit.url | safe_url }}" style="color: {{ P.text }}; text-decoration: none; font-size: 13.5px; font-weight: 600; line-height: 1.5;">{{ hit.title }}</a>
             </div>
             {% if hit.display_summary %}
             <div style="font-size: 12px; color: {{ P.body2 }}; line-height: 1.75; padding-top: 4px;">{{ hit.display_summary }}</div>
@@ -171,7 +171,7 @@
               {% for more in block.rest %}
               <div style="padding: 8px 0 2px;">
                 <div style="font-size: 10px; color: {{ P.faint3 }};">{{ more.category }}{% if more.published %} · {{ more.published }}{% endif %}</div>
-                <a href="{{ more.url }}" style="color: {{ P.body }}; text-decoration: none; font-size: 12.5px; font-weight: 600; line-height: 1.5;">{{ more.title }}</a>
+                <a href="{{ more.url | safe_url }}" style="color: {{ P.body }}; text-decoration: none; font-size: 12.5px; font-weight: 600; line-height: 1.5;">{{ more.title }}</a>
                 {% if more.display_summary %}<div style="font-size: 11.5px; color: {{ P.body2 }}; line-height: 1.7; padding-top: 2px;">{{ more.display_summary }}</div>{% endif %}
               </div>
               {% endfor %}
@@ -184,7 +184,7 @@
         {% if radar.counts %}
         <tr>
           <td style="padding: 6px 22px 16px; border-top: 1px solid {{ P.tint_pulse2 }}; font-size: 10.5px; color: {{ P.faint }}; line-height: 1.7;">
-            本周各方向投稿量：{% for name, count in radar.counts %}{{ name }} {{ count }}{% if not loop.last %} · {% endif %}{% endfor %}
+            本次采集的各方向论文量：{% for name, count in radar.counts %}{{ name }} {{ count }}{% if not loop.last %} · {% endif %}{% endfor %}
           </td>
         </tr>
         {% endif %}
@@ -207,7 +207,7 @@
                 {{ line.countdown_label or line.when_label }}
               </span>
               <span style="font-size: 11px; color: {{ P.read }};">{{ line.kind_label }}</span>
-              {% if line.url %}<a href="{{ line.url }}" style="color: {{ P.text }}; text-decoration: none; font-weight: 600;">{{ line.title }}</a>{% else %}<span style="font-weight: 600;">{{ line.title }}</span>{% endif %}
+              {% if line.url %}<a href="{{ line.url | safe_url }}" style="color: {{ P.text }}; text-decoration: none; font-weight: 600;">{{ line.title }}</a>{% else %}<span style="font-weight: 600;">{{ line.title }}</span>{% endif %}
               <span style="font-size: 11px; color: {{ P.muted }};">· {{ line.when_label }}{% if line.location %} · {{ line.location }}{% endif %}{% if line.confidence in ('预计', '待定') %} · {{ line.confidence }}{% endif %}</span>
             </div>
             {% endfor %}
@@ -267,7 +267,7 @@
               </tr>
               <tr>
                 <td style="padding: 0 22px 10px;">
-                  <a href="{{ paper.abs_url }}" style="font-size: 17px; font-weight: 600; color: {{ P.text }}; text-decoration: none; line-height: 1.45;">
+                  <a href="{{ paper.abs_url | safe_url }}" style="font-size: 17px; font-weight: 600; color: {{ P.text }}; text-decoration: none; line-height: 1.45;">
                     {{ paper.title }}
                   </a>
                 </td>
@@ -289,9 +289,36 @@
                 </td>
               </tr>
 
+              {# -- 分数构成：{{ "%.2f"|format(paper.score) }} 是怎么算出来的 -- #}
+              {% if paper.breakdown_rows %}
+              <tr>
+                <td style="padding: 0 22px 10px;">
+                  <div style="font-size: 10px; color: {{ P.muted3 }}; letter-spacing: 0.4px; padding-bottom: 5px;">
+                    分数构成 &middot; 合计 <strong style="color: {{ P.soft }};">{{ "%.2f"|format(paper.score) }}</strong>
+                  </div>
+                  <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                  {% for row in paper.breakdown_rows %}
+                  <tr>
+                    <td style="width: 54px; font-size: 10px; color: {{ P.muted2 }}; padding: 2px 6px 2px 0; white-space: nowrap;">{{ row.label }}</td>
+                    <td style="padding: 2px 0;">
+                      <div style="background: {{ P.bar_track }}; border-radius: 2px; height: 6px; width: 100%;">
+                        <div style="background: {{ P[row.color] }}; height: 6px; width: {{ row.pct }}%; border-radius: 2px;"></div>
+                      </div>
+                    </td>
+                    <td style="width: 44px; text-align: right; font-size: 10px; color: {{ P.body3 }}; padding: 2px 0 2px 6px; white-space: nowrap;">{{ row.value_text }}</td>
+                  </tr>
+                  {% endfor %}
+                  </table>
+                </td>
+              </tr>
+              {% endif %}
+
               {# -- Categories -- #}
               <tr>
                 <td style="padding: 0 22px 10px;">
+                  {% if paper.venue %}
+                  <span style="display: inline-block; font-size: 10px; font-weight: 600; color: {{ P.cal }}; background: {{ P.panel5 }}; padding: 2px 7px; border-radius: 3px; margin: 0 4px 4px 0;">{{ paper.venue }}</span>
+                  {% endif %}
                   {% for cat in paper.categories %}
                   <span style="display: inline-block; font-size: 10px; color: {{ P.read }}; background: {{ P.panel2 }}; padding: 2px 7px; border-radius: 3px; margin: 0 4px 4px 0;">{{ cat }}</span>
                   {% endfor %}
@@ -313,6 +340,32 @@
                         {% if paper.analysis.read_advice == 'read' %}建议今天读完整篇{% elif paper.analysis.read_advice == 'skim' %}看方法与图表即可{% else %}留档，不必今天读{% endif %}
                         {% if paper.analysis.read_reason %} &middot; {{ paper.analysis.read_reason }}{% endif %}
                       </div>
+                    </td>
+                  </tr>
+                  </table>
+                </td>
+              </tr>
+              {% endif %}
+
+              {# -- 研究背景：这篇为什么值得做 -- #}
+              {% if paper.analysis and paper.analysis.background %}
+              <tr>
+                <td style="padding: 14px 22px 2px;">
+                  <div style="font-size: 10px; font-weight: 600; color: {{ P.muted }}; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px;">研究背景 &middot; 为什么做这个</div>
+                  <div style="font-size: 13px; color: {{ P.body }}; line-height: 1.8;">{{ paper.analysis.background }}</div>
+                </td>
+              </tr>
+              {% endif %}
+
+              {# -- 研究方法：怎么做，展开到能复述 -- #}
+              {% if paper.analysis and paper.analysis.method_detail %}
+              <tr>
+                <td style="padding: 12px 22px 2px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="background: {{ P.chain_bg }}; border-radius: 6px;">
+                  <tr>
+                    <td style="padding: 12px 14px;">
+                      <div style="font-size: 10px; font-weight: 600; color: {{ P.field }}; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px;">研究方法 &middot; 具体怎么做</div>
+                      <div style="font-size: 13px; color: {{ P.body }}; line-height: 1.8;">{{ paper.analysis.method_detail }}</div>
                     </td>
                   </tr>
                   </table>
@@ -343,7 +396,7 @@
                         相关度 <strong style="color: {{ P.soft }};">{{ "%.2f"|format(paper.analysis.relevance) }}</strong>
                         &middot; {{ paper.analysis.relevance_kind }}
                         &middot; 置信 {{ paper.analysis.confidence }}
-                        &middot; {% if paper.analysis.basis == 'fulltext' %}<span style="color: {{ P.ok }}; font-weight: 600;">全文</span>{% else %}<span style="color: {{ P.warn }};">仅摘要</span>{% endif %}
+                        &middot; {% if paper.analysis.basis == 'fulltext' %}<span style="color: {{ P.ok }}; font-weight: 600;">全文节选</span>{% else %}<span style="color: {{ P.warn }};">仅摘要</span>{% endif %}
                         {% if paper.analysis.relevance_reason %} &middot; {{ paper.analysis.relevance_reason }}{% endif %}
                       </div>
                       {% for key, label, value in paper.analysis.fields %}
@@ -469,15 +522,25 @@
                 </td>
               </tr>
 
-              {# -- PDF 按钮 + 反馈（反馈只在配置了 FEEDBACK_URL 时出现） -- #}
+              {# -- PDF 按钮 + 反馈（相关性 / 有用性 两维，各三档；只在配置了 FEEDBACK_URL 时出现） -- #}
               <tr>
                 <td style="padding: 0 22px 18px;">
-                  <a href="{{ paper.pdf_url }}" style="display: inline-block; font-size: 12px; color: {{ P.read }}; text-decoration: none; border: 1px solid {{ P.read }}; padding: 5px 14px; border-radius: 4px; font-weight: 500;">PDF</a>
-                  {% if feedback_url %}
-                  <span style="font-size: 11px; color: {{ P.faint }}; padding-left: 10px;">这篇：</span>
-                  <a href="{{ feedback_url }}?item={{ paper.id }}&v=up&t={{ generated_at }}" style="font-size: 11px; color: {{ P.ok }}; text-decoration: none; padding-left: 4px;">有用</a>
-                  <a href="{{ feedback_url }}?item={{ paper.id }}&v=meh&t={{ generated_at }}" style="font-size: 11px; color: {{ P.muted }}; text-decoration: none; padding-left: 8px;">一般</a>
-                  <a href="{{ feedback_url }}?item={{ paper.id }}&v=down&t={{ generated_at }}" style="font-size: 11px; color: {{ P.bad }}; text-decoration: none; padding-left: 8px;">无关</a>
+                  <a href="{{ paper.pdf_url | safe_url }}" style="display: inline-block; font-size: 12px; color: {{ P.read }}; text-decoration: none; border: 1px solid {{ P.read }}; padding: 5px 14px; border-radius: 4px; font-weight: 500;">PDF</a>
+                  {% if paper.feedback_links %}
+                  <div style="padding-top: 10px; font-size: 11px; color: {{ P.faint }}; line-height: 2;">
+                    <div style="padding-bottom: 4px;">
+                      <span style="color: {{ P.muted2 }}; font-weight: 600; padding-right: 6px;">相关性</span>
+                      <a href="{{ paper.feedback_links.rel2 | safe_url }}" style="display: inline-block; color: {{ P.ok }}; text-decoration: none; border: 1px solid {{ P.ok }}; border-radius: 999px; padding: 3px 10px; margin-right: 5px;">直接相关</a>
+                      <a href="{{ paper.feedback_links.rel1 | safe_url }}" style="display: inline-block; color: {{ P.muted2 }}; text-decoration: none; border: 1px solid {{ P.line3 }}; border-radius: 999px; padding: 3px 10px; margin-right: 5px;">沾边</a>
+                      <a href="{{ paper.feedback_links.rel0 | safe_url }}" style="display: inline-block; color: {{ P.bad }}; text-decoration: none; border: 1px solid {{ P.bad }}; border-radius: 999px; padding: 3px 10px;">无关</a>
+                    </div>
+                    <div>
+                      <span style="color: {{ P.muted2 }}; font-weight: 600; padding-right: 6px;">有用性</span>
+                      <a href="{{ paper.feedback_links.use2 | safe_url }}" style="display: inline-block; color: {{ P.ok }}; text-decoration: none; border: 1px solid {{ P.ok }}; border-radius: 999px; padding: 3px 10px; margin-right: 5px;">很有用</a>
+                      <a href="{{ paper.feedback_links.use1 | safe_url }}" style="display: inline-block; color: {{ P.muted2 }}; text-decoration: none; border: 1px solid {{ P.line3 }}; border-radius: 999px; padding: 3px 10px; margin-right: 5px;">一般</a>
+                      <a href="{{ paper.feedback_links.use0 | safe_url }}" style="display: inline-block; color: {{ P.bad }}; text-decoration: none; border: 1px solid {{ P.bad }}; border-radius: 999px; padding: 3px 10px;">没用</a>
+                    </div>
+                  </div>
                   {% endif %}
                 </td>
               </tr>
@@ -507,11 +570,10 @@
               <span style="color: {{ P.muted }}; margin-left: 6px;">{{ "%.2f"|format(paper.score) }}</span>
             </div>
             <div style="padding-top: 4px;">
-              <a href="{{ paper.abs_url }}" style="font-size: 14px; font-weight: 600; color: {{ P.text }}; text-decoration: none; line-height: 1.45;">{{ paper.title }}</a>
+              <a href="{{ paper.abs_url | safe_url }}" style="font-size: 14px; font-weight: 600; color: {{ P.text }}; text-decoration: none; line-height: 1.45;">{{ paper.title }}</a>
             </div>
             <div style="font-size: 12px; color: {{ P.muted2 }}; padding-top: 3px;">
-              {{ paper.authors[:2]|join(", ") }}{% if paper.authors|length > 2 %} et al.{% endif %} &middot; {{ paper.categories|join(" / ") }}
-            </div>
+              {{ paper.authors[:2]|join(", ") }}{% if paper.authors|length > 2 %} et al.{% endif %} &middot; {% if paper.venue %}<span style="color: {{ P.cal }};">{{ paper.venue }}</span> &middot; {% endif %}{{ paper.categories|join(" / ") }}</div>
             <div style="font-size: 13px; color: {{ P.body }}; line-height: 1.72; padding-top: 6px;">{{ paper.brief_zh }}</div>
             <details style="padding-top: 4px;">
               <summary style="cursor: pointer; font-size: 11.5px; color: {{ P.muted }};">展开中英文摘要</summary>
@@ -520,8 +582,18 @@
                 <div style="font-size: 12px; color: {{ P.muted5 }}; line-height: 1.72; font-style: italic; padding-top: 8px;">{{ paper.summary }}</div>
               </div>
             </details>
-            <div style="padding-top: 7px;">
-              <a href="{{ paper.pdf_url }}" style="font-size: 11px; color: {{ P.read }}; text-decoration: none;">PDF</a>
+            <div style="padding-top: 7px; font-size: 11px; color: {{ P.faint2 }};">
+              <a href="{{ paper.pdf_url | safe_url }}" style="font-size: 11px; color: {{ P.read }}; text-decoration: none;">PDF</a>
+              {% if paper.feedback_links %}
+              <span style="padding-left: 10px;">相关</span>
+              <a href="{{ paper.feedback_links.rel2 | safe_url }}" style="color: {{ P.ok }}; text-decoration: none; padding-left: 3px;">高</a>
+              <a href="{{ paper.feedback_links.rel1 | safe_url }}" style="color: {{ P.muted }}; text-decoration: none; padding-left: 3px;">中</a>
+              <a href="{{ paper.feedback_links.rel0 | safe_url }}" style="color: {{ P.bad }}; text-decoration: none; padding-left: 3px;">低</a>
+              <span style="padding-left: 10px;">有用</span>
+              <a href="{{ paper.feedback_links.use2 | safe_url }}" style="color: {{ P.ok }}; text-decoration: none; padding-left: 3px;">高</a>
+              <a href="{{ paper.feedback_links.use1 | safe_url }}" style="color: {{ P.muted }}; text-decoration: none; padding-left: 3px;">中</a>
+              <a href="{{ paper.feedback_links.use0 | safe_url }}" style="color: {{ P.bad }}; text-decoration: none; padding-left: 3px;">低</a>
+              {% endif %}
             </div>
           </td>
         </tr>
@@ -537,9 +609,10 @@
       <td style="padding: 26px 40px 6px; background: {{ P.tint_field }};">
         <div style="font-size: 10.5px; letter-spacing: 2px; color: {{ P.field }}; font-weight: 700;">THE FIELD</div>
         <div style="font-size: 21px; font-weight: 700; color: {{ P.text }}; padding-top: 6px; padding-left: 11px; border-left: 4px solid {{ P.field }}; line-height: 1.3;">
-          世界在动
-          <span style="float: right; font-size: 10.5px; font-weight: 400; color: {{ P.muted3 }}; letter-spacing: 0; padding-top: 10px;">别人写好的解读，省你读原文的时间</span>
+          世界在变
+          <span style="float: right; font-size: 10.5px; font-weight: 400; color: {{ P.muted3 }}; letter-spacing: 0; padding-top: 10px;">天文学为主，也看看更广的世界</span>
         </div>
+        {% if news_counts %}<div style="padding-top: 8px; font-size: 11px; color: {{ P.muted }};">{% for name, count in news_counts.items() %}{{ name }} {{ count }} 条{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
         <div style="border-top: 1px solid {{ P.panel4 }}; margin-top: 12px;"></div>
       </td>
     </tr>
@@ -548,6 +621,9 @@
         <table width="100%" cellpadding="0" cellspacing="0">
 
         {% for item in secondary %}
+        {% if loop.first or item.meta.get('domain', 'astronomy') != secondary[loop.index0 - 1].meta.get('domain', 'astronomy') %}
+        <tr><td style="padding-top: 14px; font-size: 12px; color: {{ P.field }}; font-weight: 700;">{{ {'astronomy':'天文学', 'physics':'物理学', 'chemistry':'化学', 'history':'历史与考古'}.get(item.meta.get('domain', 'astronomy'), '天文学') }}</td></tr>
+        {% endif %}
         {% set tone = P.src_eso %}
         {% if "Astrobites" in item.source %}{% set tone = P.warn %}{% elif "ESO" in item.source %}{% set tone = P.ok %}{% else %}{% set tone = P.src_aas %}{% endif %}
         <tr>
@@ -557,7 +633,7 @@
               {% if item.published %}<span style="color: {{ P.faint }}; padding-left: 6px;">{{ item.published[:10] }}</span>{% endif %}
             </div>
             <div style="padding-top: 4px;">
-              <a href="{{ item.url }}" style="color: {{ P.text }}; text-decoration: none; font-weight: 600; font-size: 14px; line-height: 1.45;">{% if item.title_zh %}{{ item.title_zh }}{% else %}{{ item.title }}{% endif %}</a>
+              <a href="{{ item.url | safe_url }}" style="color: {{ P.text }}; text-decoration: none; font-weight: 600; font-size: 14px; line-height: 1.45;">{% if item.title_zh %}{{ item.title_zh }}{% else %}{{ item.title }}{% endif %}</a>
             </div>
             {% if item.title_zh %}<div style="padding-top: 5px;"><span style="display: inline-block; font-size: 9px; letter-spacing: 0.8px; color: {{ P.muted }}; background: {{ P.chip_bg }}; border-radius: 3px; padding: 1px 6px; margin-right: 7px; vertical-align: 1px;">EN</span><span style="font-size: 11.5px; color: {{ P.muted }}; font-style: italic; line-height: 1.5;">{{ item.title }}</span></div>{% endif %}
             {% if item.text_zh %}<div style="font-size: 13.5px; color: {{ P.body }}; line-height: 1.95; padding-top: 7px;">{{ item.text_zh }}</div>{% endif %}
@@ -571,7 +647,7 @@
         {% for item in talks %}
         <tr>
           <td style="padding: 8px 0; border-bottom: 1px solid {{ P.line2 }};">
-            {% if item.url %}<a href="{{ item.url }}" style="color: {{ P.text }}; text-decoration: none; font-weight: 600; font-size: 13.5px; line-height: 1.45;">{% if item.title_zh %}{{ item.title_zh }}{% else %}{{ item.title }}{% endif %}</a>{% else %}<span style="font-weight: 600; font-size: 13.5px;">{{ item.title }}</span>{% endif %}
+            {% if item.url %}<a href="{{ item.url | safe_url }}" style="color: {{ P.text }}; text-decoration: none; font-weight: 600; font-size: 13.5px; line-height: 1.45;">{% if item.title_zh %}{{ item.title_zh }}{% else %}{{ item.title }}{% endif %}</a>{% else %}<span style="font-weight: 600; font-size: 13.5px;">{{ item.title }}</span>{% endif %}
             <div style="font-size: 11px; color: {{ P.muted }}; padding-top: 3px;">
               <span style="display: inline-block; padding: 1px 7px; border-radius: 3px; background: {{ P.pulse }}; color: {{ P.card }}; font-weight: 700; font-size: 10px;">{{ item.source }}</span>
               {% if item.meta["讲者"] %}<span style="color: {{ P.muted }}; padding-left: 6px;">{{ item.meta["讲者"] }}</span>{% endif %}
@@ -594,7 +670,7 @@
     <tr>
       <td style="padding: 20px 40px 4px;">
         <div style="font-size: 12px; font-weight: 600; color: {{ P.text }}; letter-spacing: 0.5px; border-bottom: 1px solid {{ P.line }}; padding-bottom: 6px;">
-          本周投稿量变化
+          近两周采集论文量变化
         </div>
       </td>
     </tr>
@@ -604,7 +680,7 @@
         {% for row in trend %}
         <tr>
           <td style="padding: 4px 0; font-size: 12px; color: {{ P.body }}; width: 120px;">{{ row.label }}</td>
-          <td style="padding: 4px 0; font-size: 12px; color: {{ P.muted4 }};">本周 {{ row.this_week }} 篇 · 上周 {{ row.last_week }} 篇</td>
+          <td style="padding: 4px 0; font-size: 12px; color: {{ P.muted4 }};">近 7 天采集 {{ row.this_week }} 篇 · 前 7 天 {{ row.last_week }} 篇</td>
           <td style="padding: 4px 0; font-size: 12px; text-align: right; font-weight: 600; color: {{ P.bad if row.arrow == '↑' else (P.ok if row.arrow == '↓' else P.muted) }};">{{ row.arrow }} {{ row.label_text }}</td>
         </tr>
         {% endfor %}

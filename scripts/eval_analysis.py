@@ -9,10 +9,11 @@
     # 1. 抓 20 篇最近的 astro-ph.CO 论文，生成评测集骨架
     python scripts/eval_analysis.py build --count 20
 
-    # 2. 跑完一次真实摘要后，用 digest.json 评分
-    python scripts/eval_analysis.py check --digest digest.json
+    # 2. 对冻结的全部输入逐篇分析（run 会调用已配置的模型；不抓 PDF）
+    python scripts/eval_analysis.py run --out eval-digest.json
+    python scripts/eval_analysis.py check --digest eval-digest.json
 
-两个命令都不需要 API key：build 只调 arXiv，check 只读本地文件。
+build 只调 arXiv；check 只读本地文件；run 需要模型凭据且可能计费。
 """
 
 from __future__ import annotations
@@ -26,8 +27,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from arxiv_digest.arxiv_client import fetch_recent_papers  # noqa: E402
+from arxiv_digest.contracts import paper_to_dict, papers_from_payload, DIGEST_VERSION
+from arxiv_digest.identity import canonical_id
+from arxiv_digest.storage import atomic_json
 
-MISSING_LABELS = ("摘要未提", "全文未提", "")
+MISSING_LABELS = ("摘要未提", "全文未提", "全文节选未检出", "")
 _UNIT_WORDS = (
     "%",
     "km/s",
@@ -98,19 +102,65 @@ def build(path: Path, *, count: int, categories: list[str], days: int) -> int:
 
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
-        "version": 1,
+        "version": 2,
         "note": "由 scripts/eval_analysis.py build 自动生成；expected_numbers 来自摘要原文，可直接核验是否被漏抽",
         "categories": categories,
         "entries": entries,
+        "items": [paper_to_dict(paper) for paper in papers[:count]],
     }
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"[ OK ] 写入 {len(entries)} 篇 → {path}")
-    print("下一步：跑一次真实摘要（ANALYSIS_ENABLED=true, DIGEST_JSON_PATH=digest.json），再执行 check")
+    print("下一步：run --out eval-digest.json 对本集合的全部冻结输入分析，再执行 check")
     return 0
+
+
+def run_set(eval_path: Path, output: Path, *, client=None, config=None) -> int:
+    """Analyze exactly the frozen set; never silently re-fetch or use daily quotas."""
+    from arxiv_digest.config import load_config
+    from arxiv_digest.pipeline import _assessment_packs, _build_client
+    from arxiv_digest.profile import load_profile
+    from arxiv_digest.analysis import analyze_papers, PROMPT_VERSION
+    from arxiv_digest.llm_client import LLMOptions
+    config = config or load_config()
+    payload = json.loads(eval_path.read_text(encoding="utf-8"))
+    expected = [canonical_id(str(row["id"])) for row in payload.get("entries", [])]
+    index = {canonical_id(paper.id): paper for paper in papers_from_payload(payload)}
+    if not expected or len(set(expected)) != len(expected) or any(key not in index for key in expected):
+        print("[FAIL] 评测集缺少完整冻结输入或 ID 重复；请重新 build，禁止用另一次抓取代替。")
+        return 1
+    client = client if client is not None else _build_client(config)
+    if client is None:
+        print("[FAIL] 没有可用的模型客户端；run 不会把未分析输入标记为通过。")
+        return 1
+    papers = [index[key] for key in expected]
+    # Clear old analysis to make failed new requests distinguishable from old successes.
+    from dataclasses import replace
+    papers = [replace(paper, analysis=None, chinese_summary="") for paper in papers]
+    packs = _assessment_packs(config)
+    extract_options = LLMOptions(temperature=1.0, max_tokens=6000, thinking=config.analysis_extract_thinking)
+    assess_options = LLMOptions(temperature=1.0, max_tokens=9000, thinking=config.analysis_assess_thinking)
+    analyzed = analyze_papers(client, papers, load_profile(config.profile_path), packs,
+        limit=len(papers), extract_model=config.analysis_extract_model, assess_model=config.analysis_assess_model,
+        cache_dir=config.cache_dir, extract_options=extract_options, assess_options=assess_options)
+    failed = [paper.id for paper in analyzed if paper.analysis is None]
+    import hashlib
+    from dataclasses import asdict
+    def fingerprint(path):
+        return hashlib.sha256(Path(path).read_bytes()).hexdigest() if path and Path(path).is_file() else None
+    atomic_json(output, {"version": DIGEST_VERSION, "prompt_version": PROMPT_VERSION,
+        "items": [paper_to_dict(paper) for paper in analyzed], "run": {"mode": "fixed_evaluation",
+        "basis": "frozen abstracts", "expected": len(expected), "failed_ids": failed,
+        "extract_model": config.analysis_extract_model, "assess_model": config.analysis_assess_model,
+        "extract_options": asdict(extract_options), "assess_options": asdict(assess_options),
+        "profile_sha256": fingerprint(config.profile_path),
+        "pack_sha256": {pack.id: fingerprint(pack.source_path) for pack in packs}}})
+    print(f"分析完成：{len(analyzed) - len(failed)}/{len(expected)}；输出 {output}")
+    return 1 if failed else 0
 
 
 def _text_of(item: dict) -> str:
     parts = [item.get("summary") or ""]
+    parts.append((item.get("analysis") or {}).get("source_text") or "")
     fulltext = item.get("fulltext") or ""
     if fulltext:
         parts.append(fulltext)
@@ -121,7 +171,7 @@ def check(eval_path: Path, digest_path: Path) -> int:
     eval_set = json.loads(eval_path.read_text(encoding="utf-8"))
     digest = json.loads(digest_path.read_text(encoding="utf-8"))
 
-    items = {str(item.get("id")): item for item in digest.get("items") or []}
+    items = {canonical_id(str(item.get("id"))): item for item in digest.get("items") or []}
     entries = eval_set.get("entries") or []
     if not entries:
         print("[FAIL] 评测集是空的")
@@ -134,7 +184,7 @@ def check(eval_path: Path, digest_path: Path) -> int:
     problems: list[str] = []
 
     for entry in entries:
-        item = items.get(str(entry.get("id")))
+        item = items.get(canonical_id(str(entry.get("id"))))
         analysis = (item or {}).get("analysis") or {}
         if not analysis:
             problems.append(f"{entry.get('id')}: 没有被分析（或没进精读）")
@@ -179,9 +229,10 @@ def check(eval_path: Path, digest_path: Path) -> int:
         for line in problems[:8]:
             print(f"    - {line}")
 
-    ok = quote_total > 0 and quote_ok / quote_total >= 0.9
+    ok = (covered == len(entries) and quote_total > 0 and quote_ok / quote_total >= 0.9
+          and (not number_total or number_hit / number_total >= 0.8))
     print()
-    print("[ OK ] 引文保真达标（≥90%）" if ok else "[FAIL] 引文保真不足 90%，先别信评论内容")
+    print("[ OK ] 覆盖完整、引文保真≥90%、数字召回≥80%" if ok else "[FAIL] 覆盖、引文或数字召回未达标，检查报告")
     return 0 if ok else 1
 
 
@@ -197,6 +248,8 @@ def main(argv: list[str] | None = None) -> int:
 
     check_parser = sub.add_parser("check", help="按 digest.json 评分")
     check_parser.add_argument("--digest", default="digest.json")
+    run_parser = sub.add_parser("run", help="调用模型逐篇分析固定评测集，可能计费；不重新抓取")
+    run_parser.add_argument("--out", default="eval-digest.json")
 
     args = parser.parse_args(argv)
     path = Path(args.set)
@@ -207,9 +260,11 @@ def main(argv: list[str] | None = None) -> int:
         candidates = [Path(args.digest), path.parent.parent / "digest.json"]
         digest = next((item for item in candidates if item.is_file()), None)
         if digest is None:
-            print("[FAIL] 找不到 digest.json，先跑一次 `python -m arxiv_digest.main --dry-run`")
+            print("[FAIL] 找不到 digest.json，设置 DIGEST_JSON_PATH=digest.json 后运行 --out 预览")
             return 1
         return check(path, digest)
+    if args.command == "run":
+        return run_set(path, Path(args.out))
     parser.print_help()
     return 0
 

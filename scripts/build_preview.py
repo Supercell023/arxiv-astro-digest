@@ -23,12 +23,13 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from arxiv_digest.calendar import empty_bundle, load_calendar  # noqa: E402
-from arxiv_digest.config import load_config  # noqa: E402
+from arxiv_digest.config import load_config
+from arxiv_digest.contracts import paper_from_dict, papers_from_payload  # noqa: E402
 from arxiv_digest.emailer import render_email_html  # noqa: E402
 
 THEME = "dark"  # main() 里由 --theme 覆盖
 from arxiv_digest.fulltext import extract_figure_captions, fetch_fulltext, pdf_url_for  # noqa: E402
-from arxiv_digest.models import Analysis, Paper  # noqa: E402
+from arxiv_digest.models import Analysis, Paper, ScoreBreakdown  # noqa: E402
 from arxiv_digest.pulse import pulse_from_payload  # noqa: E402
 
 DEFAULT_REPLAY = REPO_ROOT / "config" / "preview_replay.json"
@@ -44,101 +45,21 @@ def _parse_time(value: str) -> datetime:
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
-def _analysis_from(raw: dict | None, basis: str) -> Analysis | None:
-    if not raw:
-        return None
-    from arxiv_digest.models import Concept, KeyNumber, RedFlag
-
-    def strings(key: str) -> tuple[str, ...]:
-        return tuple(str(item) for item in (raw.get(key) or ()) if str(item).strip())
-
-    return Analysis(
-        relevance=float(raw.get("relevance") or 0.0),
-        relevance_kind=raw.get("relevance_kind") or "context",
-        relevance_reason=raw.get("relevance_reason") or "",
-        data=raw.get("data") or "",
-        processing=raw.get("processing") or "",
-        systematics=raw.get("systematics") or "",
-        method=raw.get("method") or "",
-        result=raw.get("result") or "",
-        caveat=raw.get("caveat") or "",
-        for_you=raw.get("for_you") or "",
-        confidence=raw.get("confidence") or "medium",
-        evidence=strings("evidence"),
-        basis=basis,
-        model=raw.get("model") or "preview-replay",
-        prompt_version=raw.get("prompt_version") or "a2-b2",
-        verdict=raw.get("verdict") or "",
-        read_advice=raw.get("read_advice") or "skim",
-        read_reason=raw.get("read_reason") or "",
-        chain=strings("chain"),
-        numbers=tuple(
-            KeyNumber(
-                label=str(item.get("label") or ""),
-                value=str(item.get("value") or ""),
-                quote=item.get("quote"),
-            )
-            for item in (raw.get("numbers") or ())
-            if isinstance(item, dict)
-        ),
-        figures=strings("figures"),
-        actions=strings("actions"),
-        red_flags=tuple(
-            RedFlag(
-                flag=str(item.get("flag") or ""),
-                status=str(item.get("status") or "missing"),
-                note=str(item.get("note") or ""),
-            )
-            for item in (raw.get("red_flags") or ())
-            if isinstance(item, dict)
-        ),
-        concepts=tuple(
-            Concept(term=str(item.get("term") or ""), gloss=str(item.get("gloss") or ""))
-            for item in (raw.get("concepts") or ())
-            if isinstance(item, dict)
-        ),
-    )
-
-
-def build_papers(spec: dict) -> tuple[list[Paper], list[str]]:
-    papers: list[Paper] = []
+def build_papers(spec: dict, *, allow_network: bool = False) -> tuple[list[Paper], list[str]]:
+    """Replay is offline by default; downloads never upgrade recorded analysis provenance."""
+    papers = papers_from_payload(spec)
     notes: list[str] = []
-    max_chars = int(spec.get("fulltext_max_chars") or 40000)
-    for item in spec.get("papers", []):
-        text = None
-        if item.get("fetch_fulltext"):
-            url = pdf_url_for(item.get("abs_url", ""), item.get("pdf_url", ""))
-            text = fetch_fulltext(url, max_chars=max_chars)
-            notes.append(
-                f"{item.get('id')}: 全文 {'拿到 %d 字符' % len(text) if text else '失败，回退摘要'}"
-            )
-        one_click = item.get("summary_zh") or ""
-        analysis = _analysis_from(item.get("analysis"), "fulltext" if text else "abstract")
-        if analysis is not None and text:
-            # 图注是纯正则抽的，不需要模型：预览里也照真实链路走一遍
-            captions = extract_figure_captions(text)
-            if captions:
-                from dataclasses import replace as _replace
-
-                analysis = _replace(analysis, figures=captions)
-        papers.append(
-            Paper(
-                id=item.get("id", ""),
-                title=item.get("title", ""),
-                authors=list(item.get("authors") or []),
-                summary=item.get("summary", ""),
-                published=_parse_time(item.get("published", "")),
-                updated=_parse_time(item.get("updated") or item.get("published", "")),
-                categories=list(item.get("categories") or []),
-                pdf_url=item.get("pdf_url") or pdf_url_for(item.get("abs_url", "")),
-                abs_url=item.get("abs_url", ""),
-                score=float(item.get("score") or 0.0),
-                rating=int(item.get("rating") or 3),
-                score_reasons=list(item.get("score_reasons") or []),
-                chinese_summary=one_click,
-                analysis=analysis,
-            )
-        )
+    if allow_network:
+        from dataclasses import replace
+        raw_items = spec.get("items", spec.get("papers", []))
+        for index, (paper, raw) in enumerate(zip(papers, raw_items)):
+            if not raw.get("fetch_fulltext"):
+                continue
+            text = fetch_fulltext(pdf_url_for(paper.abs_url, paper.pdf_url),
+                                  max_chars=int(spec.get("fulltext_max_chars") or 40000))
+            notes.append(f"{paper.id}: PDF {'已获取' if text else '失败，保留录制内容'}")
+            if text and paper.analysis:
+                papers[index] = replace(paper, analysis=replace(paper.analysis, figures=extract_figure_captions(text)))
     return papers, notes
 
 
@@ -197,6 +118,7 @@ def _radar_from_spec(spec: dict):
             summary=summary,
             abstract=raw.get("abstract", ""),
             authors=tuple(raw.get("authors") or ()),
+            id=raw.get("id", ""),
         )
 
     raw_blocks = block.get("blocks")
@@ -230,12 +152,15 @@ def _radar_from_spec(spec: dict):
         quiet=block.get("quiet", ""),
     )
 
-def render(spec_path: Path, out_path: Path, *, deep: int, brief: int) -> int:
+def render(spec_path: Path, out_path: Path, *, deep: int | None = None, brief: int | None = None, allow_network: bool = False) -> int:
     spec = json.loads(spec_path.read_text(encoding="utf-8"))
-    papers, notes = build_papers(spec)
+    deep = deep if deep is not None else (spec.get("run") or {}).get("deep_papers", 4)
+    brief = brief if brief is not None else (spec.get("run") or {}).get("brief_papers", 10)
+    papers, notes = build_papers(spec, allow_network=allow_network)
     if not papers:
-        print(f"[FAIL] {spec_path} 里没有 papers")
-        return 1
+        if not spec.get("world") and not spec.get("calendar_bundle"):
+            print(f"[FAIL] {spec_path} 里没有可回放内容")
+            return 1
 
     config = load_config()
     calendar = (
@@ -248,6 +173,12 @@ def render(spec_path: Path, out_path: Path, *, deep: int, brief: int) -> int:
         if config.calendar_enabled
         else empty_bundle()
     )
+    if isinstance(spec.get("calendar_bundle"), dict):
+        from arxiv_digest.calendar import CalendarBundle, CalendarLine
+        raw_calendar = spec["calendar_bundle"]
+        calendar = CalendarBundle(**{key: (CalendarLine(**raw_calendar[key]) if raw_calendar.get(key) else None)
+                                     if key == "next_far" else tuple(CalendarLine(**raw) for raw in raw_calendar.get(key, []))
+                                     for key in CalendarBundle.__dataclass_fields__})
     secondary, talks, trend, sources = _world_from_spec(spec)
     pulse = pulse_from_payload(spec.get("pulse"))
     radar = _radar_from_spec(spec)
@@ -258,6 +189,9 @@ def render(spec_path: Path, out_path: Path, *, deep: int, brief: int) -> int:
         timezone_name=config.digest_timezone,
         deep_papers=deep,
         brief_papers=brief,
+        edition=(spec.get("run") or {}).get("edition", "daily"),
+        period_label=(spec.get("run") or {}).get("period_label", ""),
+        news_counts=(spec.get("run") or {}).get("news_counts", {}),
         secondary=secondary,
         talks=talks,
         trend=trend,
@@ -265,13 +199,15 @@ def render(spec_path: Path, out_path: Path, *, deep: int, brief: int) -> int:
         pulse=pulse,
         radar=radar,
         feedback_url=spec.get("feedback_url") or "",
+        feedback_signing_key=config.feedback_signing_key,
         theme=THEME,
     )
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(html, encoding="utf-8")
 
     for note in notes:
         print("  " + note)
-    print(f"[ OK ] 已写出 {out_path}（{len(html):,} 字节，{len(papers)} 篇）")
+    print(f"[ OK ] 已写出 {out_path}（{len(html):,} 字符，{len(papers)} 篇）")
     analyzed = sum(1 for paper in papers if paper.analysis is not None)
     fulltext = sum(1 for paper in papers if paper.analysis and paper.analysis.basis == "fulltext")
     print(f"       其中 {analyzed} 篇带分析，{fulltext} 篇基于全文")
@@ -281,10 +217,11 @@ def render(spec_path: Path, out_path: Path, *, deep: int, brief: int) -> int:
 def discover(count: int, out_path: Path, lookback: int) -> int:
     """抓最近的真实论文，写出 replay 骨架（摘要留空，等人工/模型补）。"""
     from arxiv_digest.arxiv_client import fetch_recent_papers
+    from arxiv_digest.pipeline import _resolve_categories
 
     config = load_config()
     papers = fetch_recent_papers(
-        config.arxiv_categories,
+        _resolve_categories(config),
         lookback,
         max_results=200,
         page_size=config.arxiv_page_size,
@@ -374,10 +311,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="生成 HTML 预览样张")
     parser.add_argument("--replay", default=str(DEFAULT_REPLAY), help="录制文件路径")
     parser.add_argument("--out", default=str(DEFAULT_OUT), help="输出 HTML 路径")
-    parser.add_argument("--deep", type=int, default=4, help="精读篇数")
-    parser.add_argument("--brief", type=int, default=10, help="速览篇数")
+    parser.add_argument("--deep", type=int, help="覆盖录制数据的精读篇数，旧样张默认 4")
+    parser.add_argument("--brief", type=int, help="覆盖录制数据的速览篇数，旧样张默认 10")
     parser.add_argument("--discover", type=int, default=0, help="抓 N 篇真实论文生成骨架")
     parser.add_argument("--lookback", type=int, default=7, help="discover 时回看天数")
+    parser.add_argument("--fetch-fulltext", action="store_true", help="允许联网下载样张指定的 PDF（不调用模型）")
     parser.add_argument("--refresh-world", action="store_true", help="现场抓一次二手源写进 replay")
     parser.add_argument("--theme", default="dark", choices=("dark", "light"), help="邮件主题：dark 深空 / light 暖纸")
     args = parser.parse_args(argv)
@@ -392,7 +330,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.refresh_world:
         refresh_world(replay)
     THEME = args.theme
-    return render(replay, out, deep=args.deep, brief=args.brief)
+    return render(replay, out, deep=args.deep, brief=args.brief, allow_network=args.fetch_fulltext)
 
 
 if __name__ == "__main__":

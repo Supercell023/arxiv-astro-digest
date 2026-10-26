@@ -70,6 +70,12 @@ DARK: dict[str, str] = {
     "src_eso": "#155e75",
     "note_bg": "#0a1a22",
     "note_text": "#c7d8e6",
+    "bar_track": "#16253a",
+    "bar_keyword": "#22d3ee",
+    "bar_zotero": "#818cf8",
+    "bar_category": "#2dd4bf",
+    "bar_library": "#fb7185",
+    "bar_feedback": "#c084fc",
 }
 
 # 暖纸主题：白天、打印、以及不认深色背景的客户端。
@@ -128,6 +134,12 @@ LIGHT: dict[str, str] = {
     "src_eso": "#2f6b52",
     "note_bg": "#fdf7ec",
     "note_text": "#6b5310",
+    "bar_track": "#ece7db",
+    "bar_keyword": "#b45309",
+    "bar_zotero": "#2b5f8a",
+    "bar_category": "#2f6b52",
+    "bar_library": "#b3261e",
+    "bar_feedback": "#6b4c9a",
 }
 
 DEFAULT_THEME = "dark"

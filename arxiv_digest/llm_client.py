@@ -19,8 +19,24 @@ import logging
 import re
 from dataclasses import dataclass
 from typing import Any
+from contextlib import contextmanager
+from contextvars import ContextVar
 
 LOGGER = logging.getLogger(__name__)
+_USAGE: ContextVar[dict | None] = ContextVar("digest_llm_usage", default=None)
+
+
+@contextmanager
+def usage_scope():
+    token = _USAGE.set({"requests": 0, "prompt_tokens": 0, "completion_tokens": 0, "reasoning_tokens": 0})
+    try:
+        yield
+    finally:
+        _USAGE.reset(token)
+
+
+def usage_snapshot() -> dict:
+    return dict(_USAGE.get() or {})
 
 _CODE_FENCE_RE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.IGNORECASE)
 
@@ -92,7 +108,11 @@ def call_json(
     use_format = True
     limit = opts.max_tokens
     thinking = opts.thinking
-    if thinking is None and "deepseek" in model.lower():
+    provider_url = str(getattr(client, "base_url", "")).lower()
+    supports_thinking = "deepseek" in provider_url or (not provider_url and "deepseek" in model.lower())
+    if not supports_thinking:
+        thinking = None
+    if thinking is None and supports_thinking:
         # DeepSeek 默认开思考。结构化抽取/翻译/打分不需要，反而会吃掉 max_tokens 预算。
         thinking = False
     last_error: Exception | None = None
@@ -112,6 +132,9 @@ def call_json(
             kwargs["response_format"] = {"type": "json_object"}
 
         try:
+            ledger = _USAGE.get()
+            if ledger is not None:
+                ledger["requests"] += 1
             response = client.chat.completions.create(**kwargs)
         except Exception as exc:  # noqa: BLE001 - 需要按错误内容决定是否降级
             last_error = exc
@@ -153,7 +176,13 @@ def call_json(
                 max(1, opts.attempts),
             )
             continue
-        return _parse_json_object(content)
+        try:
+            return _parse_json_object(content)
+        except ValueError as exc:
+            last_error = exc
+            if attempt >= max(1, opts.attempts):
+                raise
+            LOGGER.warning("模型返回无效 JSON，第 %d 次重试。", attempt)
 
     if last_error is not None:
         raise last_error
@@ -173,6 +202,11 @@ def _log_usage(model: str, usage: Any) -> None:
     details = getattr(usage, "completion_tokens_details", None)
     reasoning = getattr(details, "reasoning_tokens", None) if details else None
     prompt = getattr(usage, "prompt_tokens", None)
+    ledger = _USAGE.get()
+    if ledger is not None:
+        ledger["prompt_tokens"] += prompt or 0
+        ledger["completion_tokens"] += completion or 0
+        ledger["reasoning_tokens"] += reasoning or 0
     LOGGER.info(
         "模型用量 %s：输入 %s / 输出 %s%s",
         model,

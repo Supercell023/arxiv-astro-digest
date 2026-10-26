@@ -6,6 +6,7 @@ import re
 from typing import Any
 
 from .models import Paper
+from .evidence import numbers_supported
 from .llm_client import LLMOptions, _parse_json_object, call_json  # noqa: F401 - 兼容旧导入
 
 LOGGER = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ _CODE_FENCE_RE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.IGNORECASE)
 
 def _fallback_summary(papers: list[Paper]) -> str:
     if not papers:
-        return "前一天没有找到符合当前配置的新 arXiv 论文。"
+        return "本期采集范围内没有找到符合兴趣与配置的论文。"
     top_titles = "；".join(paper.title for paper in papers[:3])
     return f"共筛选出 {len(papers)} 篇论文。优先关注：{top_titles}。"
 
@@ -125,10 +126,12 @@ def _call_batch(
     raw_summaries = payload.get("paper_summaries")
     summaries: dict[str, str] = {}
     if isinstance(raw_summaries, dict):
+        sources = {paper.id: _truncate_text(paper.summary, max_abstract_chars) for paper in batch}
         summaries = {
             str(key): str(value).strip()
             for key, value in raw_summaries.items()
-            if isinstance(value, str) and value.strip()
+            if isinstance(value, str) and value.strip() and str(key) in sources
+            and numbers_supported(value, sources[str(key)])
         }
 
     overall = payload.get("overall_summary")
@@ -150,6 +153,9 @@ def generate_digest_content(
     base_url: str | None = None,
     batch_size: int = DEFAULT_BATCH_SIZE,
     thinking: bool | None = None,
+    timeout: float = 90,
+    edition_label: str = "本期",
+    period_label: str = "",
 ) -> tuple[str, list[Paper]]:
     if not papers:
         return _fallback_summary(papers), []
@@ -166,9 +172,9 @@ def generate_digest_content(
 
     try:
         if base_url:
-            client = OpenAI(api_key=api_key, base_url=base_url)
+            client = OpenAI(api_key=api_key, base_url=base_url, timeout=timeout, max_retries=2)
         else:
-            client = OpenAI(api_key=api_key)
+            client = OpenAI(api_key=api_key, timeout=timeout, max_retries=2)
     except Exception as exc:  # pragma: no cover - 客户端构造失败极少见
         LOGGER.warning("初始化 OpenAI 客户端失败：%s", exc)
         return _fallback_summary(papers), add_fallback_paper_summaries(papers)
@@ -185,7 +191,7 @@ def generate_digest_content(
                 client,
                 model,
                 batch,
-                ask_overall=overall is None,
+                ask_overall=False,
                 max_abstract_chars=max_abstract_chars,
                 thinking=thinking,
             )
@@ -193,8 +199,6 @@ def generate_digest_content(
             failed_batches += 1
             LOGGER.warning("第 %d/%d 批（%d 篇）生成失败：%s", index, total_batches, len(batch), exc)
             continue
-        if overall is None and batch_overall:
-            overall = batch_overall
         summaries.update(batch_summaries)
 
     enriched = [
@@ -204,6 +208,27 @@ def generate_digest_content(
         )
         for paper in papers
     ]
+
+    if failed_batches < total_batches:
+        overview_rows = [
+            {"id": paper.id, "title": paper.title,
+             "abstract": _truncate_text(paper.summary, max_abstract_chars),
+             "summary_zh": summaries.get(paper.id, "")}
+            for paper in papers
+        ]
+        try:
+            payload = call_json(client, model,
+                f'根据全部入选论文写4-6句中文{edition_label}总览，研究窗口：{period_label or "本次采集窗口"}。'
+                '只用给出的事实，说明共同主题与差异，不要把一周的论文说成今天全部新发表。'
+                '只输出 JSON：{"overall_summary":"..."}。\n' + json.dumps(overview_rows, ensure_ascii=False),
+                system="你是谨慎的论文编辑，不要把部分材料说成领域全貌。",
+                options=LLMOptions(temperature=0.3, max_tokens=2000, thinking=thinking))
+            raw_overall = payload.get("overall_summary")
+            source = " ".join(row["abstract"] for row in overview_rows)
+            overall = (raw_overall.strip() if isinstance(raw_overall, str) and raw_overall.strip()
+                       and numbers_supported(raw_overall, source) else None)
+        except Exception as exc:
+            LOGGER.warning("全量总览生成失败：%s", type(exc).__name__)
 
     if overall is None:
         summary = _fallback_summary(papers)

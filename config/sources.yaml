@@ -5,6 +5,8 @@
 # `cadence` 决定抓取节奏：`daily`（默认，适合更新频繁的新闻页）
 # 或 `weekly`（适合望远镜/巡天项目页——一周发不了一条，每天抓是浪费请求）。
 # 日期靠 state.json 里的 `fetched` 记录，Actions 无状态也能记住上次抓取日。
+# domain: astronomy / physics / chemistry / history。
+# 世界在变按领域做软配额；max_items 是单源候选量，不是邮件固定篇数。
 #
 # 报告（talks）用 Indico 的结构化导出，不需要爬 HTML：
 #   https://<host>/event/1234  →  https://<host>/export/event/1234.json?detail=contributions
@@ -87,6 +89,56 @@ feeds:
     max_items: 2
     cadence: weekly
     enabled: false          # 更新慢、与具体领域相关性弱，默认关
+
+  # —— 更广的兴趣：物理、化学、历史/考古（与天文合计约 1:1）——
+  # 官方 RSS 目录：phys.org/feeds/、sciencedaily.com/newsfeeds.htm、smithsonianmag.com/rss/
+  - id: physorg-physics
+    name: Phys.org 物理学
+    url: https://phys.org/rss-feed/physics-news/
+    domain: physics
+    tags: [physics, news]
+    max_items: 10
+    cadence: daily
+
+  - id: sciencedaily-physics
+    name: ScienceDaily 物理学
+    url: https://www.sciencedaily.com/rss/matter_energy/physics.xml
+    domain: physics
+    tags: [physics, news]
+    max_items: 10
+    cadence: daily
+
+  - id: physorg-chemistry
+    name: Phys.org 化学
+    url: https://phys.org/rss-feed/chemistry-news/
+    domain: chemistry
+    tags: [chemistry, news]
+    max_items: 10
+    cadence: daily
+
+  - id: sciencedaily-chemistry
+    name: ScienceDaily 化学
+    url: https://www.sciencedaily.com/rss/matter_energy/chemistry.xml
+    domain: chemistry
+    tags: [chemistry, news]
+    max_items: 10
+    cadence: daily
+
+  - id: smithsonian-history
+    name: Smithsonian 历史
+    url: https://www.smithsonianmag.com/rss/history/
+    domain: history
+    tags: [history, news]
+    max_items: 10
+    cadence: daily
+
+  - id: sciencedaily-archaeology
+    name: ScienceDaily 考古
+    url: https://www.sciencedaily.com/rss/fossils_ruins/archaeology.xml
+    domain: history
+    tags: [history, archaeology]
+    max_items: 10
+    cadence: daily
 
 indico:
   # 示例（已过期，默认关）。把 url 换成你在跟的会议即可。

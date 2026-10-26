@@ -1,0 +1,94 @@
+{
+  "date": "2026-10-26",
+  "recorded_at": "2026-10-26T04:36:21.740552+08:00",
+  "platform": "Windows",
+  "python": "3.11.9",
+  "checks": [
+    {
+      "name": "offline_selfcheck",
+      "command": [
+        "-B",
+        "-c",
+        "import socket,runpy,sys; socket.socket.connect=lambda *a,**k: (_ for _ in ()).throw(RuntimeError('network disabled')); socket.socket.connect_ex=socket.socket.connect;sys.argv=['selfcheck'];runpy.run_module('arxiv_digest.selfcheck',run_name='__main__')"
+      ],
+      "exit_code": 0,
+      "checks_passed": 26,
+      "executable": "D:\\workspace\\arxiv-astro-digest\\.venv\\Scripts\\python.exe"
+    },
+    {
+      "name": "python_regressions",
+      "command": [
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-v"
+      ],
+      "exit_code": 0,
+      "tests_run": 63,
+      "executable": "D:\\workspace\\arxiv-astro-digest\\.venv\\Scripts\\python.exe"
+    },
+    {
+      "name": "dependency_consistency",
+      "command": [
+        "-B",
+        "-m",
+        "pip",
+        "--disable-pip-version-check",
+        "check"
+      ],
+      "exit_code": 0,
+      "executable": "D:\\workspace\\arxiv-astro-digest\\.venv\\Scripts\\python.exe"
+    },
+    {
+      "name": "python_syntax",
+      "files": 44,
+      "exit_code": 0
+    },
+    {
+      "name": "yaml_and_workflow_bindings",
+      "yaml_configs": 9,
+      "mapped_config_variables": 96,
+      "exit_code": 0
+    },
+    {
+      "name": "apps_script_offline_logic",
+      "runner": "node_repl: require(tests/check_google_feedback.cjs).run()",
+      "checks_passed": 10,
+      "exit_code": 0,
+      "network": false,
+      "cloud_deployment_verified": false
+    },
+    {
+      "name": "local_document_links",
+      "documents": 10,
+      "exit_code": 0
+    },
+    {
+      "name": "offline_replay_preview",
+      "command": [
+        "scripts/build_preview.py",
+        "--out",
+        "preview_v013.html"
+      ],
+      "exit_code": 0,
+      "network_attempts": 0,
+      "artifact": "preview_v013.html"
+    }
+  ],
+  "not_executed": [
+    "live model API",
+    "SMTP delivery",
+    "Google Apps Script deployment",
+    "GitHub Actions execution",
+    "Linux/macOS runtime",
+    "coverage measurement",
+    "performance benchmark",
+    "full vulnerability/license audit",
+    "mypy/ruff"
+  ],
+  "credentials_or_runtime_state_modified": false,
+  "installed_dependencies": false
+}

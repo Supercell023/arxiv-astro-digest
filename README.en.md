@@ -6,7 +6,17 @@ Turn one arXiv category feed into a daily research brief you can actually finish
 
 Every day it fetches new papers and field news → extracts facts → scores and comments against your reader profile → renders an email (or a standalone HTML file).
 
-`v0.11.1` · Python ≥ 3.11 · MIT
+`v0.14.0` · Python ≥ 3.11 · MIT
+
+**v0.14:** Sundays select a fresh roundup from the previous seven complete local days, including papers already recommended during the week. Interest signals are required instead of filling quotas with weak category matches. Weekly defaults: up to 12 papers, 6 deep reads. News now covers astronomy, physics, chemistry and history/archaeology: about 30 items (up to 36), aiming for equal astronomy and other-field halves with shortage backfill. See the [implementation and acceptance report](docs/CHANGE_REPORT_2026-10-26_V014.md).
+
+> **Note:** the remaining historical sections below track v0.11. v0.12 (score breakdown, research background & method detail,
+> two-axis feedback, journal sources via Crossref, Zotero library matching) is documented in the
+> [Chinese README](README.md) and [CHANGELOG.md](CHANGELOG.md).
+
+Reliability update: previews do not consume delivery state; state is committed after SMTP succeeds. Stable identities, dated observations, complete v3 snapshots, quote/numeric checks, weekly material history, bounded PDF parsing and offline replay are implemented. Zotero titles/tags stay local unless `ZOTERO_SHARE_WITH_MODEL=true`.
+
+Read the [review baseline](docs/REVIEW_2026-10-26.md), [change/migration report](docs/CHANGE_REPORT_2026-10-26.md) and [AI handoff](docs/AI_HANDOFF.md). Run `python -B -m unittest discover -s tests -v` for offline regressions. External services and scientific accuracy still need separate acceptance tests.
 
 ---
 
@@ -91,7 +101,7 @@ ANALYSIS_ENABLED=true                        # defaults to false: off means no d
 Then:
 
 ```bash
-python -m arxiv_digest.selfcheck                 # 22 offline checks, no network, no cost
+python -m arxiv_digest.selfcheck                 # 26 offline checks, no network, no cost
 python -m arxiv_digest.main --out preview.html   # real run, HTML only, no email sent
 ```
 
@@ -105,7 +115,7 @@ Add the five SMTP variables when you are happy, drop `--out`, and it starts mail
 
 | Command | Purpose |
 | --- | --- |
-| `python -m arxiv_digest.selfcheck` | 22 offline checks (imports, config, parsing, dispatch, rendering, themes…) |
+| `python -m arxiv_digest.selfcheck` | 26 offline checks (imports, config, parsing, dispatch, rendering, themes…) |
 | `python -m arxiv_digest.main --out preview.html` | Real run; writes HTML, sends nothing, writes no state |
 | `python -m arxiv_digest.main` | Full run: sends the email and writes `state.json` |
 | `python scripts\build_preview.py` | Render from recorded data (offline, free) |
@@ -120,7 +130,7 @@ Add the five SMTP variables when you are happy, drop `--out`, and it starts mail
 
 ## 6. Configuration
 
-All 57 variables are documented in [`.env.example`](.env.example). The ones you will actually touch:
+All configuration variables are documented in [`.env.example`](.env.example). The ones you will actually touch:
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -193,7 +203,7 @@ Full details in [CHANGELOG.md](CHANGELOG.md).
 arxiv_digest/
   main.py           Entry point: SMTP preflight, --out mode, sending
   pipeline.py       Main flow: fetch → analyse → pulse/radar/translate → render
-  config.py         57 env vars → Config
+  config.py         Environment → Config
   arxiv_client.py   arXiv API (paging, 429 backoff, adaptive lookback window)
   analysis.py       Two stages: extract facts → write commentary
   llm_client.py     Unified model calls (JSON fallback, thinking switch, truncation retry)
@@ -210,7 +220,7 @@ arxiv_digest/
   state.py          Cross-day dedupe, source cadence, submission counts
   sources/          RSS and Indico fetchers
   templates/        Email HTML (no hard-coded colours)
-  selfcheck.py      22 offline checks
+  selfcheck.py      26 offline checks
 config/             Profile, packs, sources, calendar, radar, replay data
 scripts/            Preview, evaluation, feedback, pulse refresh
 docs/               PRODUCT_PLAN.md (design doc), PROJECT_REVIEW.md (early audit)

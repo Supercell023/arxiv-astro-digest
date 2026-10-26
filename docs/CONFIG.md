@@ -1,5 +1,7 @@
 # 配置指南
 
+> v0.13 新增项与迁移以 [改动报告](CHANGE_REPORT_2026-10-26.md) 为准。真正离线预览使用 `python scripts/build_preview.py`；`main --out` 会抓取、调用模型并写诊断/缓存，但不消费已读状态。
+
 这份文档回答两个问题：**每个变量是什么意思、什么时候该改它**，以及**用哪个邮箱发信**。
 
 配置有三个来源，优先级从高到低：
@@ -14,7 +16,7 @@
 
 ## 一、最小可用配置
 
-### A. 只想先看看长什么样（不发信、不花钱）
+### A. 真实数据预览（不发信，会联网并可能产生模型费用）
 
 ```ini
 OPENAI_API_KEY=sk-...
@@ -121,7 +123,7 @@ QQ / 163 会校验发件人与登录账号是否一致，不一致直接拒发�
 | `RADAR_THINKING` | 留空 | 一句话解读，不值得开 |
 | `TRANSLATE_THINKING` | 留空 | 翻译，开了纯浪费 |
 
-**代价**：全开思考时输出 token 有 60–70% 是思考，单次成本从 ~$0.04 涨到 ~$0.10。
+**代价**：思考模式的实际 token 取决于模型与任务，查看运行报告中的 usage；本文旧金额只代表历史样例。
 
 ### 3. 内容量与阅读预算
 
@@ -158,7 +160,7 @@ QQ / 163 会校验发件人与登录账号是否一致，不一致直接拒发�
 | `RADAR_ENABLED` | true | 邻域雷达（别的方向在动什么） |
 | `SOURCES_ENABLED` | true | 世界在动（二手解读、会议报告） |
 | `TRANSLATE_ENABLED` | true | 二手条目的中文翻译 |
-| `TREND_ENABLED` | true | 投稿量周环比 |
+| `TREND_ENABLED` | true | 去重后的采集论文量变化 |
 
 ### 6. 样式与分发
 
@@ -244,3 +246,56 @@ PULSE_MODEL=                                       ← 对
 | 提质 | `ANALYSIS_ASSESS_MODEL=deepseek-v4-pro` | 评论更稳，约 +30% |
 
 一次完整运行的典型用量：**输入 ~6 万 / 输出 ~1.5 万 token**。
+
+
+## v0.13 配置补充
+
+| 变量 | 默认值 | 含义 |
+|---|---|---|
+| SMTP_TIMEOUT | 30 | SMTP 秒级超时，显式校验证书与主机名 |
+| LLM_TIMEOUT | 90 | 单次模型请求超时，SDK 最多重试两次 |
+| FULLTEXT_PARSE_TIMEOUT | 30 | PDF 子进程解析超时，超时终止并退回摘要 |
+| CACHE_DIR | .cache/arxiv-digest | 全文与 Stage A 缓存目录，默认不提交 |
+| RUN_REPORT_PATH | run_report.json | 来源、范围、耗时和实际 token 报告 |
+| ZOTERO_SHARE_WITH_MODEL | false | 是否向模型提供库条目标题与标签 |
+| FEEDBACK_SIGNING_KEY | 空 | 反馈链接 HMAC 密钥，非本机端点必须配置 |
+
+`ARXIV_CATEGORIES` 留空才按领域包取分类并集；旧 .env 中的显式值仍优先。`DIGEST_JSON_PATH` 留空不导出；填 `digest.json` 后可直接交给评测与回放脚本。
+
+Actions 必需配置 OPENAI_API_KEY 及 SMTP 各项 Secret；Zotero、签名密钥也使用 Secret。私有反馈 CSV URL 建议放在 FEEDBACK_SHEET_CSV_URL Secret。其余开关和规则使用 Variables；STATE_PATH 在默认 workflow 固定为 state.json。完整映射见 workflow。
+
+旧成本数字是历史样例；新版本以运行报告中的实际用量与供应商报价为准。未做跨平台邮件客户端显示验收。
+
+现存 `.env` 中的 `LLM_THINKING` 使用了非标准开关写法；本轮没有改写该文件。为保持旧行为，代码按关闭处理并记录变量名警告。建议后续显式写 `true`、`false` 或 `auto`；其他无法识别的开关同样保留旧版关闭语义。
+
+## v0.14 周报与资讯选择
+
+以下值都有代码默认值；旧 `.env` 不增加这些变量也会生效。显式环境设置优先，工作流已映射同名 Repository Variables。实际 `.env` 中的凭据没有因本次改动被改写。
+
+| 变量 | 默认 | 含义 |
+|---|---|---|
+| DIGEST_EDITION | auto | 按配置时区自动选周报；daily / weekly 强制模式，CLI `--edition` 优先 |
+| WEEKLY_ENABLED | true | auto 模式是否开启周报 |
+| WEEKLY_WEEKDAY | 6 | 0=周一，6=周日 |
+| WEEKLY_MAX_PAPERS | 12 | 周报论文最多篇数，不保证填满 |
+| WEEKLY_DEEP_PAPERS | 6 | 周报精读位上限，其余为速览 |
+| WEEKLY_FETCH_MAX_RESULTS | 600 | 周报 arXiv 采集预算，分页数随 page_size 计算；不是全量抓取保证 |
+| WEEKLY_MIN_SIGNALS | 2 | 一般要求两个不同兴趣短语；明确个人关键词、主要研究对象或标题诊断主题可单独入选 |
+| PAPER_RELEVANCE_ENABLED | true | 日报兴趣闸门；周报始终应用闸门 |
+| PAPER_MIN_SIGNALS | 1 | 日报兴趣主题信号数 |
+| WORLD_NEWS_TARGET | 30 | 资讯软目标；少于目标时仅展示实际可用条目 |
+| WORLD_NEWS_MAX_ITEMS | 36 | 资讯丰富时的上限，必须不小于目标 |
+| WORLD_ASTRONOMY_PERCENT | 50 | 天文学目标比例，其余由物理、化学、历史/考古轮转选取 |
+| WORLD_NEWS_MAX_AGE_DAYS | 7 | 资讯最多回看自然日数，包含运行日；无有效日期/未来日期不当作新新闻 |
+
+周日窗口为 `[周日-7 天 00:00, 本周日 00:00)`，按 DIGEST_TIMEZONE 换算。例如 2026-10-25 的周报对应 10-18 至 10-24，不扩展为 14 天，不假定所有期刊或资讯在周末都停更。周报允许重选日报推荐过的论文；`state.editions` 对同一个窗口去重，成功投递才记录。预览可再次生成且不提交；周报里的论文不写入日报 seen，资讯与雷达仍按已展示内容去重。
+
+研究兴趣使用 `ARXIV_KEYWORDS`、画像 `work.probes.primary` 与领域包 `journal_terms`（缺失时用 `title_keywords`）；大小写/连字符归一，同义嵌套短语避免重复计数。它是可解释的规则匹配，不能保证语义相关性；模型若明确判为 off 会再排除。可调整词表、阈值和原有 MIN_RATING，勿为了填满篇数取消证据约束。
+
+资讯每个 feed 可写 `domain: astronomy / physics / chemistry / history`；旧 feed 默认 astronomy，单源 `max_items` 只是候选上限。正常库存目标为 30；当候选超过两倍目标时，邮件可增长到候选数的一半，最多 36。两侧按比例选取，不足由剩余有效条目补位；没有最低篇数承诺。非天文资讯不进入天文学脉搏的材料池。
+
+每次运行的报告与快照分别保存在配置路径旁的 `runs/<文件名>-<run_id>.json`；原路径是最近一次运行的入口，不会被另一轮的提交状态改写。失败报告区分 pipeline/render/smtp/state_commit；`state_commit_failed` 表示邮件可能已被 SMTP 接受，不能直接当作未发重跑。运行档案在本地保留供排查，需按自己的保留要求管理；Actions artifact 保留 7 天。
+
+`.cache/arxiv-digest` 的 extract/fulltext 缓存在每轮开始时回收过 30 天或累计超过 256 MiB 的已知 SHA 命名 JSON；不会清理任意名称的用户文件。Actions 配置了独立业务缓存，真实云端命中效果尚未验收。反馈端点仍默认仅监听本机；现在有 32 连接上限和 10 秒读取超时，不能据此称为完整公网服务。
+
+固定评测流程使用 `eval_analysis.py build` → `run` → `check`，新集合包含完整原始输入。run 不重新抓取、不下载 PDF、不使用每日精读配额，且会清除旧分析再运行；它会调用配置的模型。旧的仅含 ID 的集合不能直接 run，需要重新构建，避免把另一批论文冒充同一评测集。

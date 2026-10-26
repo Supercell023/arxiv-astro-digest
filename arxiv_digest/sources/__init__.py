@@ -15,6 +15,8 @@ import yaml
 from .base import KIND_PAPER, KIND_SECONDARY, KIND_TALK, Item, SourceResult, dedupe
 from .indico import fetch_events
 from .rss import fetch_feeds
+from ..identity import stable_id
+from urllib.parse import urlparse
 
 LOGGER = logging.getLogger(__name__)
 
@@ -43,7 +45,10 @@ def load_sources(path: str | Path) -> dict[str, list[dict[str, object]]]:
             return []
         return [entry for entry in value if isinstance(entry, dict) and entry.get("enabled", True) is not False]
 
-    return {"feeds": section("feeds"), "indico": section("indico")}
+    disabled = [entry for key in ("feeds", "indico") for entry in (raw.get(key) or [])
+                if isinstance(entry, dict) and entry.get("enabled") is False] if all(
+                    isinstance(raw.get(key) or [], list) for key in ("feeds", "indico")) else []
+    return {"feeds": section("feeds"), "indico": section("indico"), "_disabled": disabled}
 
 
 def _wanted(entry: dict[str, object], fields: tuple[str, ...]) -> bool:
@@ -68,10 +73,35 @@ def feed_cadence(entry: dict[str, object]) -> str:
     return value if value in {"daily", "weekly"} else "daily"
 
 
-def source_ids(path: str | Path) -> dict[str, str]:
+def _with_pack_sources(config: dict, packs) -> dict:
+    config = {key: list(value) for key, value in config.items()}
+    known = {str(entry.get("url")) for entries in config.values() for entry in entries}
+    for pack in packs:
+        for url in pack.sources_secondary:
+            if url in known:
+                for entry in config["feeds"]:
+                    if entry.get("url") == url and entry.get("fields"):
+                        entry["fields"] = list(dict.fromkeys([*entry["fields"], pack.id]))
+                continue
+            parsed = urlparse(url)
+            if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+                continue
+            config["feeds"].append({"id": stable_id("feed", "pack", url), "name": parsed.hostname,
+                                    "url": url, "fields": [pack.id]})
+            known.add(url)
+        for url in pack.sources_events:
+            if url in known or "/event/" not in url:
+                continue  # ordinary timeline pages remain manually curated calendar sources
+            config["indico"].append({"id": stable_id("event", "pack", url), "name": pack.name,
+                                     "url": url, "fields": [pack.id]})
+            known.add(url)
+    return config
+
+
+def source_ids(path: str | Path, *, packs=()) -> dict[str, str]:
     """id -> cadence。ID 的推导规则必须与 `fetch_feed` / `fetch_event` 一致。"""
 
-    config = load_sources(path)
+    config = _with_pack_sources(load_sources(path), packs)
     mapping: dict[str, str] = {}
     for feed in config["feeds"]:
         key = str(feed.get("id") or feed.get("name") or feed.get("url") or "")
@@ -91,6 +121,7 @@ def collect_sources(
     max_items: int = DEFAULT_MAX_ITEMS,
     timeout: int = DEFAULT_TIMEOUT,
     skip_ids: Collection[str] = (),
+    packs=(),
 ) -> list[SourceResult]:
     """抓所有启用的源。顺序稳定：先 RSS，后 Indico。
 
@@ -98,7 +129,7 @@ def collect_sources(
     跳过的源不出现在返回值里，也就不会被记为"已抓取"。
     """
 
-    config = load_sources(path)
+    config = _with_pack_sources(load_sources(path), packs)
     skip = set(skip_ids)
     feeds = [
         feed

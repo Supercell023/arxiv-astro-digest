@@ -19,6 +19,8 @@ from __future__ import annotations
 import json
 import logging
 import re
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Mapping, Sequence
 
@@ -168,10 +170,17 @@ def materials_from(
     talks: Sequence[Item] = (),
     *,
     max_papers: int = 40,
+    timezone_name: str = "UTC",
 ) -> list[Material]:
     """把三类材料摊平成同一张表。论文取标题+摘要，二手/报告取正文。"""
 
     materials: list[Material] = []
+    def local_day(value) -> str:
+        try:
+            parsed = value if isinstance(value, datetime) else datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            return str(value)[:10] if parsed.tzinfo is None else parsed.astimezone(ZoneInfo(timezone_name)).date().isoformat()
+        except (ValueError, TypeError):
+            return ""
     for paper in papers[:max_papers]:
         materials.append(
             Material(
@@ -180,8 +189,8 @@ def materials_from(
                 title=paper.title,
                 # 源必须是"arXiv"而不是分类名：分类名每天都不重复，
                 # 会把"跨源共现"虚化成永远成立。
-                source="arXiv",
-                date=str(paper.published)[:10],
+                source=paper.venue or "arXiv",
+                date=local_day(paper.published),
                 text=paper.summary,
                 url=paper.abs_url,
             )
@@ -193,7 +202,7 @@ def materials_from(
                 kind="secondary",
                 title=item.title,
                 source=item.source,
-                date=(item.published or "")[:10],
+                date=local_day(item.published),
                 text=item.text,
                 url=item.url,
             )
@@ -205,7 +214,7 @@ def materials_from(
                 kind="talk",
                 title=item.title,
                 source=item.source,
-                date=(item.published or "")[:10],
+                date=local_day(item.published),
                 text=item.text,
                 url=item.url,
             )
@@ -216,13 +225,14 @@ def materials_from(
 def _topic_table(topics: Iterable[tuple[str, Sequence[str]]] | None) -> list[tuple[str, list[str]]]:
     """领域包里没配就用通用表兜底，保证换领域也还能数出主题。"""
 
-    rows: list[tuple[str, list[str]]] = []
+    merged: dict[str, list[str]] = {}
     if topics:
         for label, aliases in topics:
             label_text = str(label or "").strip()
             alias_texts = [str(alias).strip().lower() for alias in aliases if str(alias).strip()]
             if label_text and alias_texts:
-                rows.append((label_text, alias_texts))
+                merged.setdefault(label_text, []).extend(alias_texts)
+    rows = [(label, list(dict.fromkeys(aliases))) for label, aliases in merged.items()]
     if rows:
         return rows
     return [(label, [alias.lower() for alias in aliases]) for label, aliases in _GENERIC_TOPICS]
@@ -450,12 +460,17 @@ def coerce_pulse(
     threads = coerce_threads(payload, valid, limit=limit, index=index)
 
     headline = _as_text(payload.get("headline"), 80)
+    raw_headline_ids = payload.get("headline_evidence")
+    if not isinstance(raw_headline_ids, (list, tuple)):
+        raw_headline_ids = []
     headline_ids = [
         str(item).strip()
-        for item in (payload.get("headline_evidence") or [])
+        for item in raw_headline_ids
         if str(item).strip() in valid
     ]
     headline_url = index[headline_ids[0]].url if headline_ids else ""
+    if not headline_ids:
+        headline = ""
     if headline_ids and not headline:
         headline = index[headline_ids[0]].title
 
@@ -468,7 +483,7 @@ def coerce_pulse(
         headline_url=headline_url,
         threads=tuple(threads),
         topics=tuple(topics),
-        quiet=_as_text(payload.get("quiet"), 120),
+        quiet="",  # absence of coverage is not evidence that a field was quiet
         basis="llm",
         materials=len(materials),
         source_count=len(sources),
@@ -495,16 +510,16 @@ def fallback_pulse(
         titles = "；".join(index[item_id].title[:60] for item_id in evidence)
         threads.append(
             Thread(
-                question=f"{hit.label} 本周被提到 {hit.hits} 次",
+                question=f"{hit.label}：近7天材料命中强度 {hit.hits}",
                 summary=f"涉及 {len(hit.item_ids)} 条材料：{titles}",
-                status="debate" if hit.tension_items else "new",
+                status="unsettled" if hit.tension_items else "new",
                 evidence=tuple(evidence),
                 links=_links_for(evidence, index),
             )
         )
     top = topics[0]
     return Pulse(
-        headline=f"本周最集中的主题是 {top.label}（{top.hits} 次提及，{top.source_count} 个源）",
+        headline=f"采集材料中的集中主题是 {top.label}（命中强度 {top.hits}，{top.source_count} 个源）",
         headline_url=index[top.item_ids[0]].url if top.item_ids and top.item_ids[0] in index else "",
         threads=tuple(threads),
         topics=tuple(topics),
@@ -532,10 +547,10 @@ def compose_pulse(
     prompt = build_pulse_prompt(profile, materials, topics, week_label=week_label)
     try:
         payload = _chat_json(client, model, prompt, options=options)
+        return coerce_pulse(payload, materials, topics, limit=limit)
     except Exception as exc:
         LOGGER.warning("脉搏生成失败：%s，退回主题统计。", exc)
         return fallback_pulse(materials, topics)
-    return coerce_pulse(payload, materials, topics, limit=limit)
 
 
 def format_plain_text(pulse: Pulse) -> str:

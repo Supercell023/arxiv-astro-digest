@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+import logging
+from dataclasses import dataclass, field
 
 
 def _split_csv(value: str) -> list[str]:
@@ -40,18 +41,25 @@ def _env_int(name: str, default: int) -> int:
 
 def _env_bool(name: str, default: bool) -> bool:
     value = os.getenv(name)
-    if not value:
+    cleaned = (value or "").split("#", 1)[0].strip().strip("'\"").lower()
+    if not cleaned:
         return default
-    return value.strip().lower() in {"1", "true", "yes", "y", "on"}
+    if cleaned in {"1", "true", "yes", "y", "on", "enabled", "enable"}:
+        return True
+    if cleaned in {"0", "false", "no", "n", "off", "disabled", "disable"}:
+        return False
+    logging.getLogger(__name__).warning("%s 的开关值无法识别，按旧版语义关闭；建议显式使用 true/false。", name)
+    return False
 
 
 def _env_tristate(name: str, default: bool | None = None) -> bool | None:
     """三态开关：变量不存在 = default（None = 不要把这个参数发给端点）。"""
 
     value = os.getenv(name)
-    if value is None or not value.strip():
+    cleaned = (value or "").split("#", 1)[0].strip().strip("'\"").lower()
+    if not cleaned or cleaned in {"auto", "default", "none"}:
         return default
-    return value.strip().lower() in {"1", "true", "yes", "y", "on"}
+    return _env_bool(name, False)
 
 
 def _default_thinking() -> bool | None:
@@ -113,7 +121,7 @@ class Config:
     calendar_conferences_path: str
     calendar_horizon_days: int
     calendar_recent_days: int
-    openai_api_key: str | None
+    openai_api_key: str | None = field(repr=False)
     openai_base_url: str | None
     openai_model: str
     analysis_enabled: bool
@@ -130,6 +138,13 @@ class Config:
     fulltext_max_chars: int
     fulltext_max_pages: int
     fulltext_timeout: int
+    journals_enabled: bool
+    journals_path: str
+    journals_rows: int
+    journals_max_per: int
+    journals_timeout: int
+    journals_lookback_days: int
+    journals_mailto: str
     sources_enabled: bool
     sources_path: str
     sources_max_items: int
@@ -155,16 +170,71 @@ class Config:
     radar_thinking: bool | None
     feedback_url: str
     feedback_path: str
-    zotero_api_key: str | None
+    feedback_sheet_csv_url: str
+    feedback_sheet_timeout: int
+    zotero_api_key: str | None = field(repr=False)
     zotero_user_id: str | None
     zotero_library_type: str
     zotero_collection_id: str | None
+    zotero_limit: int
+    zotero_skip_collected: bool
     smtp_host: str
     smtp_port: int
     smtp_username: str
-    smtp_password: str
+    smtp_password: str = field(repr=False)
     email_from: str
     email_to: str
+    smtp_timeout: int = 30
+    cache_dir: str = ".cache/arxiv-digest"
+    run_report_path: str = "run_report.json"
+    llm_timeout: int = 90
+    fulltext_parse_timeout: int = 30
+    zotero_share_with_model: bool = False
+    feedback_signing_key: str = field(default="", repr=False)
+    digest_edition: str = "auto"
+    weekly_enabled: bool = True
+    weekly_weekday: int = 6
+    weekly_max_papers: int = 12
+    weekly_deep_papers: int = 6
+    weekly_fetch_max_results: int = 600
+    weekly_min_signals: int = 2
+    paper_relevance_enabled: bool = True
+    paper_min_signals: int = 1
+    world_news_target: int = 30
+    world_news_max_items: int = 36
+    world_astronomy_percent: int = 50
+    world_news_max_age_days: int = 7
+
+    def __post_init__(self) -> None:
+        positive = ("arxiv_fetch_max_results", "arxiv_page_size", "arxiv_max_pages", "arxiv_request_timeout",
+                    "arxiv_request_retries", "max_papers", "llm_batch_size", "lookback_days", "smtp_timeout",
+                    "llm_timeout", "fulltext_timeout", "fulltext_parse_timeout", "fulltext_max_chars", "fulltext_max_pages",
+                    "journals_rows", "journals_max_per", "journals_timeout", "sources_timeout", "sources_max_items", "zotero_limit")
+        for name in positive:
+            if getattr(self, name) < 1:
+                raise ValueError(f"{name} 必须 >= 1")
+        if self.deep_papers < 0 or self.brief_papers < 0 or self.deep_papers + self.brief_papers < 1:
+            raise ValueError("DEEP_PAPERS / BRIEF_PAPERS 必须非负，且至少展示一篇")
+        if not 1 <= self.min_rating <= 5:
+            raise ValueError("MIN_RATING 必须在 1 到 5 之间")
+        if not 1 <= self.smtp_port <= 65535:
+            raise ValueError("SMTP_PORT 必须在 1 到 65535 之间")
+        if self.digest_edition not in {"auto", "daily", "weekly"}:
+            raise ValueError("DIGEST_EDITION 必须是 auto / daily / weekly")
+        if not 0 <= self.weekly_weekday <= 6:
+            raise ValueError("WEEKLY_WEEKDAY 必须在 0（周一）到 6（周日）之间")
+        for name in ("weekly_max_papers", "weekly_fetch_max_results", "weekly_min_signals",
+                     "paper_min_signals", "world_news_target", "world_news_max_items", "world_news_max_age_days"):
+            if getattr(self, name) < 1:
+                raise ValueError(f"{name} 必须 >= 1")
+        if not 0 <= self.weekly_deep_papers <= self.weekly_max_papers:
+            raise ValueError("WEEKLY_DEEP_PAPERS 必须在 0 到 WEEKLY_MAX_PAPERS 之间")
+        if not 0 <= self.world_astronomy_percent <= 100:
+            raise ValueError("WORLD_ASTRONOMY_PERCENT 必须在 0 到 100 之间")
+        if self.world_news_max_items < self.world_news_target:
+            raise ValueError("WORLD_NEWS_MAX_ITEMS 不得小于 WORLD_NEWS_TARGET")
+        from zoneinfo import ZoneInfo
+        ZoneInfo(self.digest_timezone)
 
 
 def load_config() -> Config:
@@ -216,13 +286,20 @@ def load_config() -> Config:
         fulltext_max_chars=_env_int("FULLTEXT_MAX_CHARS", 40000),
         fulltext_max_pages=_env_int("FULLTEXT_MAX_PAGES", 40),
         fulltext_timeout=_env_int("FULLTEXT_TIMEOUT", 120),
-    sources_enabled=_env_bool("SOURCES_ENABLED", True),
-    sources_path=_env("SOURCES_PATH", "config/sources.yaml"),
-    sources_max_items=_env_int("SOURCES_MAX_ITEMS", 6),
-    sources_timeout=_env_int("SOURCES_TIMEOUT", 30),
-    state_path=_env("STATE_PATH", "state.json"),
-    trend_enabled=_env_bool("TREND_ENABLED", True),
-    trend_rows=_env_int("TREND_ROWS", 4),
+        journals_enabled=_env_bool("JOURNALS_ENABLED", True),
+        journals_path=_env("JOURNALS_PATH", "config/journals.yaml"),
+        journals_rows=_env_int("JOURNALS_ROWS", 40),
+        journals_max_per=_env_int("JOURNALS_MAX_PER", 6),
+        journals_timeout=_env_int("JOURNALS_TIMEOUT", 30),
+        journals_lookback_days=_env_int("JOURNALS_LOOKBACK_DAYS", 2),
+        journals_mailto=_env("JOURNALS_MAILTO", "arxiv-digest@example.com"),
+        sources_enabled=_env_bool("SOURCES_ENABLED", True),
+        sources_path=_env("SOURCES_PATH", "config/sources.yaml"),
+        sources_max_items=_env_int("SOURCES_MAX_ITEMS", 6),
+        sources_timeout=_env_int("SOURCES_TIMEOUT", 30),
+        state_path=_env("STATE_PATH", "state.json"),
+        trend_enabled=_env_bool("TREND_ENABLED", True),
+        trend_rows=_env_int("TREND_ROWS", 4),
         pulse_enabled=_env_bool("PULSE_ENABLED", True),
         pulse_model=_env_model("PULSE_MODEL", _default_model()),
         pulse_threads=_env_int("PULSE_THREADS", 4),
@@ -241,14 +318,38 @@ def load_config() -> Config:
         radar_thinking=_env_tristate("RADAR_THINKING", _default_thinking()),
         feedback_url=_env("FEEDBACK_URL", ""),
         feedback_path=_env("FEEDBACK_PATH", "config/feedback.json"),
+        feedback_sheet_csv_url=_env("FEEDBACK_SHEET_CSV_URL", ""),
+        feedback_sheet_timeout=_env_int("FEEDBACK_SHEET_TIMEOUT", 20),
         zotero_api_key=os.getenv("ZOTERO_API_KEY"),
         zotero_user_id=os.getenv("ZOTERO_USER_ID"),
         zotero_library_type=_env("ZOTERO_LIBRARY_TYPE", "user"),
         zotero_collection_id=os.getenv("ZOTERO_COLLECTION_ID"),
+        zotero_limit=_env_int("ZOTERO_LIMIT", 100),
+        zotero_skip_collected=_env_bool("ZOTERO_SKIP_COLLECTED", False),
         smtp_host=_env("SMTP_HOST", "smtp.gmail.com"),
         smtp_port=_env_int("SMTP_PORT", 587),
         smtp_username=os.getenv("SMTP_USERNAME", ""),
         smtp_password=os.getenv("SMTP_PASSWORD", ""),
         email_from=os.getenv("EMAIL_FROM", os.getenv("SMTP_USERNAME", "")),
         email_to=os.getenv("EMAIL_TO", ""),
+        smtp_timeout=_env_int("SMTP_TIMEOUT", 30),
+        cache_dir=_env("CACHE_DIR", ".cache/arxiv-digest"),
+        run_report_path=_env("RUN_REPORT_PATH", "run_report.json"),
+        llm_timeout=_env_int("LLM_TIMEOUT", 90),
+        fulltext_parse_timeout=_env_int("FULLTEXT_PARSE_TIMEOUT", 30),
+        zotero_share_with_model=_env_bool("ZOTERO_SHARE_WITH_MODEL", False),
+        feedback_signing_key=os.getenv("FEEDBACK_SIGNING_KEY", ""),
+        digest_edition=_env("DIGEST_EDITION", "auto").strip().lower(),
+        weekly_enabled=_env_bool("WEEKLY_ENABLED", True),
+        weekly_weekday=_env_int("WEEKLY_WEEKDAY", 6),
+        weekly_max_papers=_env_int("WEEKLY_MAX_PAPERS", 12),
+        weekly_deep_papers=_env_int("WEEKLY_DEEP_PAPERS", 6),
+        weekly_fetch_max_results=_env_int("WEEKLY_FETCH_MAX_RESULTS", 600),
+        weekly_min_signals=_env_int("WEEKLY_MIN_SIGNALS", 2),
+        paper_relevance_enabled=_env_bool("PAPER_RELEVANCE_ENABLED", True),
+        paper_min_signals=_env_int("PAPER_MIN_SIGNALS", 1),
+        world_news_target=_env_int("WORLD_NEWS_TARGET", 30),
+        world_news_max_items=_env_int("WORLD_NEWS_MAX_ITEMS", 36),
+        world_astronomy_percent=_env_int("WORLD_ASTRONOMY_PERCENT", 50),
+        world_news_max_age_days=_env_int("WORLD_NEWS_MAX_AGE_DAYS", 7),
     )

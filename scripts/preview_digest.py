@@ -4,6 +4,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from dataclasses import replace
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
@@ -12,18 +13,23 @@ if str(REPO_ROOT) not in sys.path:
 from arxiv_digest.calendar import format_plain_text
 from arxiv_digest.config import load_config
 from arxiv_digest.emailer import render_email_html
-from arxiv_digest.pipeline import run_pipeline
+from arxiv_digest.pipeline import run_pipeline, update_diagnostics
 
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="跑一次真实流程并打印摘要；加 --out 可落成 HTML（不发信）。")
     parser.add_argument("--theme", default="dark", choices=("dark", "light"), help="邮件主题")
     parser.add_argument("--out", type=Path, default=None, help="把渲染结果写到这个 HTML 文件，例如 preview_live.html")
+    parser.add_argument("--edition", choices=("auto", "daily", "weekly"))
     args = parser.parse_args(argv)
 
     config = load_config()
+    if args.edition:
+        config = replace(config, digest_edition=args.edition)
     # 预览不写 state.json：否则"看一眼"会把条目算成已推送。
-    result = run_pipeline(config, persist_state=False)
+    result = run_pipeline(config, persist_state=False, preview=True)
+    result.report["delivery"] = "preview"
+    update_diagnostics(config, result)
 
     print(
         f"Fetched {len(result.papers)} papers; ranked {len(result.ranked_candidates)} candidates; "
@@ -41,7 +47,7 @@ def main(argv: list[str] | None = None) -> None:
             print(f"  {src.name}: {src.status_label}")
         print()
     if result.secondary:
-        print(f"== 二手解读 · {len(result.secondary)} 条 ==")
+        print(f"== 世界在变 · {len(result.secondary)} 条 ==")
         for item in result.secondary:
             print(f"  · {item.title}  [{item.source}] {item.url}")
         print()
@@ -74,8 +80,11 @@ def main(argv: list[str] | None = None) -> None:
             result.enriched,
             result.calendar,
             timezone_name=config.digest_timezone,
-            deep_papers=config.deep_papers,
-            brief_papers=config.brief_papers,
+            deep_papers=result.report.get("deep_papers", config.deep_papers),
+            brief_papers=result.report.get("brief_papers", config.brief_papers),
+            edition=result.report.get("edition", "daily"),
+            period_label=result.report.get("period_label", ""),
+            news_counts=result.report.get("news_counts", {}),
             secondary=result.secondary,
             talks=result.talks,
             trend=result.trend,
@@ -83,8 +92,11 @@ def main(argv: list[str] | None = None) -> None:
             pulse=result.pulse,
             radar=result.radar,
             feedback_url=config.feedback_url,
+            feedback_signing_key=config.feedback_signing_key,
+            window_days=result.window_days,
             theme=args.theme,
         )
+        args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(html, encoding="utf-8")
         print()
         print(f"已写出 {args.out}（{len(html):,} 字符）——直接用浏览器打开即可，没有发信。")

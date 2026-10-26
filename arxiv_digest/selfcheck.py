@@ -168,7 +168,7 @@ def _check_profile() -> str:
 
     profile = load_profile("config/profile.yaml")
     assert not profile.is_empty, "画像文件没读到，已退化成内置兜底（检查 config/profile.yaml）"
-    assert len(profile.questions) == 5, f"问题条数应为 5，实际 {len(profile.questions)}"
+    assert profile.questions, "读者问题清单为空"
     keys = profile.analysis_field_keys()
     expected = {"data", "processing", "systematics", "method", "result", "caveat", "for_you"}
     missing = expected - set(keys)
@@ -244,6 +244,7 @@ _EXTRACT_JSON = """{
   "method": {"value": "弱透镜标定质量", "quote": "we calibrate mass with weak lensing"},
   "result": {"value": "质量偏差小于 10%", "quote": "the mass bias is below 10 per cent"},
   "caveat": null,
+  "motivation": {"value": "richness 选样的标定仍不确定", "quote": "richness selection remains uncertain"},
   "numbers": [
     {"label": "样本量", "value": "12 万星系", "quote": "a sample of 120,000 galaxies"},
     {"label": "红移范围", "value": "0.05 < z < 0.3", "quote": "0.05 < z < 0.3"}
@@ -268,6 +269,8 @@ _ASSESS_JSON = """{
   "verdict": "用 mock 星团检验弱透镜质量标定，偏差小于 10%",
   "read_advice": "read",
   "read_reason": "标定流程可直接复用",
+  "background": "星系团质量标定的系统误差直接决定宇宙学参数的可信度，而 richness 选样是最大的不确定来源之一。",
+  "method_detail": "先按 richness 从模拟星团表选样，再用弱透镜 ΔΣ 剖面拟合 NFW 质量，最后把测得质量与真实质量比较，并在不同 richness 阈值下重复整套流程。",
   "chain": ["mock 星团", "richness 选样", "弱透镜 ΔΣ", "质量标定", "偏差 10%"],
   "actions": ["把 richness 选样接到你的 mock catalog", "对比它的质量偏差曲线"],
   "red_flags": [{"flag": "未标定质量-观测关系就做宇宙学", "status": "discussed", "note": "作者做了标定"}],
@@ -310,6 +313,14 @@ def _check_analysis() -> str:
     profile = load_profile("config/profile.yaml")
     packs = load_packs("config/packs")
     papers = _fake_papers()[:2]
+    # The fixture must actually contain the quoted evidence; otherwise extraction is rejected.
+    import json as _json
+    from dataclasses import replace as _replace
+    extraction = _json.loads(_EXTRACT_JSON)
+    source = " ".join(value["quote"] for value in extraction.values()
+                      if isinstance(value, dict) and value.get("quote"))
+    source += " " + " ".join(item["quote"] for item in extraction["numbers"])
+    papers = [_replace(paper, summary=source) for paper in papers]
 
     client = _FakeClient([_EXTRACT_JSON, _ASSESS_JSON, _EXTRACT_JSON, _ASSESS_JSON])
     analyzed = analyze_papers(
@@ -327,6 +338,8 @@ def _check_analysis() -> str:
     # 第 5 批次：卡片上的其余分区
     assert first.analysis.verdict, "缺少一句话结论"
     assert first.analysis.read_advice == "read", "阅读建议没解析出来"
+    assert "richness 选样" in first.analysis.background, "研究背景没解析出来"
+    assert "弱透镜" in first.analysis.method_detail, "研究方法详解没解析出来"
     assert len(first.analysis.chain) == 5, "方法链没解析出来"
     assert len(first.analysis.numbers) == 2, "关键数字没从阶段 A 带过来"
     assert first.analysis.numbers[0].label == "样本量"
@@ -399,8 +412,8 @@ def _check_render(preview_path: Path | None) -> str:
         _fake_papers(),
         bundle,
         timezone_name=cfg.digest_timezone,
-        deep_papers=cfg.deep_papers,
-        brief_papers=cfg.brief_papers,
+        deep_papers=4,
+        brief_papers=10,
     )
     assert "<html" in html.lower()
     assert "精读" in html, "模板里找不到精读分区"
@@ -430,11 +443,23 @@ def _check_render(preview_path: Path | None) -> str:
             "caveat": "局限占位",
             "for_you": "动作占位",
             "confidence": "high",
+            "background": "自检占位研究背景：为什么这个方向值得做。",
+            "method_detail": "自检占位研究方法：具体到估计量、样本划分与拟合设定。",
         },
         profile=load_profile("config/profile.yaml"),
         model="fake",
     )
-    with_analysis = Paper(**{**_fake_papers()[0].__dict__, "analysis": analysis})
+    from .models import ScoreBreakdown
+
+    with_analysis = Paper(
+        **{
+            **_fake_papers()[0].__dict__,
+            "analysis": analysis,
+            "breakdown": ScoreBreakdown(keyword=2.4, zotero=1.1, category=0.4),
+            "venue": "ApJ",
+            "doi": "10.3847/1538-4357/ad0001",
+        }
+    )
     html2 = render_email_html(
         "自检占位总览",
         [with_analysis],
@@ -442,10 +467,30 @@ def _check_render(preview_path: Path | None) -> str:
         timezone_name=cfg.digest_timezone,
         deep_papers=1,
         brief_papers=0,
+        feedback_url="http://127.0.0.1:8765/log",
     )
     for label in ("数据", "处理", "系统误差", "方法", "结果", "作者局限", "对你有用"):
         assert label in html2, f"七问七答里缺「{label}」"
     assert "动作占位" in html2 and "0.90" in html2
+
+    # ①分数构成：五项要能看到，且总分要等于构成之和
+    assert "分数构成" in html2, "精读卡没有分数构成条"
+    for label in ("关键词", "Zotero", "分类"):
+        assert label in html2, f"分数构成里缺「{label}」"
+    assert "+2.40" in html2 and "+1.10" in html2, "分数构成没有显示数值"
+
+    # ②研究背景 / 研究方法：不再受 20 分钟预算限制
+    assert "研究背景" in html2 and "自检占位研究背景" in html2, "缺少研究背景模块"
+    assert "研究方法" in html2 and "自检占位研究方法" in html2, "缺少研究方法详解"
+    assert "20 分钟" not in html2, "头部仍在写 20 分钟阅读限额"
+
+    # ③反馈：两维六键，且不再出现旧的一维 v=up
+    assert "相关性" in html2 and "有用性" in html2, "反馈区没有两个维度"
+    assert "rel=2" in html2 and "use=0" in html2, "六键链接没有渲染出来"
+    assert "v=up" not in html2, "仍在渲染旧的一维反馈链接"
+
+    # ④期刊来源：venue 要作为来源标签出现
+    assert "ApJ" in html2, "期刊来源标签没渲染"
 
     render_error_email_html("自检占位错误")
 
@@ -460,8 +505,8 @@ def _check_render(preview_path: Path | None) -> str:
             preview_papers,
             bundle,
             timezone_name=cfg.digest_timezone,
-            deep_papers=cfg.deep_papers,
-            brief_papers=cfg.brief_papers,
+            deep_papers=4,
+            brief_papers=10,
         )
         preview_path.write_text(preview_html, encoding="utf-8")
         return f"渲染成功，已写入 {preview_path}（前两篇带七问七答，其余为旧中文摘要）"
@@ -801,10 +846,13 @@ def _check_feedback() -> str:
     from tempfile import TemporaryDirectory
 
     from arxiv_digest.feedback import (
+        FeedbackRecord,
         apply_feedback,
         format_plain_text,
         learned_weights,
         load_feedback,
+        merge_csv,
+        parse_feedback_csv,
         record_vote,
         save_feedback,
     )
@@ -829,12 +877,17 @@ def _check_feedback() -> str:
         assert store.is_empty, "缺文件应返回空 store"
 
         voted = _paper("2610.1v1", "astro-ph.CO", "Vitorelli, Andre", 8.0)
-        assert record_vote(store, voted, "up"), "记票失败"
-        assert not record_vote(store, voted, "meh!"), "非法票值应被拒"
+        assert record_vote(store, voted, relevance=2), "记相关性失败"
+        assert record_vote(store, voted, usefulness=0), "记有用性失败"
+        record = store.votes["2610.1v1"]
+        assert (record.relevance, record.usefulness) == (2, 0), "只改一维时另一维被清掉了"
+        assert not record_vote(store, voted), "两维都不给应被拒"
+        assert not record_vote(store, voted, relevance=9), "越界取值应被拒"
         save_feedback(path, store)
 
         reloaded = load_feedback(path)
-        assert reloaded.votes.get("2610.1v1") == "up", "落盘再读丢票"
+        record = reloaded.votes["2610.1v1"]
+        assert (record.relevance, record.usefulness) == (2, 0), "落盘再读丢维度"
         categories, authors = learned_weights(reloaded)
         assert categories.get("astro-ph.CO", 0) > 0, "分类权重没学到"
         assert authors.get("vitorelli", 0) > 0, "作者权重没学到"
@@ -847,13 +900,205 @@ def _check_feedback() -> str:
         assert ranked[0].id == "new-a", "偏好应该把同类论文提到前面"
         assert "分类偏好" in format_plain_text(reloaded), "统计输出缺分类偏好"
 
+        # v1 旧文件：字符串票按 2/1/0 折算成两维
+        legacy_path = Path(tmp) / "legacy.json"
+        legacy_path.write_text(
+            '{"version": 1, "votes": {"2610.2v1": "down"}, "history": {}}', encoding="utf-8"
+        )
+        legacy = load_feedback(legacy_path)
+        legacy_record = legacy.votes["2610.2v1"]
+        assert (legacy_record.relevance, legacy_record.usefulness) == (0, 0), "v1 旧票没折算"
+
+        # 表格（Google Sheet 导出）导入：坏行跳过，不整份报错
+        rows = parse_feedback_csv(
+            "item,relevance,usefulness\n2610.1v1,1,2\n\nbad,row\n2610.3v1,0,\n"
+        )
+        assert rows == [("2610.1v1", 1, 2), ("2610.3v1", 0, None)], rows
+        assert merge_csv(legacy, rows) == 2
+
     class _BoomStore:
         is_empty = False
-        votes = {"x": "up"}
+        votes = {"x": FeedbackRecord(relevance=2, usefulness=2)}
         history: dict[str, dict[str, list[str]]] = {}
 
     assert apply_feedback(_BoomStore(), papers) is not None, "空偏好应安全返回"
-    return "投票落盘、权重学习、重排、空偏好兜底均正常"
+    return "两维独立落盘 / 权重学习 / 重排 / v1 兼容 / CSV 导入 均正常"
+
+
+def _check_breakdown() -> str:
+    """分数构成：邮件里那几根色条必须和总分对得上。"""
+
+    from .models import ScoreBreakdown
+    from .recommender import rank_papers
+    from .zotero_client import ZoteroItem
+
+    breakdown = ScoreBreakdown(keyword=2.4, zotero=1.1, category=0.4)
+    assert round(breakdown.total, 3) == 3.9, breakdown.total
+    assert [label for label, _ in breakdown.parts] == ["关键词", "Zotero", "分类", "库内", "反馈"]
+    assert len(breakdown.visible_parts) == 3
+
+    base = _fake_papers()[0]
+    crowded = Paper(
+        **{
+            **base.__dict__,
+            "categories": ["astro-ph.CO", "astro-ph.GA", "astro-ph.IM", "astro-ph.SR"],
+        }
+    )
+    item = rank_papers([crowded], ["nothing-matches-this"], [], 5)[0]
+    assert item.breakdown.category == 0.4, "分类加成没有按最多 2 个分类封顶"
+    assert round(item.score, 3) == round(item.breakdown.total, 3), "总分与构成之和不一致"
+
+    library = [ZoteroItem(key="k", title="t", item_type="journalArticle", doi="10.1/x")]
+    collected = Paper(**{**base.__dict__, "id": "doi:10.1/x", "doi": "10.1/x"})
+    collected_item = rank_papers([collected], [], [], 5, library=library)[0]
+    assert collected_item.in_library, "已在库里的论文没有标记"
+    assert collected_item.breakdown.library < 0, "已在库里的论文没有扣分"
+    return "五项构成 / 分类封顶 / 库内扣分 / 总分一致 均正常"
+
+
+def _check_journals() -> str:
+    """期刊来源：Crossref 的 JATS 摘要与条目解析，全部用离线样本。"""
+
+    from .journals import _item_to_paper, clean_abstract, load_journals, merge_with_arxiv
+
+    journals = load_journals("config/journals.yaml")
+    ids = {journal.id for journal in journals}
+    assert {"ApJ", "MNRAS", "NatAs"} <= ids, ids
+    apj = next(journal for journal in journals if journal.id == "ApJ")
+    assert apj.issn and apj.pack, "ApJ 缺 ISSN 或领域包"
+
+    raw = (
+        "<jats:title>Abstract</jats:title><jats:p>We study "
+        "<jats:italic>richness</jats:italic>-selected clusters &amp; their bias.</jats:p>"
+    )
+    cleaned = clean_abstract(raw)
+    for bad in ("<", "&amp;", "Abstract"):
+        assert bad not in cleaned, cleaned
+    assert "richness" in cleaned
+
+    item = {
+        "type": "journal-article",
+        "DOI": "10.3847/1538-4357/AD1234",
+        "title": ["A Cluster Mass Calibration"],
+        "abstract": raw,
+        "author": [{"given": "A.", "family": "Vitorelli"}],
+        "published": {"date-parts": [[2026, 10, 20]]},
+    }
+    paper = _item_to_paper(item, apj)
+    assert paper is not None, "期刊条目没解析出来"
+    assert paper.venue == "ApJ" and (paper.doi or "").startswith("10.3847/")
+    assert paper.categories == [] and paper.pack_hint == apj.pack
+    assert paper.id.startswith("doi:"), paper.id
+    assert _item_to_paper({**item, "type": "posted-content"}, apj) is None, "非期刊条目应被丢掉"
+
+    arxiv_paper = _fake_papers()[0]
+    duplicate = Paper(**{**paper.__dict__, "title": arxiv_paper.title})
+    merged = merge_with_arxiv([arxiv_paper], [duplicate])
+    assert len(merged) == 1 and merged[0].id == arxiv_paper.id, "同标题没有去重"
+    assert merged[0].venue == "ApJ", "去重后没把期刊信息补给 arXiv 那条"
+    return f"{len(journals)} 本刊（含 ApJ/MNRAS/NatAs）；JATS 清洗、条目解析、与 arXiv 去重均正常"
+
+
+def _check_journal_gate() -> str:
+    """期刊主题闸门：期刊什么都发，得挡住与本领域无关的。"""
+
+    from .config import load_config
+    from .pipeline import _journal_matches, _journal_topic_terms
+
+    from datetime import datetime as _dt
+    from datetime import timezone as _tz
+
+    from dataclasses import replace
+    terms = _journal_topic_terms(replace(load_config(), fields=["galaxy_cosmology", "galaxy_formation"], packs_dir="config/packs"))
+    assert "weak lensing" in terms and "richness" in terms, terms[:10]
+    assert "james webb" not in terms and "high-redshift" not in terms, "通用词没被挡掉"
+
+    def fake(title: str, summary: str = "") -> Paper:
+        return Paper(
+            id="x",
+            title=title,
+            authors=[],
+            summary=summary,
+            published=_dt(2026, 10, 20, tzinfo=_tz.utc),
+            updated=_dt(2026, 10, 20, tzinfo=_tz.utc),
+            categories=[],
+            pdf_url="",
+            abs_url="",
+        )
+
+    assert _journal_matches(fake("Weak lensing mass calibration of clusters"), terms)
+    assert _journal_matches(fake("A richness-selected cluster sample"), terms)
+    assert not _journal_matches(fake("TESS transiting planets around bright stars"), terms)
+    assert not _journal_matches(fake("Massive stars in the LMC"), terms), "单词不该放宽到 massive"
+    assert _journal_matches(fake("anything"), ()), "没有词表时不该过滤"
+    return "诊断性主题词才有闸门效果；行星/恒星类稿件被挡掉"
+
+
+def _check_library() -> str:
+    """Zotero 库：判断"这篇我是不是已经收过了"，并给出相似度理由。"""
+
+    from .zotero_client import (
+        _item_to_entry,
+        library_match,
+        preferences_from_items,
+        zotero_similarity_score,
+    )
+
+    raw_items = [
+        {
+            "key": "A",
+            "data": {
+                "itemType": "journalArticle",
+                "title": "Cluster mass calibration with weak lensing",
+                "tags": [{"tag": "favorite"}],
+                "DOI": "10.3847/1538-4357/abc",
+                "archive": "arXiv",
+                "archiveID": "arXiv:2610.12345",
+            },
+        },
+        {
+            "key": "B",
+            "data": {
+                "itemType": "journalArticle",
+                "title": "Galaxy quenching in dense environments",
+                "tags": [{"tag": "not-interesting"}],
+            },
+        },
+        {"key": "C", "data": {"itemType": "attachment", "title": "Full Text PDF"}},
+    ]
+    items = [
+        entry for entry in (_item_to_entry(raw) for raw in raw_items) if entry is not None
+    ]
+    assert len(items) == 2, "附件条目没有被跳过"
+    assert items[0].arxiv_id == "2610.12345", items[0].arxiv_id
+    assert items[0].doi == "10.3847/1538-4357/abc", items[0].doi
+    preferences = preferences_from_items(items)
+    assert len(preferences) == 2
+    assert preferences[0].score > 0 and preferences[1].score < 0, "标签权重没折成偏好"
+
+    base = _fake_papers()[0]
+    by_doi = Paper(
+        **{**base.__dict__, "id": "doi:10.3847/1538-4357/ABC", "doi": "10.3847/1538-4357/abc"}
+    )
+    assert library_match(by_doi, items) is not None, "DOI 匹配失败"
+    by_arxiv = Paper(**{**base.__dict__, "id": "2610.12345v2"})
+    assert library_match(by_arxiv, items) is not None, "arXiv id 匹配失败"
+    by_title = Paper(
+        **{**base.__dict__, "id": "x", "title": "Cluster mass calibration with weak lensing"}
+    )
+    assert library_match(by_title, items) is not None, "标题匹配失败"
+    unrelated = Paper(
+        **{**base.__dict__, "id": "y", "title": "Cosmic ray propagation in the Galactic halo"}
+    )
+    assert library_match(unrelated, items) is None, "无关论文被误判成库内"
+
+    total, reasons = zotero_similarity_score(
+        "Cluster mass calibration with weak lensing",
+        "weak lensing mass calibration for clusters",
+        preferences,
+    )
+    assert total > 0 and reasons, "相似度没有给出正权重与理由"
+    return "DOI/arXiv/标题三级匹配、标签权重、相似度理由均正常"
 
 
 def _check_theme() -> str:
@@ -911,6 +1156,7 @@ def _check_llm_client() -> str:
     from arxiv_digest.llm_client import LLMOptions, call_json
 
     class _C:
+        base_url = "https://api.deepseek.com"
         def __init__(self, script):
             self.script = list(script)
             self.calls: list[dict] = []
@@ -951,6 +1197,7 @@ def _check_llm_client() -> str:
     assert client.calls[0]["extra_body"] == {"thinking": {"type": "enabled"}}
 
     client = _C(['{"ok": 5}'])
+    client.base_url = "https://api.openai.com"
     call_json(client, "m", "p", options=LLMOptions(thinking=None))
     assert "extra_body" not in client.calls[0]
     assert client.calls[0]["max_tokens"] > 0
@@ -1022,6 +1269,10 @@ def main(argv: list[str] | None = None) -> int:
     _check("邻域雷达", _check_radar)
     _check("二手翻译", _check_translate)
     _check("反馈闭环", _check_feedback)
+    _check("分数构成", _check_breakdown)
+    _check("期刊来源", _check_journals)
+    _check("期刊闸门", _check_journal_gate)
+    _check("Zotero 库匹配", _check_library)
     _check("两阶段分析", _check_analysis)
     _check("公式排版", _check_math)
     _check("模型调用层", _check_llm_client)

@@ -1,0 +1,540 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-26",
+  "recorded_at_utc": "2026-10-26 05:53:57 UTC",
+  "timezone": "Asia/Shanghai",
+  "review": "REVIEW_2026-10-26_POST_FIX.md",
+  "scope": {
+    "git_head": "b8e56f8",
+    "includes_uncommitted_work": true,
+    "mode": "source/config/dependency read-only; documentation and audit artifact writes",
+    "source_modified_this_review": false,
+    "real_state_modified": false,
+    "credentials_printed": false,
+    "installs": false,
+    "live_model_calls": false,
+    "live_smtp": false,
+    "cloud_execution": false
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "3.11.9"
+  },
+  "checks": [
+    {
+      "name": "unittest",
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "tests_run": 63,
+      "passed": 63,
+      "duration_seconds": 2.031,
+      "network": "socket.socket.connect/connect_ex blocked by tests/__init__.py",
+      "writes": "temporary directories"
+    },
+    {
+      "name": "selfcheck",
+      "command": ".\\.venv\\Scripts\\python.exe -B -m arxiv_digest.selfcheck",
+      "actual_wrapper": "stdin: replace socket.socket.connect and connect_ex with raising functions, set sys.argv=['selfcheck'], runpy.run_module('arxiv_digest.selfcheck',run_name='__main__')",
+      "exit_code": 0,
+      "checks_passed": 26
+    },
+    {
+      "name": "apps_script_offline_contract",
+      "command": "Node createRequire('tests/check_google_feedback.cjs'); require(...).run()",
+      "checks_passed": 10,
+      "network": false,
+      "filesystem_writes": false,
+      "real_google_services": false
+    },
+    {
+      "name": "pip_check",
+      "command": ".\\.venv\\Scripts\\python.exe -B -m pip --disable-pip-version-check check",
+      "exit_code": 0,
+      "output": "No broken requirements found.",
+      "is_vulnerability_scan": false
+    },
+    {
+      "name": "static_structure",
+      "python_ast_files": 44,
+      "python_ast_roots": [
+        "arxiv_digest",
+        "scripts",
+        "tests"
+      ],
+      "config_yaml_files": 9,
+      "workflow_yaml_parsed": true,
+      "python_source_lines": 11359,
+      "pipeline_lines": 815
+    },
+    {
+      "name": "requirements_install_consistency",
+      "pinned_requirements": 23,
+      "installed_mismatches": []
+    },
+    {
+      "name": "reassessment_probes",
+      "command": ".\\.venv\\Scripts\\python.exe -B docs/review_assets/post_fix_probes.py",
+      "exit_code": 0,
+      "exit_zero_means": "probe execution completed; DOES NOT mean product checks passed",
+      "network": "blocked",
+      "writes": "temporary directories only",
+      "observations": {
+        "R01": {
+          "smtp_calls": 0,
+          "seen_without_delivery": true,
+          "snapshot_has_radar": true
+        },
+        "R02": {
+          "source_has_999": false,
+          "validated_result": "42 clusters",
+          "for_you": "复用论文测得的 999 clusters 结论",
+          "actions": [
+            "引用论文测得 999 clusters 的结果"
+          ],
+          "chain": [
+            "We measure 999 clusters."
+          ],
+          "rendered_999_count": 3
+        },
+        "R03": {
+          "local_old_seen": false,
+          "merged_old_seen": true,
+          "local_old_material": false,
+          "merged_old_material": true,
+          "merged_old_observation": true,
+          "capped_local_seen": 5000,
+          "merged_seen": 5001
+        },
+        "R04": {
+          "exception": "TypeError",
+          "message": "'int' object is not iterable"
+        },
+        "R05": {
+          "last_week_CO": 10,
+          "this_week_CO": 0,
+          "returned_labels": [
+            "astro-ph.GA"
+          ]
+        },
+        "R06": {
+          "exception": "RuntimeError",
+          "notify_calls": 1,
+          "config_graceful": true
+        },
+        "R07": {
+          "snapshot_item": "2610.22222",
+          "snapshot_delivery": "committed",
+          "actual_seen": [
+            "2610.11111"
+          ]
+        },
+        "R08": {
+          "exit_code": 1,
+          "output": "评测报告\n  覆盖论文        4/20 (20%)\n  引文保真        4/4 (100%)\n  字段填充        4/4 (100%)\n  关键数字召回    n/a\n  发现问题 16 条（前 8 条）：\n    - 4: 没有被分析（或没进精读）\n    - 5: 没有被分析（或没进精读）\n    - 6: 没有被分析（或没进精读）\n    - 7: 没有被分析（或没进精读）\n    - 8: 没有被分析（或没进精读）\n    - 9: 没有被分析（或没进精读）\n    - 10: 没有被分析（或没进精读）\n    - 11: 没有被分析（或没进精读）\n\n[FAIL] 覆盖、引文或数字召回未达标，检查报告\n"
+        }
+      }
+    }
+  ],
+  "strengthened_observations": {
+    "R04_actual_pipeline": {
+      "exception": "TypeError",
+      "message": "'int' object is not iterable",
+      "network": "blocked",
+      "writes": "temporary directories only"
+    }
+  },
+  "findings": [
+    {
+      "id": "R01",
+      "priority": "P1",
+      "confidence": "verified",
+      "title": "Radar-only run skips SMTP but consumes items"
+    },
+    {
+      "id": "R02",
+      "priority": "P1",
+      "confidence": "verified",
+      "title": "Visible assessment fields retain unsupported numerical claims"
+    },
+    {
+      "id": "R03",
+      "priority": "P2",
+      "confidence": "verified",
+      "title": "Remote merge restores pruned records and exceeds cap"
+    },
+    {
+      "id": "R04",
+      "priority": "P2",
+      "confidence": "verified",
+      "title": "Wrong-type pulse field escapes fallback and aborts pipeline"
+    },
+    {
+      "id": "R05",
+      "priority": "P2",
+      "confidence": "verified",
+      "title": "Weekly trend omits categories that decline to zero"
+    },
+    {
+      "id": "R06",
+      "priority": "P2",
+      "confidence": "verified",
+      "title": "Wrapped rate-limit exception bypasses graceful behavior"
+    },
+    {
+      "id": "R07",
+      "priority": "P2",
+      "confidence": "verified",
+      "title": "Preview interleaving misattributes committed diagnostic snapshot"
+    },
+    {
+      "id": "R08",
+      "priority": "P2",
+      "confidence": "verified workflow gap",
+      "title": "Default evaluation workflow does not analyze fixed complete input set"
+    },
+    {
+      "id": "R09",
+      "priority": "P2",
+      "confidence": "high-confidence inference; not cloud-reproduced",
+      "title": "Shared concurrency group can replace pending scheduled delivery"
+    }
+  ],
+  "scores": {
+    "dimensions": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "N"
+    ],
+    "baseline": [
+      5,
+      4,
+      6,
+      7,
+      5,
+      5,
+      5,
+      4,
+      4,
+      4,
+      6,
+      5,
+      6,
+      5
+    ],
+    "current": [
+      7,
+      6,
+      7,
+      7,
+      7,
+      7,
+      6,
+      7,
+      6,
+      7,
+      6,
+      6,
+      7,
+      7
+    ],
+    "method": "equal weighted mean, engineering assessment rather than completion percentage",
+    "baseline_sum": 71,
+    "current_sum": 93,
+    "current_mean": 6.642857142857143,
+    "current_display": 6.6
+  },
+  "external_sources": [
+    {
+      "topic": "GitHub default pending concurrency replacement",
+      "url": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency"
+    },
+    {
+      "topic": "pypdf advisory affected <6.21.2, patched >=6.21.2",
+      "url": "https://github.com/py-pdf/pypdf/security/advisories/GHSA-gmh7-3g9r-mjh5"
+    },
+    {
+      "topic": "Jinja 3.1.6 release",
+      "url": "https://github.com/pallets/jinja/releases/tag/3.1.6"
+    }
+  ],
+  "not_measured_or_executed": [
+    "coverage",
+    "performance benchmark",
+    "model hallucination rate",
+    "recommendation benefit",
+    "real SMTP delivery",
+    "live arXiv/Crossref/Zotero integration",
+    "Google Apps Script deployment",
+    "GitHub Actions execution",
+    "Linux/macOS",
+    "complete dependency vulnerability and license audit",
+    "complete Git history secret scan",
+    "mypy",
+    "lint"
+  ],
+  "artifact_validation": {
+    "audited_inputs_unchanged": 61,
+    "local_links_checked": 46,
+    "score_dimensions_consistent": 14,
+    "registered_findings": 9,
+    "audit_attachment_syntax": "valid",
+    "validation_json": "valid"
+  },
+  "audited_input_sha256": [
+    {
+      "path": ".github/workflows/daily-arxiv-digest.yml",
+      "sha256": "e91f2fa6d13b475523fabbcd85a61f906e88d994c98335ca0ca52d351c5db0a7"
+    },
+    {
+      "path": "arxiv_digest/__init__.py",
+      "sha256": "82add6029dfe9c4bdd7029d29665446a4ef2b2c1e5884b1406ea2dba41be5b3d"
+    },
+    {
+      "path": "arxiv_digest/analysis.py",
+      "sha256": "c97629935b28826198ab7636caf2ca6437b80f8339ebb7378d6657baabe571e9"
+    },
+    {
+      "path": "arxiv_digest/arxiv_client.py",
+      "sha256": "8599d95c884dd3ce974d8a7ef0a217064d3959d48a18176a931f94869b4b59a5"
+    },
+    {
+      "path": "arxiv_digest/calendar.py",
+      "sha256": "209e030af9e2c400ec53ce0cbb953ffaa84fe7b0fabea88c13e864dea1685c79"
+    },
+    {
+      "path": "arxiv_digest/config.py",
+      "sha256": "f65f6ab77fa3b22f88776a33e275ed816b4ac93205453b2066a0af0268ac8b02"
+    },
+    {
+      "path": "arxiv_digest/contracts.py",
+      "sha256": "8d4618d59f63302de5f7a32f37b2d081f7563d8a0402411464dec39072be45cf"
+    },
+    {
+      "path": "arxiv_digest/emailer.py",
+      "sha256": "0ba289e03627cf080f4c39e046244a784d4245314ee66c605f910d39544aff4d"
+    },
+    {
+      "path": "arxiv_digest/feedback_security.py",
+      "sha256": "8131b8c04ed2d647b1ca2df764917ec9b08afd66a663b90e792c6b8d8d6a3f5b"
+    },
+    {
+      "path": "arxiv_digest/feedback.py",
+      "sha256": "631f5d8fa1573bf317473fa0b5a785c0afdcaa936ac702ce1926a9c94cabf434"
+    },
+    {
+      "path": "arxiv_digest/fulltext.py",
+      "sha256": "1ff95a8d51fd338ed0e3b2c70add0dbe00909d01a40ea94e183de6fdca9416b4"
+    },
+    {
+      "path": "arxiv_digest/identity.py",
+      "sha256": "948fb29864d2afd4463e718b5c6059df460404810a7e5a115475dcd3aae0e6a8"
+    },
+    {
+      "path": "arxiv_digest/journals.py",
+      "sha256": "195f2333b1310b1f2e3e6d3038a9e73917aa6db19f76de501b8aeb9bd76d9ebe"
+    },
+    {
+      "path": "arxiv_digest/llm_client.py",
+      "sha256": "dcb31d5cb370359f8f6f21f1ee0fb5892f760af284bd261436d955ff480a34e0"
+    },
+    {
+      "path": "arxiv_digest/llm.py",
+      "sha256": "6e432a99c5f370797131e9f440800ea8ecee9bacecc8419c36fbdedd59011bcc"
+    },
+    {
+      "path": "arxiv_digest/main.py",
+      "sha256": "301b4f4dcf8c554bcc96ffe7036b4d910b1abef1f774b8b5a8658984959ec7df"
+    },
+    {
+      "path": "arxiv_digest/mathfmt.py",
+      "sha256": "79d82d4086f4ef160be77c9ab4f025e1f512ca43bbd1bb00365ff68a15ae9282"
+    },
+    {
+      "path": "arxiv_digest/models.py",
+      "sha256": "01371b69e09d4c02ca870c9d8b07c64f2070115690e8747470dd4bf276f29450"
+    },
+    {
+      "path": "arxiv_digest/packs.py",
+      "sha256": "4d344a6baad55a0e61da4b06a9f0f942136fc0024269d71eb91aaef309f4b28f"
+    },
+    {
+      "path": "arxiv_digest/pipeline.py",
+      "sha256": "89a23054e542be8b58441dbecd3dcf28f8d88de8893dfbc492bf4f7c77e56159"
+    },
+    {
+      "path": "arxiv_digest/profile.py",
+      "sha256": "4b595f7dda77bef43c68063e919f5509e66fe949c08fbdd665efb4710f83a657"
+    },
+    {
+      "path": "arxiv_digest/pulse.py",
+      "sha256": "9b501da163cf13d59b458a7528c64add677b6060c62eefe21dd33df2eafa8ea7"
+    },
+    {
+      "path": "arxiv_digest/radar.py",
+      "sha256": "bee19d4fb2f2d42768f70f2cdf56a77af75bc391e42fbc45b0391b63b03549af"
+    },
+    {
+      "path": "arxiv_digest/recommender.py",
+      "sha256": "baec549f294cb85141c59fdc87aa1e140bc0d2b436b2e0c399dc60947b43bb20"
+    },
+    {
+      "path": "arxiv_digest/selfcheck.py",
+      "sha256": "9f9cd634216d64cee49c1822410e53ed1aee12f5dae55d56ec88e52e49f19bda"
+    },
+    {
+      "path": "arxiv_digest/sources/__init__.py",
+      "sha256": "9c9e8e04e5761631f17044974a2a487ce9ea5a1442518018c5d5f43a485ea637"
+    },
+    {
+      "path": "arxiv_digest/sources/base.py",
+      "sha256": "8237a1e5686ac9572baad2ab9065d81f5d11b45eee7e52f1a5a40f603e85bf95"
+    },
+    {
+      "path": "arxiv_digest/sources/indico.py",
+      "sha256": "af1a97eb5dcdd163a9ae62b7b71c33404770ac62657baaa5ccfec668242d7423"
+    },
+    {
+      "path": "arxiv_digest/sources/rss.py",
+      "sha256": "654daf1ca6478a89320a652cf9e4a5474842fee55e1331203c3cb8cd7e0e9623"
+    },
+    {
+      "path": "arxiv_digest/state.py",
+      "sha256": "0031fa78c2d3604a376e5d0ab15fb0da5fb78f6f39e798f8a827b8b67bbb4a57"
+    },
+    {
+      "path": "arxiv_digest/storage.py",
+      "sha256": "69debd7314a9a250438dcfd84ea3e8e49fbc23a250f1f0fa3bef283acb084b01"
+    },
+    {
+      "path": "arxiv_digest/templates/__init__.py",
+      "sha256": "24c443836f18a25ba8039efbb52b0f81b66e2eed281fd3061c187c81af5bfe29"
+    },
+    {
+      "path": "arxiv_digest/theme.py",
+      "sha256": "3b7ed4af9ad6804a46d8adfc3f8b468f7071fc01c92331c52a5c16fc7fff213a"
+    },
+    {
+      "path": "arxiv_digest/translate.py",
+      "sha256": "92a8bf0d3069908fef67b5fc718b45e5302692ca1e03fadf6caf2923bd782ce7"
+    },
+    {
+      "path": "arxiv_digest/zotero_client.py",
+      "sha256": "d87725380ef1fec117e992d1dd61c3db40c99f5b8aaaed1c631b0308445a9822"
+    },
+    {
+      "path": "config/conferences.yaml",
+      "sha256": "73274dbd4b8dd8ceca2d84aa35120b4d284d391f6f8d15f8599393b1a709631b"
+    },
+    {
+      "path": "config/events.yaml",
+      "sha256": "8e6104b85b0d6580bce520ef69c7019c57720d41fafe1594809ffd4aefce53b5"
+    },
+    {
+      "path": "config/journals.yaml",
+      "sha256": "bc7f43cea4e5749f5c5f31a2762df146a87ec10076b9965b99d7625c9a7d37d4"
+    },
+    {
+      "path": "config/packs/galaxy_cosmology.yaml",
+      "sha256": "0b385ca0acd8ece84f97a5c9e915ba7d4f27c96f3673c9fac61596ccc8216ce2"
+    },
+    {
+      "path": "config/packs/galaxy_formation.yaml",
+      "sha256": "9e7c0322d08f74cb6808137aa0dc4aaf7bb0d4f08da7489c05157bd412d880ec"
+    },
+    {
+      "path": "config/packs/generic.yaml",
+      "sha256": "e50ea31400d3b2ec710e1d46330310689fa99aabd6be560971e9d49a4f124467"
+    },
+    {
+      "path": "config/profile.yaml",
+      "sha256": "3b7380d2b66889ab9fd7552049ceaa1fd6034b5d5144d20e3e79f5e139660112"
+    },
+    {
+      "path": "config/radar.yaml",
+      "sha256": "dd8c1aa2fc95ad9f190a971835664a23c5c439e7e0b559f10b0298200d94eda1"
+    },
+    {
+      "path": "config/sources.yaml",
+      "sha256": "662fa1ad6a22583b3effe07a5d83dda4b924cd781be1df0ac99dc341b86546ad"
+    },
+    {
+      "path": "docs/CONFIG.md",
+      "sha256": "d92270eda110297e49630654115bae505eaea5ddeada3aa7feb448cbc51be0b6"
+    },
+    {
+      "path": "docs/FEEDBACK.md",
+      "sha256": "bd15a05c84490949df45a2d3f13c2eaa95f65ebbd401d21d4e2ccecf7ce66b67"
+    },
+    {
+      "path": "docs/PRODUCT_PLAN.md",
+      "sha256": "c8a992105fb9f891d7b1cc49e17568fafe0735e85583b8a1270160ad12b4c41d"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "c9c27902f8411e0957876cc5e60b6124a02420e05e2ddb29c59a144b1a435b83"
+    },
+    {
+      "path": "README.en.md",
+      "sha256": "2d03de2b8b864a151624e03846c604da6322b463328da680059902bf160637c8"
+    },
+    {
+      "path": "README.md",
+      "sha256": "8e25b0fba80fde7d2bffa7c8303143e55957dbea757f37e47771708660e20017"
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "b40777f2c703b05557028e1af405436dd07572e4e79fda2692084a5caf9dc8b0"
+    },
+    {
+      "path": "scripts/__init__.py",
+      "sha256": "ff0afc29ecd1b9f482f3d97c18b551c44c3666eb1e07d66e15747f84b614db55"
+    },
+    {
+      "path": "scripts/build_preview.py",
+      "sha256": "319dbe137641843386cebd5b1632e59bd67c127ce95a9b5306cdfcec2529826f"
+    },
+    {
+      "path": "scripts/eval_analysis.py",
+      "sha256": "5cefa8381258d47f994fbb4d3c7a404a7fd9920d6f8e6762de52492097943937"
+    },
+    {
+      "path": "scripts/feedback_server.py",
+      "sha256": "291ec506eed555be25265414c463227a47376b880ba46219a9bb0ebf217bb9a2"
+    },
+    {
+      "path": "scripts/feedback.py",
+      "sha256": "3e4db7653e8c6ee7f409e6c26e312cea97f53927e093a0bd89579e0710fa9424"
+    },
+    {
+      "path": "scripts/merge_state.py",
+      "sha256": "a2fe742d88541e9020f01990f5c3b336f9d3a9630786c2bcda2553cce73c3dad"
+    },
+    {
+      "path": "scripts/preview_digest.py",
+      "sha256": "9b6a2a9f98a8d18fc82a88a150f8035178e9a9f785979f03eb951dc901bdebc6"
+    },
+    {
+      "path": "scripts/refresh_pulse.py",
+      "sha256": "f5e86ddba00305f9e1af9466c3f84e490079e238645b803efd99c29364982d67"
+    },
+    {
+      "path": "tests/__init__.py",
+      "sha256": "bccc9a4bf97951dc95b4572300fa39f9acb3b5a9835d9bf8c233beaf2174b0b8"
+    },
+    {
+      "path": "tests/test_regressions.py",
+      "sha256": "342024f9204ef207d9c9fa9f943f4c6d42149f8febd7d1764499dbbea80aed09"
+    }
+  ]
+}

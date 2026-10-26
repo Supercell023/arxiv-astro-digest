@@ -38,6 +38,8 @@ language:
     - completeness
 
 reading:
+  # 20 分钟不再是"内容配额"，只作为篇数取舍的参考：
+  # 精读卡里的研究背景与方法详解按证据该多长就多长，模型不许为了卡时长删内容。
   minutes_per_day: 20
   deep_papers: 4
   brief_papers: 10

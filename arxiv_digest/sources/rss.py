@@ -13,6 +13,7 @@ from datetime import datetime
 from email.utils import parsedate_to_datetime
 
 from ..fulltext import _ssl_context
+from ..identity import stable_id
 from .base import KIND_SECONDARY, Item, SourceResult, plain_text
 
 LOGGER = logging.getLogger(__name__)
@@ -78,7 +79,7 @@ def _entry_to_item(
     body = plain_text(raw_body or "", limit=420)
 
     return Item(
-        id=f"rss:{feed_id}:{abs(hash(link or title)) % 10**10}",
+        id=stable_id("rss", feed_id, entry.findtext("guid") or entry.findtext(f"{_ATOM}id") or link or title),
         kind=KIND_SECONDARY,
         title=plain_text(title, limit=160),
         url=link,
@@ -105,12 +106,14 @@ def fetch_feed(
         result.error = "配置缺少 url"
         return result
 
-    request = urllib.request.Request(url, headers={"User-Agent": "arxiv-digest/1.0 (+rss)"})
     try:
+        request = urllib.request.Request(url, headers={"User-Agent": "arxiv-digest/1.0 (+rss)"})
         with urllib.request.urlopen(  # noqa: S310 - 地址来自本地配置
             request, timeout=timeout, context=_ssl_context()
         ) as response:
-            payload = response.read()
+            payload = response.read(5 * 1024 * 1024 + 1)
+            if len(payload) > 5 * 1024 * 1024:
+                raise ValueError("RSS exceeds 5 MiB")
     except Exception as exc:
         LOGGER.warning("RSS 抓取失败（%s）：%s", url, exc)
         result.error = f"下载失败：{exc}"
@@ -136,6 +139,8 @@ def fetch_feed(
         # 有的源会把每日一图、招聘之类混在新闻流里，配置里写 `exclude` 挡掉
         if exclude and any(word in item.title.lower() for word in exclude):
             continue
+        domain = str(feed.get("domain") or "astronomy")
+        item.meta["domain"] = domain
         result.items.append(item)
         if len(result.items) >= limit:
             break

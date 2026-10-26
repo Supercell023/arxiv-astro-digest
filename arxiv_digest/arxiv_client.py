@@ -34,12 +34,14 @@ def _clean_text(value: str) -> str:
 
 
 def _entry_to_paper(entry: ET.Element) -> Paper:
-    arxiv_id = entry.findtext("atom:id", default="", namespaces=ATOM_NS).rsplit("/", 1)[-1]
+    raw_id = entry.findtext("atom:id", default="", namespaces=ATOM_NS)
+    arxiv_id = re.sub(r"^https?://[^/]+/abs/", "", raw_id)
     links = entry.findall("atom:link", namespaces=ATOM_NS)
     pdf_url = ""
     abs_url = f"https://arxiv.org/abs/{arxiv_id}"
     for link in links:
         href = link.attrib.get("href", "")
+        href = re.sub(r"^http://((?:export\.)?arxiv\.org)(?=/)", r"https://\1", href)
         if link.attrib.get("title") == "pdf":
             pdf_url = href
         if link.attrib.get("rel") == "alternate":
@@ -50,6 +52,10 @@ def _entry_to_paper(entry: ET.Element) -> Paper:
         for category in entry.findall("atom:category", namespaces=ATOM_NS)
         if category.attrib.get("term")
     ]
+    primary_node = entry.find("arxiv:primary_category", namespaces=ATOM_NS)
+    primary = primary_node.get("term", "") if primary_node is not None else ""
+    if primary:
+        categories = [primary, *(category for category in categories if category != primary)]
 
     return Paper(
         id=arxiv_id,
@@ -64,6 +70,7 @@ def _entry_to_paper(entry: ET.Element) -> Paper:
         categories=categories,
         pdf_url=pdf_url or f"https://arxiv.org/pdf/{arxiv_id}",
         abs_url=abs_url,
+        doi=entry.findtext("arxiv:doi", default="", namespaces=ATOM_NS).strip().lower(),
     )
 
 
@@ -80,12 +87,12 @@ def _load_timezone(timezone_name: str) -> tzinfo:
         ) from exc
 
 
-def _previous_local_window(days: int, timezone_name: str) -> tuple[datetime, datetime]:
+def _previous_local_window(days: int, timezone_name: str, end_date=None) -> tuple[datetime, datetime]:
     if days < 1:
         raise ValueError("LOOKBACK_DAYS must be at least 1.")
 
     local_timezone = _load_timezone(timezone_name)
-    today = datetime.now(local_timezone).date()
+    today = end_date or datetime.now(local_timezone).date()
     end_local = datetime.combine(today, datetime_time.min, tzinfo=local_timezone)
     start_local = end_local - timedelta(days=days)
     return start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc)
@@ -188,12 +195,16 @@ def fetch_recent_papers(
     rate_limit_backoff_base: int = 60,
     rate_limit_backoff_max: int = 600,
     rate_limit_backoff_jitter: int = 30,
+    end_date=None,
 ) -> list[Paper]:
     if not categories:
         raise ValueError("At least one arXiv category is required.")
 
     query = " OR ".join(f"cat:{category}" for category in categories)
-    start_utc, end_utc = _previous_local_window(lookback_days, timezone_name)
+    start_utc, end_utc = _previous_local_window(lookback_days, timezone_name, end_date)
+    # Bound the server-side search too: newer items must not consume the page budget.
+    # arXiv's minute precision is inclusive; the exact half-open interval is checked below.
+    query = f"({query}) AND submittedDate:[{start_utc:%Y%m%d%H%M} TO {end_utc:%Y%m%d%H%M}]"
     target_results = max(1, max_results)
     per_page = max(1, min(page_size, target_results))
     pages = max(1, max_pages)

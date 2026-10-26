@@ -1,0 +1,28 @@
+# 期刊源（Crossref）。ISSN 一个就够；给了多个时用第一个查。
+#
+# id    → 邮件里的来源徽标（保持短，别超过 6 个字符）
+# name  → 只在日志/文档里用
+# pack  → 期刊论文没有 arXiv 分类，靠这个指定领域包（红旗清单与判断能力）
+#
+# 关掉某本刊：enabled: false。整段删掉就没期刊源了。
+journals:
+  - id: ApJ
+    name: The Astrophysical Journal
+    issn: [0004-637X, 1538-4357]
+    pack: galaxy_cosmology
+  - id: MNRAS
+    name: Monthly Notices of the Royal Astronomical Society
+    issn: [1365-2966, 0035-8711]
+    pack: galaxy_cosmology
+  - id: NatAs
+    name: Nature Astronomy
+    issn: [2397-3366]
+    pack: galaxy_cosmology
+  - id: AJ
+    name: The Astronomical Journal
+    issn: [1538-3881, 0004-6256]
+    pack: galaxy_cosmology
+  - id: A&A
+    name: Astronomy & Astrophysics
+    issn: [0004-6361, 1432-0746]
+    pack: galaxy_cosmology
