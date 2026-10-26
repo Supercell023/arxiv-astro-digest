@@ -1,6 +1,6 @@
 # 给下一位 AI 的交接说明
 
-最后更新：2026-10-26，**v0.14.0 工作区**。先读最新 [周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+最后更新：2026-10-26，**v0.14.1 工作区**。先读最新 [审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
 
 ## v0.14 当前进展
 
@@ -15,6 +15,15 @@
 新增核心文件 `editorial.py`（周报/兴趣/新闻策略）、`evidence.py`（共享保守数值规则）、`cache.py`（有限缓存回收）、`tests/test_editions.py`（44 项验收）。固定评测 build→run→check 中 run 会调用模型；它使用冻结输入，不得误当成离线自检运行。
 
 诊断有 run_id 和独立 runs 档案；最近入口只能由对应运行收尾更新。`state_commit_failed` 可能已被 SMTP 接受，排查后再重跑。源码仍有公开服务、模型语义、采集预算、全文内存、跨平台及完整安全审计等未验收边界，见最新报告。
+
+## v0.14.1 审查修复（2026-10-26，承接 v0.14.0 审查）
+
+- 预览不再改写 `digest.json`：只写 `runs/<run_id>.json`，`update_diagnostics` 按 `delivery=="preview"` 跳过"最近一次"指针。改动位于 `pipeline._write_digest_json` / `_write_diagnostic` / `update_diagnostics`。
+- `merge_state.py` 不再强依赖 `run_report.json`：缺失/损坏时告警并退回当前日期与时区（`--today`/`--timezone`），workflow 传 `DIGEST_TIMEZONE`；邮件已发但 state 没提交时，下一次仍可能重复投递，需人工核对。
+- run_report 新增 `analyzed_papers` / `analysis_failures`；整批分析失败仍降级为单阶段摘要，不阻断发信。
+- 读坏的 `state.json` / `feedback.json` 先另存 `.corrupt` 再降级；缓存键补齐 `LLMOptions` 与 `max_chars`；`canonical_id` 剥 `.pdf`。
+- 本轮本地验证：113 项 Python 回归、26 项自检、`pip check` 通过；`node` 不在本会话 PATH，JS 契约沿用 v0.14 记录，未复现。没有真实模型/SMTP/云端运行。
+- 未修项与理由见 `docs/CHANGE_REPORT_2026-10-26_PATCH.md`；审查全文评分 83/100 仍是修复前基线，不得当作修复后新评分。
 
 ## v0.13 复审记录（历史，已由 v0.14 接续修复）
 

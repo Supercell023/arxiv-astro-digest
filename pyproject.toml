@@ -1,8 +1,9 @@
 [project]
 name = "daily-arxiv-digest"
-version = "0.14.0"
+version = "0.14.1"
 description = "Daily arXiv paper digest with Chinese summaries"
 requires-python = ">=3.11"
+# 运行时以 requirements.txt 的精确锁定为准；这里的范围声明只服务于 packaging。
 dependencies = [
     "jinja2>=3.1.6",
     "openai>=1.0",
@@ -12,6 +13,8 @@ dependencies = [
     "tzdata>=2025.2",
 ]
 
+# 尚未接入 CI（见 docs/REVIEW_2026-10-26_V2.md P3-11）：mypy 不在 requirements 里，
+# 也没有 workflow 步骤。保留配置是为了本地逐步收紧，不要误当成"已在执行"。
 [tool.mypy]
 python_version = "3.11"
 strict = true

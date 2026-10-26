@@ -93,6 +93,26 @@ class DeliveryTests(WorkspaceCase):
         self.assertTrue((self.root / "preview.html").is_file())
         smtp.assert_not_called()
 
+    def test_preview_does_not_write_production_digest(self):
+        with self.collected(), patch.object(entry, "send_email") as smtp:
+            entry.main(self.config, out=str(self.root / "preview.html"))
+        self.assertFalse((self.root / "digest.json").exists(), "预览不得覆盖反馈/评测共用的生产快照")
+        report = json.loads((self.root / "run.json").read_text(encoding="utf-8"))
+        self.assertEqual(report["delivery"], "preview")
+        smtp.assert_not_called()
+
+    def test_analysis_failures_are_reported(self):
+        config = replace(self.config, analysis_enabled=True, deep_papers=1)
+        with self.collected(), \
+                patch.object(pipeline, "_build_client", return_value=object()), \
+                patch.object(pipeline, "_fetch_fulltexts", return_value={}), \
+                patch.object(pipeline, "analyze_papers", side_effect=RuntimeError("model down")), \
+                patch.object(entry, "send_email"):
+            entry.main(config, out=str(self.root / "preview.html"))
+        report = json.loads((self.root / "run.json").read_text(encoding="utf-8"))
+        self.assertEqual(report["analyzed_papers"], 0)
+        self.assertEqual(report["analysis_failures"], 1)
+
     def test_failed_delivery_does_not_consume(self):
         with self.collected(), patch.object(entry, "send_email", side_effect=OSError("SMTP failed")):
             with self.assertRaises(OSError):
@@ -170,6 +190,7 @@ class StateTests(WorkspaceCase):
     def test_canonical_arxiv_and_doi_identity(self):
         self.assertEqual(canonical_id("2610.12345v2"), "2610.12345")
         self.assertEqual(canonical_id("doi:10.1234/ABC"), "doi:10.1234/abc")
+        self.assertEqual(canonical_id("https://arxiv.org/pdf/2610.12345.pdf"), "2610.12345")
         state = State()
         mark_seen(state, [paper()], day="2026-10-26")
         self.assertEqual(filter_unseen(state, [paper("2610.12345v2")]), [])
@@ -187,6 +208,12 @@ class StateTests(WorkspaceCase):
         for _ in range(2):
             record_observations(state, [paper(), paper("2610.12345v2")], timezone_name="Asia/Shanghai")
         self.assertEqual(state.daily, {"2026-10-20": {"astro-ph.CO": 1}})
+
+    def test_corrupt_state_file_is_quarantined(self):
+        Path(self.config.state_path).write_text("{not json", encoding="utf-8")
+        state = load_state(self.config.state_path)
+        self.assertEqual(state.seen, {})
+        self.assertTrue(Path(self.config.state_path + ".corrupt").is_file(), "读坏的 state 应先留证据再降级")
 
     def test_bad_state_fields_do_not_crash(self):
         for raw in ({"version": "oops"}, {"version": 2, "daily": {"x": {"a": "oops"}}, "observations": []}):
@@ -320,6 +347,13 @@ class EvidenceTests(WorkspaceCase):
         second = extract_bundle(client, "fake", paper(), cache_dir=str(self.root))
         self.assertEqual(first, second)
         self.assertEqual(len(client.calls), 1)
+
+    def test_extract_cache_key_includes_call_options(self):
+        response = {"result": {"value": "42 clusters", "quote": "We measure 42 clusters."}}
+        client = FakeClient([response, response])
+        extract_bundle(client, "fake", paper(), cache_dir=str(self.root), options=LLMOptions(thinking=False))
+        extract_bundle(client, "fake", paper(), cache_dir=str(self.root), options=LLMOptions(thinking=True))
+        self.assertEqual(len(client.calls), 2, "thinking 不同不得命中同一份缓存")
 
     def test_cached_quotes_revalidated_against_source(self):
         client = FakeClient([{"result": {"value": "42", "quote": "Fabricated quote"}}] * 2)
@@ -542,6 +576,27 @@ class IntegrationBoundaryTests(WorkspaceCase):
     def test_unsafe_links_not_rendered(self):
         self.assertEqual(_safe_url("javascript:alert(1)"), "")
         self.assertEqual(_safe_url("https://example.invalid"), "https://example.invalid")
+
+    def test_merge_state_falls_back_when_report_missing(self):
+        from scripts.merge_state import main as merge_main
+        remote = self.root / "remote.json"
+        local = self.root / "local.json"
+        remote.write_text(json.dumps({"version": 2, "seen": {"2610.00001": "2026-10-20"}}), encoding="utf-8")
+        local.write_text(json.dumps({"version": 2, "seen": {"2610.00002": "2026-10-26"}}), encoding="utf-8")
+        for index, report in enumerate((self.root / "missing.json", self.root / "broken.json")):
+            if report.name == "broken.json":
+                report.write_text("{not json", encoding="utf-8")
+            output = self.root / f"merged-{index}.json"
+            code = merge_main([str(remote), str(local), str(output), "--report", str(report),
+                               "--today", "2026-10-26", "--timezone", "Asia/Shanghai"])
+            self.assertEqual(code, 0)
+            merged = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(set(merged["seen"]), {"2610.00001", "2610.00002"})
+
+    def test_package_version_matches_pyproject(self):
+        import arxiv_digest
+        pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+        self.assertIn(f'version = "{arxiv_digest.__version__}"', pyproject.read_text(encoding="utf-8"))
 
     def test_get_feedback_is_read_only_and_post_requires_challenge(self):
         from scripts.feedback_server import _Handler

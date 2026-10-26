@@ -26,7 +26,7 @@ from typing import Mapping, Sequence
 
 from .models import Paper
 from .identity import canonical_id
-from .storage import atomic_json
+from .storage import atomic_json, quarantine
 
 LOGGER = logging.getLogger(__name__)
 
@@ -170,7 +170,11 @@ def load_feedback(path: str | Path) -> FeedbackStore:
     except FileNotFoundError:
         return FeedbackStore()
     except Exception as exc:  # noqa: BLE001
-        LOGGER.warning("读取反馈文件失败（%s）：%s", path, exc)
+        moved = quarantine(path)
+        if moved:
+            LOGGER.warning("读取反馈文件失败（%s）：%s，已另存为 %s。", path, exc, moved)
+        else:
+            LOGGER.warning("读取反馈文件失败（%s）：%s", path, exc)
         return FeedbackStore()
     if not isinstance(raw, dict):
         return FeedbackStore()

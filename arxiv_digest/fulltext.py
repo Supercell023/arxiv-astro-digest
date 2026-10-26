@@ -277,7 +277,8 @@ def fetch_fulltext(
     """下载 + 抽取 + 清洗 + 裁剪。任何一步失败返回 None（调用方回退摘要）。"""
     if not url:
         return None
-    cache_key = hashlib.sha256(f"v1:{url}:{max_pages}".encode("utf-8")).hexdigest()
+    # v2：键里带上 max_chars，改 FULLTEXT_MAX_CHARS 后不会继续命中旧裁剪结果。
+    cache_key = hashlib.sha256(f"v2:{url}:{max_pages}:{max_chars}".encode("utf-8")).hexdigest()
     cache_path = Path(cache_dir) / "fulltext" / (cache_key + ".json") if cache_dir else None
     if cache_path and cache_path.is_file():
         try:

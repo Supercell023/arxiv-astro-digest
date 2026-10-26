@@ -1,5 +1,16 @@
 # 变更记录
 
+## v0.14.1 — 审查修复：预览不再污染快照、CI 持久化兜底与可观测性（2026-10-26，工作区）
+
+- 预览只写 `runs/<run_id>.json`，不再改写 `digest.json`；反馈服务与 CLI 不会再拿到预览版元数据。
+- 精读评估失败可见：run_report 新增 `analyzed_papers` / `analysis_failures`，整体失败时打 warning（仍按单阶段摘要投递，不阻断发信）。
+- CI 回写 state 不再依赖 best-effort 的 `run_report.json`：`merge_state.py` 在文件缺失/损坏时退回当前日期与时区（新增 `--today`/`--timezone`），workflow 传入 `DIGEST_TIMEZONE`。
+- 读坏的 `state.json` / `feedback.json` 先另存为 `.corrupt` 再降级，不再静默覆盖。
+- 缓存键补齐调用参数（Stage A 的 temperature/max_tokens/thinking，全文的 `max_chars`），改开关不会误命中旧缓存。
+- `canonical_id` 剥掉 `.pdf` 后缀；`atomic_json` 的 NaN `ValueError` 不再击穿 `save_state`；缓存回收对 symlink 环只跳过单文件。
+- 删除死代码（`_primary_categories`、`record_day` 导入）；`__version__` 与 pyproject/Crossref UA 对齐；`FEEDBACK_URL` 无签名密钥时告警。
+- 详见 [审查修复报告](docs/CHANGE_REPORT_2026-10-26_PATCH.md)；外部投递、模型质量与云端部署仍未验收。
+
 ## v0.14.0 — 周日精选、跨领域资讯与复审修复（2026-10-26，工作区）
 
 - 配置时区的周日自动回顾过去七个完整自然日，独立周报去重；不受日报已发送过滤，不把周报论文消费到日报 seen。

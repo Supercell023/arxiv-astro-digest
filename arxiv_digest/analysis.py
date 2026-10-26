@@ -228,7 +228,9 @@ def extract_bundle(
 ) -> ExtractBundle:
     source = _clip(fulltext, MAX_FULLTEXT_PROMPT_CHARS) if fulltext else _clip(paper.summary)
     prompt = build_extract_prompt(paper, fulltext=fulltext)
-    cache_key = hashlib.sha256((PROMPT_VERSION + model + prompt).encode("utf-8")).hexdigest()
+    # 缓存键必须带上调用形状（thinking/temperature/max_tokens），否则改了开关仍会命中旧产物。
+    option_key = json.dumps(asdict(options), sort_keys=True, ensure_ascii=False) if options else ""
+    cache_key = hashlib.sha256((PROMPT_VERSION + model + option_key + prompt).encode("utf-8")).hexdigest()
     cache_path = Path(cache_dir) / "extract" / (cache_key + ".json") if cache_dir else None
     payload = None
     if cache_path and cache_path.is_file():

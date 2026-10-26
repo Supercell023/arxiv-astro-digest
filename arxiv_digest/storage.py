@@ -27,6 +27,20 @@ def atomic_json(path: str | Path, payload: object) -> None:
             os.unlink(temp)
 
 
+def quarantine(path: str | Path) -> Path | None:
+    """把读不懂的文件挪到 <name>.corrupt，返回新路径；挪不动就返回 None。
+
+    状态与反馈文件损坏时若直接按空处理，下一次写入会把原文件覆盖掉——先留一份证据再降级。
+    """
+    source = Path(path)
+    target = source.with_name(f"{source.name}.corrupt")
+    try:
+        source.replace(target)
+    except OSError:
+        return None
+    return target
+
+
 @contextmanager
 def delivery_lock(state_path: str | Path) -> Iterator[None]:
     """The lock file may remain; the operating system releases locks after a crash."""

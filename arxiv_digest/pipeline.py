@@ -55,7 +55,6 @@ from .state import (
     mark_fetched,
     mark_seen,
     prune,
-    record_day,
     save_state,
     weekly_trend,
 )
@@ -312,12 +311,6 @@ def _build_pulse(
     )
 
 
-def _primary_categories(papers: list[Paper]) -> list[str]:
-    """只取主分类——cross-list 会把投稿量统计放大两三倍。"""
-
-    return [paper.categories[0] for paper in papers if paper.categories]
-
-
 def _build_radar(config: Config, *, seen: Sequence[str] = ()) -> Radar | None:
     """邻域雷达：只挑不读，给几行"隔壁在动什么"。
 
@@ -414,7 +407,7 @@ def _translate_secondary(config: Config, items: list[Item]) -> list[Item]:
 def _write_digest_json(
     path_text: str, calendar: CalendarBundle, papers: list[Paper], summary: str,
     pulse: Pulse | None = None, *, secondary=(), talks=(), sources=(), radar=None,
-    trend=(), report=None,
+    trend=(), report=None, update_latest: bool = True,
 ) -> dict | None:
     if not path_text:
         return None
@@ -432,22 +425,31 @@ def _write_digest_json(
         "run": report or {},
     }
     try:
-        _write_diagnostic(path_text, payload, str((report or {}).get("run_id") or ""), initial=True)
+        _write_diagnostic(path_text, payload, str((report or {}).get("run_id") or ""), initial=True,
+                          update_latest=update_latest)
     except (OSError, RuntimeError):
         LOGGER.warning("本次快照写入失败；业务投递仍可继续。")
     return payload
 
 
-def _write_diagnostic(path_text: str, payload: dict, run_id: str, *, initial: bool = False) -> None:
-    """Keep an immutable run identity, and only finalize the matching latest pointer."""
+def _write_diagnostic(path_text: str, payload: dict, run_id: str, *, initial: bool = False,
+                      update_latest: bool = True) -> None:
+    """Keep an immutable run identity, and only finalize the matching latest pointer.
+
+    ``update_latest=False`` 只写 runs/<run_id>.json，不动"最近一次"指针——预览用这个模式，
+    这样反馈/评测读取的 digest.json 不会被预览内容顶掉。
+    """
     if not path_text:
         return
     path = Path(path_text)
     if not run_id:
-        atomic_json(path, payload)
+        if update_latest:
+            atomic_json(path, payload)
         return
     own_path = path.parent / "runs" / f"{path.stem}-{run_id}{path.suffix or '.json'}"
     atomic_json(own_path, payload)
+    if not update_latest:
+        return
     with delivery_lock(path):
         current = {}
         if path.is_file():
@@ -753,12 +755,14 @@ def commit_delivery(config: Config, result: PipelineResult, *, delivery: str = "
 def update_diagnostics(config: Config, result: PipelineResult) -> None:
     try:
         run_id = str(result.report.get("run_id") or "")
+        # 预览不更新"最近一次"指针，只留 runs/<run_id>.json，避免覆盖反馈对照组读取的 digest.json。
+        update_latest = result.report.get("delivery") != "preview"
         if config.run_report_path:
             _write_diagnostic(config.run_report_path, result.report, run_id)
         if config.digest_json_path and result.snapshot is not None:
             payload = dict(result.snapshot)
             payload["run"] = result.report
-            _write_diagnostic(config.digest_json_path, payload, run_id)
+            _write_diagnostic(config.digest_json_path, payload, run_id, update_latest=update_latest)
     except (OSError, ValueError, RuntimeError):
         LOGGER.warning("投递和状态已确认，但诊断产物更新失败。")
 
@@ -805,6 +809,9 @@ def _run_pipeline(config: Config, *, persist_state: bool = False, preview: bool 
     today = _digest_today(config)
     edition = edition_for(config, today)
     config = edition_config(config, edition)
+    if config.feedback_url and not config.feedback_signing_key:
+        LOGGER.warning("FEEDBACK_URL 已配置但没有 FEEDBACK_SIGNING_KEY：投票链接未签名，"
+                       "拿到链接的人可以伪造投票，生产环境请设置签名密钥。")
     day = today.isoformat()
     state = load_state(config.state_path)
     if edition.key and edition.key in state.editions and not preview:
@@ -869,6 +876,13 @@ def _run_pipeline(config: Config, *, persist_state: bool = False, preview: bool 
     if assessment_rejected:
         enriched = [p for p in enriched if p.analysis is None or p.analysis.relevance_kind != "off"]
         summary = f"本期保留 {len(enriched)} 篇兴趣匹配论文；另有 {assessment_rejected} 篇在精读评估中标为无关，已排除。请结合卡片中的原文依据阅读。"
+    # 精读评估的失败面：本应分析却没拿到 analysis 的篇数（模型/全文/配置任一环节失败都会落在这里）。
+    requested_analysis = min(len(enriched), config.deep_papers) if config.analysis_enabled else 0
+    analyzed_papers = sum(p.analysis is not None for p in enriched)
+    analysis_failures = max(0, requested_analysis - analyzed_papers)
+    if analysis_failures:
+        LOGGER.warning("精读评估未完成：%d 篇里 %d 篇没有分析结果，已回退中文摘要。",
+                       requested_analysis, analysis_failures)
     sources, secondary, talks = _collect_world(config, state, day)
     materials = _remember_materials(state, all_papers, sources, today, config.digest_timezone)
     materials = materials[:config.pulse_max_materials]
@@ -905,15 +919,20 @@ def _run_pipeline(config: Config, *, persist_state: bool = False, preview: bool 
         "elapsed_seconds": round((datetime.now(timezone.utc) - started).total_seconds(), 3),
         "window_days": window_days, "sampled_papers": len(all_papers),
         "unseen_candidates": len(candidates), "selected_papers": len(enriched),
-        "analyzed_papers": sum(p.analysis is not None for p in enriched),
+        "analyzed_papers": analyzed_papers,
+        "analysis_failures": analysis_failures,
         "assessment_rejected": assessment_rejected,
         "secondary": len(secondary), "talks": len(talks), "pulse_materials": len(materials),
         "sources": [{"id": item.key, "ok": item.ok, "items": len(item.items)} for item in sources],
         "errors": errors, "delivery": "pending", "trend_basis": "sampled arXiv papers; not total submissions",
         "llm": usage_snapshot(),
     }
-    snapshot = _write_digest_json(config.digest_json_path, calendar, enriched, summary, pulse,
-                       secondary=secondary, talks=talks, sources=sources, radar=radar, trend=trend, report=report)
+    # 预览只写 runs/<run_id>.json，不动"最近一次"指针：feedback_server.py / feedback.py
+    # 默认读同一个 digest.json，预览覆盖它会让之后的投票把元数据挂到预览内容上。
+    snapshot = _write_digest_json(
+        config.digest_json_path, calendar, enriched, summary, pulse,
+        secondary=secondary, talks=talks, sources=sources, radar=radar, trend=trend, report=report,
+        update_latest=not preview)
     if config.run_report_path:
         try:
             _write_diagnostic(config.run_report_path, report, run_id, initial=True)

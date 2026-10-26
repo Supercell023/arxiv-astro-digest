@@ -225,7 +225,9 @@ jobs:
             if ! git show "origin/$BRANCH:state.json" > /tmp/remote-state.json; then
               echo '{}' > /tmp/remote-state.json
             fi
-            python -B scripts/merge_state.py /tmp/remote-state.json /tmp/state.json state.json --report run_report.json
+            # run_report.json 是 best-effort 诊断文件：缺失时 merge_state 会退回当前日期与时区，
+            # 仍然把 state 提交上去，避免"邮件已发但去重记录没写回"造成重复推送。
+            python -B scripts/merge_state.py /tmp/remote-state.json /tmp/state.json state.json --report run_report.json --timezone "${{ vars.DIGEST_TIMEZONE || 'Asia/Shanghai' }}"
             git add state.json
 
             if git diff --cached --quiet; then

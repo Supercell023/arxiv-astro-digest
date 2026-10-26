@@ -17,7 +17,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from .identity import canonical_id
-from .storage import atomic_json
+from .storage import atomic_json, quarantine
 
 LOGGER = logging.getLogger(__name__)
 
@@ -85,7 +85,11 @@ def load_state(path: str | Path) -> State:
     except FileNotFoundError:
         return empty_state()
     except (OSError, json.JSONDecodeError) as exc:
-        LOGGER.warning("状态文件不可用（%s）：%s，按空状态处理。", path, exc)
+        moved = quarantine(path)
+        if moved:
+            LOGGER.warning("状态文件不可用（%s）：%s，已另存为 %s，本次按空状态处理。", path, exc, moved)
+        else:
+            LOGGER.warning("状态文件不可用（%s）：%s，本次按空状态处理。", path, exc)
         return empty_state()
 
     if not isinstance(raw, dict):
@@ -131,7 +135,9 @@ def save_state(state: State, path: str | Path) -> bool:
     try:
         atomic_json(path, state.__dict__)
         return True
-    except OSError as exc:
+    except (OSError, ValueError) as exc:
+        # ValueError：payload 里混入 NaN/Infinity 时 json.dump(allow_nan=False) 会抛；
+        # 交给调用方走 state_commit_failed 分支，比让进程裸崩更容易排查。
         LOGGER.warning("状态写入失败（%s）：%s", path, exc)
         return False
 

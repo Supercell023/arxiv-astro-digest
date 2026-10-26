@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any, Sequence
 from collections.abc import Callable
 
+from . import __version__
 from .models import Paper
 
 LOGGER = logging.getLogger(__name__)
@@ -192,7 +193,7 @@ def _item_to_paper(item: dict[str, Any], journal: Journal) -> Paper | None:
 
 def _fetch_crossref(url: str, *, timeout: float, mailto: str) -> dict[str, Any]:
     headers = {
-        "User-Agent": f"arxiv-astro-digest/0.12 (mailto:{mailto})",
+        "User-Agent": f"arxiv-astro-digest/{__version__} (mailto:{mailto})",
         "Accept": "application/json",
     }
     request = urllib.request.Request(url, headers=headers)

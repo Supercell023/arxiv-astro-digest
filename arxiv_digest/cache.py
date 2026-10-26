@@ -37,7 +37,7 @@ def prune_cache(cache_dir: str, *, now: float | None = None, max_age_days: int =
                     removed += 1
                 else:
                     entries.append((stat.st_mtime, stat.st_size, path))
-            except OSError:
+            except (OSError, RuntimeError):
                 LOGGER.warning("缓存维护遇到不可读写文件，跳过。")
     size = sum(row[1] for row in entries)
     for _, length, path in sorted(entries):

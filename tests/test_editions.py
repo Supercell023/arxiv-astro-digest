@@ -130,7 +130,7 @@ class WeeklyEditionTests(WorkspaceCase):
     def test_replay_preserves_weekly_header_and_layout_counts(self):
         from scripts import build_preview
         with self.weekly([paper(f"2610.{14000+i}") for i in range(7)]):
-            pipeline.run_pipeline(self.config, preview=True)
+            pipeline.run_pipeline(self.config)
         with patch.object(build_preview, "load_config", return_value=self.config), \
                 contextlib.redirect_stdout(io.StringIO()):
             build_preview.render(Path(self.config.digest_json_path), self.root / "replay.html")
@@ -343,7 +343,7 @@ class ReassessmentFixTests(WorkspaceCase):
                         entry.run_cli(args)
                 self.assertEqual(notify.call_count, 0 if preview else 1)
 
-    def test_preview_interleave_keeps_snapshot_ownership_and_per_run_history(self):
+    def test_preview_interleave_keeps_delivered_snapshot_and_per_run_history(self):
         def during_send(*args, **kwargs):
             entry.main(self.config, out=str(self.root / "other.html"))
         with self.collected(), patch.object(pipeline, "_fetch_with_adaptive_window",
@@ -351,8 +351,8 @@ class ReassessmentFixTests(WorkspaceCase):
                 patch.object(entry, "send_email", side_effect=during_send):
             entry.main(self.config)
         latest = json.loads(Path(self.config.digest_json_path).read_text(encoding="utf-8"))
-        self.assertEqual(latest["items"][0]["id"], "2610.22222")
-        self.assertEqual(latest["run"]["delivery"], "preview")
+        self.assertEqual(latest["items"][0]["id"], "2610.11111", "预览不得顶掉已投递的最近快照")
+        self.assertEqual(latest["run"]["delivery"], "committed")
         runs = [json.loads(path.read_text(encoding="utf-8")) for path in (self.root / "runs").glob("digest-*.json")]
         self.assertEqual({row["items"][0]["id"]: row["run"]["delivery"] for row in runs},
                          {"2610.11111": "committed", "2610.22222": "preview"})
