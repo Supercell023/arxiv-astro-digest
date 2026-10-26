@@ -36,6 +36,8 @@ PROMPT_VERSION = "a4-b2-validated"
 FACT_KEYS: tuple[str, ...] = ("data", "processing", "systematics", "method", "result", "caveat")
 # motivation 只做背景模块的原料，不进七问面板（七问是"这篇做了什么"，背景是"为什么做"）
 EXTRACT_KEYS: tuple[str, ...] = FACT_KEYS + ("motivation",)
+# 数值回查失败时按分句降级：只丢含不可回查数字的那半句，不整段清空。
+_CLAUSE_SPLIT = re.compile(r"[^。！？；;]+[。！？；;]?")
 MAX_TEXT_CHARS = 2200
 MAX_FULLTEXT_PROMPT_CHARS = 36_000
 MAX_NUMBERS = 6
@@ -497,6 +499,22 @@ def coerce_analysis(
     )
 
 
+def _salvage_text(value: str, source: str) -> str:
+    """删掉含不可回查数字的分句，保留其余分句。
+
+    数值护栏不该让整段消失：一句话里只有一个数字对不上时，丢掉那半句
+    比让读者看不到"研究背景/一句话结论"更合适。
+    """
+    if not value:
+        return ""
+    kept = [
+        clause
+        for clause in _CLAUSE_SPLIT.findall(value)
+        if clause.strip() and numbers_supported(clause, source)
+    ]
+    return "".join(kept).strip()
+
+
 def assess(
     client: Any,
     model: str,
@@ -538,11 +556,22 @@ def assess(
                               + [number.quote or "" for number in numbers] + list(figures))
     for key in (*FACT_KEYS, "background", "method_detail", "verdict"):
         value = values.get(key, getattr(analysis, key))
-        if not numbers_supported(value, supported_text):
+        if numbers_supported(value, supported_text):
+            continue
+        salvaged = _salvage_text(value, supported_text)
+        if len(salvaged) >= 8:
+            LOGGER.warning("省略含不可回查数字的分句：%s", key)
+            values[key] = salvaged
+        else:
             LOGGER.warning("过滤评论中数字无法回查的字段：%s", key)
             values[key] = MISSING_FULLTEXT if basis == "fulltext" else MISSING
-    if facts.get("motivation", Fact()).is_missing:
+    background_value = values.get("background", analysis.background)
+    if facts.get("motivation", Fact()).is_missing and not background_value:
         values["background"] = "原文未提供可核对的研究动机"
+    if values.get("verdict") in (MISSING, MISSING_FULLTEXT):
+        fallback = values.get("result") or analysis.result
+        if fallback and not fallback.startswith(("摘要未提", "全文未提")):
+            values["verdict"] = fallback[:60]
     for key in ("for_you", "read_reason", "relevance_reason"):
         value = getattr(analysis, key)
         if not advice_supported(value, supported_text):

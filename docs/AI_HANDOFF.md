@@ -1,6 +1,16 @@
 # 给下一位 AI 的交接说明
 
-最后更新：2026-10-26，**v0.14.1 工作区**。先读最新 [审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+最后更新：2026-10-26，**v0.15.0 工作区**。先读 [期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+
+## v0.15 当前进展：期刊论文也能读全文
+
+- 新增 `arxiv_digest/preprints.py`：`doi:` 论文按标题反查 arXiv（标题相似度 ≥0.90 + 作者姓氏 + 年份 ±2），命中就用预印本 PDF 精读；`venue`/`doi`/`id` 仍是期刊，UI 不改标 arXiv；未命中回退摘要。
+- `_fetch_fulltexts` 的doi 分支、`_merge_journals` 的摘要补全都接上了；`fetch_journal_papers(..., preprocess=)` 让 Nature Astronomy 这类"Crossref 只给标题"的条目先补摘要再过主题闸门。
+- 正负缓存（命中 180 天 / 未命中 14 天）+ ≥3 秒节流；`cache.prune_cache` 一并回收 `preprints/`。
+- 数值护栏改为按分句降级（`analysis._salvage_text`）：只有个别数字不可回查时不再整段清空 `background`/`verdict`/七问；verdict 回退 `result` 生成一句话结论。
+- 新增配置 `PREPRINT_ENABLED/PREPRINT_TIMEOUT/PREPRINT_MAX_RESULTS/PREPRINT_ABSTRACT_LOOKUPS`；`.env.example` 已同步。
+- 本轮本地验证：**126 项 Python 回归、26 项自检、`pip check` 通过**；真实外网一次性核验 6 篇期刊命中 3 篇，两篇精读全部取到全文（118,165 / 80,514 字符），来源仍标 ApJ / A&A。未跑 SMTP、反馈端点、Zotero、云端 Actions；`node` 不在本会话 PATH，10 项 JS 契约未复现。
+- 未验收项与风险（预印本版本差异、标题改名匹配不上、pypdf 排版限制）见上述期刊全文报告 §3.3 与 §5。
 
 ## v0.14 当前进展
 

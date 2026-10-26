@@ -63,6 +63,7 @@ from .zotero_client import (
     library_match,
     preferences_from_items,
 )
+from .preprints import enrich_summary, preprint_pdf_url
 from .llm_client import LLMOptions, usage_scope, usage_snapshot
 
 LOGGER = logging.getLogger(__name__)
@@ -131,8 +132,22 @@ def _fetch_fulltexts(config: Config, papers: list[Paper]) -> dict[str, str]:
     texts: dict[str, str] = {}
     for paper in papers[: max(0, config.deep_papers)]:
         if paper.id.startswith("doi:"):
-            continue
-        url = pdf_url_for(paper.abs_url, paper.pdf_url)
+            # 期刊 PDF 被出版商反爬挡住（IOP 返回 HTML、doi.org 403），
+            # 改走 arXiv 预印本；来源徽标与记录仍是期刊名。
+            if not config.preprint_enabled:
+                continue
+            url = preprint_pdf_url(
+                paper,
+                cache_dir=config.cache_dir,
+                timeout=config.preprint_timeout,
+                max_results=config.preprint_max_results,
+            ) or ""
+            if not url:
+                LOGGER.info("期刊论文没有可用的 arXiv 预印本，该篇精读回退摘要：%s", paper.id)
+                continue
+            LOGGER.info("期刊论文用 arXiv 预印本取全文（来源仍记 %s）：%s", paper.venue or "期刊", url)
+        else:
+            url = pdf_url_for(paper.abs_url, paper.pdf_url)
         if not url:
             continue
         text = fetch_fulltext(
@@ -623,6 +638,29 @@ def _merge_journals(config: Config, papers: list[Paper], window_days: int) -> li
         return papers
     lookback = max(config.journals_lookback_days, window_days)
     terms = _journal_topic_terms(config)
+    budget = {"lookups": max(0, config.preprint_abstract_lookups), "filled": 0}
+
+    def fill_abstract(paper: Paper) -> Paper:
+        """先用 arXiv 补摘要，再让主题闸门判断。
+
+        Crossref 对 Nature 系常常只给标题；没有摘要时闸门只能看标题，
+        Nature Astronomy 的稿子会被大量误杀。补上摘要再判更公平。
+        """
+
+        if not config.preprint_enabled or (paper.summary or "").strip() or budget["lookups"] <= 0:
+            return paper
+        budget["lookups"] -= 1
+        before = paper.summary
+        enriched = enrich_summary(
+            paper,
+            cache_dir=config.cache_dir,
+            timeout=config.preprint_timeout,
+            max_results=config.preprint_max_results,
+        )
+        if (enriched.summary or "").strip() and enriched.summary != before:
+            budget["filled"] += 1
+        return enriched
+
     try:
         journal_papers = fetch_journal_papers(
             journals,
@@ -630,6 +668,7 @@ def _merge_journals(config: Config, papers: list[Paper], window_days: int) -> li
             rows=config.journals_rows,
             max_per_journal=config.journals_max_per,
             predicate=lambda paper: _journal_matches(paper, terms),
+            preprocess=fill_abstract,
             timeout=config.journals_timeout,
             mailto=config.journals_mailto,
         )
@@ -637,22 +676,22 @@ def _merge_journals(config: Config, papers: list[Paper], window_days: int) -> li
         LOGGER.warning("期刊源抓取失败（%s），本封只发 arXiv。", exc)
         return papers
 
+    attempted = max(0, config.preprint_abstract_lookups) - budget["lookups"]
+    if attempted:
+        LOGGER.info(
+            "期刊摘要补全：尝试 %d 篇，补到 %d 篇（补完再过主题闸门）。",
+            attempted,
+            budget["filled"],
+        )
     if not journal_papers:
-        LOGGER.info("期刊源近 %d 天无新文（或 Crossref 无摘要）。", lookback)
+        LOGGER.info("期刊源近 %d 天没有命中主题闸门的新文。", lookback)
         return papers
 
-    kept = [paper for paper in journal_papers if _journal_matches(paper, terms)]
-    if len(kept) != len(journal_papers):
-        LOGGER.info(
-            "期刊主题闸门：%d 篇里留 %d 篇（去掉 %d 篇与星系宇宙学无关的）",
-            len(journal_papers),
-            len(kept),
-            len(journal_papers) - len(kept),
-        )
-    journal_papers = []
-    for paper in kept:
+    tagged: list[Paper] = []
+    for paper in journal_papers:
         pack = dispatch(selected_packs, (), hint=paper.pack_hint, title=f"{paper.title} {paper.summary}")
-        journal_papers.append(replace(paper, pack_hint=pack.id if pack else paper.pack_hint))
+        tagged.append(replace(paper, pack_hint=pack.id if pack else paper.pack_hint))
+    journal_papers = tagged
 
     merged = merge_with_arxiv(papers, journal_papers)
     added = len(merged) - len(papers)

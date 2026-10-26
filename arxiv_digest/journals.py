@@ -225,8 +225,14 @@ def fetch_journal_papers(
     timeout: float = DEFAULT_TIMEOUT,
     mailto: str = DEFAULT_MAILTO,
     predicate: Callable[[Paper], bool] | None = None,
+    preprocess: Callable[[Paper], Paper] | None = None,
 ) -> list[Paper]:
-    """按窗口抓每本刊的最新论文；单刊失败只 warning。"""
+    """按窗口抓每本刊的最新论文；单刊失败只 warning。
+
+    ``preprocess`` 在 ``predicate`` 之前逐篇调用，用来补缺失摘要（Nature
+    Astronomy 在 Crossref 常常只有标题）；补完再看主题闸门，才不会把
+    "只有标题"的稿子误判成不相关。
+    """
 
     since_date = (datetime.now(timezone.utc) - timedelta(days=max(1, lookback_days))).date()
     since = since_date.isoformat()
@@ -257,6 +263,8 @@ def fetch_journal_papers(
             paper = _item_to_paper(item, journal)
             if paper is None:
                 continue
+            if preprocess is not None:
+                paper = preprocess(paper)
             if predicate is not None and not predicate(paper):
                 continue
             collected.setdefault(paper.id, paper)

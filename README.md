@@ -6,7 +6,9 @@
 
 每天定时抓取新论文与领域动态 → 抽取事实 → 按你的读者画像打分与评论 → 渲染成一封邮件（或 HTML 文件）发出。
 
-`v0.14.0` · Python ≥ 3.11 · MIT
+`v0.15.0` · Python ≥ 3.11 · MIT
+
+**v0.15 期刊论文也能读全文**：ApJ / MNRAS / NatAs / AJ / A&A 的论文，按标题反查 arXiv 预印本取 PDF（标题相似度 + 作者 + 年份三道校验），命中就做全文精读，**来源徽标、DOI 与链接仍是期刊**；没命中回退摘要。Nature 系在 Crossref 常只给标题，现在先补摘要再过主题闸门。[实现与实测](docs/CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)。
 
 **v0.14 周末精选与更广的世界**：默认周日回顾过去七个完整自然日，按关键词、画像主要研究对象和领域主题重新挑选相关论文；可包含工作日已推荐论文，最多 12 篇、精读上限 6 篇，相关不足就少选。工作日也过滤只有分类相关的弱匹配。“世界在变”扩展为天文、物理、化学及历史/考古资讯，目标约 30 条、丰富时最多 36 条；天文与其他领域合计约 1:1，库存不足相互补位。[详细规则和验收](docs/CHANGE_REPORT_2026-10-26_V014.md)。
 
@@ -157,6 +159,10 @@ python -m arxiv_digest.main --out preview.html   # 真跑一次，只出 HTML �
 | `DEEP_PAPERS` / `BRIEF_PAPERS` | 4 / 10 | 精读与速览**篇数**（只决定排版，不再压缩单篇内容） |
 | `ANALYSIS_ENABLED` | false | 是否走两阶段精读 |
 | `FULLTEXT_ENABLED` | true | 精读是否下载 PDF 全文 |
+| `PREPRINT_ENABLED` | true | 期刊论文是否按标题反查 arXiv 预印本取全文 |
+| `PREPRINT_MAX_RESULTS` | 5 | 每次反查取几条候选 |
+| `PREPRINT_ABSTRACT_LOOKUPS` | 4 | 每轮最多为几篇无摘要期刊补摘要 |
+| `PREPRINT_TIMEOUT` | 20 | 单次 arXiv 查询超时（秒），请求间隔 ≥3 秒 |
 | `JOURNALS_ENABLED` | true | 是否抓 ApJ/MNRAS/NatAs/AJ/A&A |
 | `JOURNALS_PATH` | config/journals.yaml | 期刊与 ISSN、领域包绑定 |
 | `JOURNALS_MAX_PER` | 6 | 每本刊最多留几篇（闸门之后） |
@@ -214,6 +220,9 @@ DeepSeek 思考模式默认开启，六个 `*_THINKING` 开关可分别控制（
 | v0.10 | HTML 附件 / 世界在动加厚 / 板块配色 / 大标题 |
 | v0.11 | 深空冷色版 + 主题令牌化（`EMAIL_THEME`） |
 | v0.12 | 分数构成 / 研究背景与方法详解 / 两维反馈 / 期刊来源 / Zotero 库内判断 |
+| v0.13 | 状态 v2、发信成功才消费、digest v3 快照、引文/数字回查、反馈签名 |
+| v0.14 | 周日精选与兴趣闸门 / 跨领域资讯 / 审查 R01–R09 修复 |
+| v0.15 | 期刊论文反查 arXiv 预印本取全文（来源仍记期刊）/ 数值护栏按分句降级 |
 
 完整变更见 [CHANGELOG.md](CHANGELOG.md)。
 
@@ -237,6 +246,7 @@ arxiv_digest/
   config.py         环境变量 → Config
   arxiv_client.py   arXiv API 抓取（分页、429 退避、自适应时间窗）
   journals.py       期刊抓取（Crossref：ApJ/MNRAS/NatAs/AJ/A&A）
+  preprints.py      期刊论文按标题反查 arXiv 预印本（全文 PDF 兜底）
   zotero_client.py  Zotero 库：标签偏好、库内命中、相似度
   analysis.py       两阶段：抽事实 → 写评论
   llm_client.py     统一模型调用（JSON 兜底、思考开关、截断重试）
@@ -263,15 +273,16 @@ docs/              PRODUCT_PLAN.md / PROJECT_REVIEW.md / FEEDBACK.md
 
 ## 十、数据边界
 
-**能稳定拿到**：arXiv API（限流友好，带退避）、Crossref（ApJ / MNRAS / Nature Astronomy / AJ / A&A，含 JATS 摘要；Nature Astronomy 部分条目没有摘要）、AAS Nova、NASA、Phys.org、Universe Today、ESA、ESO、DESI、Keck、Indico 会议导出、Zotero API（你的库）。
+**能稳定拿到**：arXiv API（限流友好，带退避）、Crossref（ApJ / MNRAS / Nature Astronomy / AJ / A&A，含 JATS 摘要；Nature Astronomy 部分条目没有摘要）、arXiv 预印本反查（期刊论文按标题找回预印本 PDF；命中约一半到七成）、AAS Nova、NASA、Phys.org、Universe Today、ESA、ESO、DESI、Keck、Indico 会议导出、Zotero API（你的库）。
 
 **拿不到 / 不做的**：
 
 | 项 | 原因 |
 | --- | --- |
 | Astrobites | 对数据中心 IP 返回 403（GitHub Actions 上通常正常） |
-| Nature Astronomy 的部分摘要 | Crossref 只登记元数据，不保证有 abstract（该刊最常见） |
-| 期刊正文 PDF | 多数要订阅；期刊论文按摘要级分析，卡片上标注「仅摘要」 |
+| Nature Astronomy 的部分摘要 | Crossref 只登记元数据，不保证有 abstract（该刊最常见）；现在先用预印本补，补不到才只有标题 |
+| 期刊正文 PDF（直接） | IOP 返回反爬 HTML、doi.org 403、多数要订阅；改为反查 arXiv 预印本，命中才做全文，否则回退「仅摘要」 |
+| 预印本与正式版的差异 | 审稿改动、更名、撤稿可能对不上；按标题 + 作者 + 年份校验，未命中不回退错误版本 |
 | hubblesite / webbtelescope / Chandra / NOIRLab | 没有公开 RSS（404） |
 | 实时引力波告警 | 需要常驻监听，Actions 做不到 |
 | 论文公共讨论区 | 需要后端与审核，不做 |

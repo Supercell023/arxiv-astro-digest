@@ -21,7 +21,7 @@ def prune_cache(cache_dir: str, *, now: float | None = None, max_age_days: int =
     stamp = time.time() if now is None else now
     entries = []
     removed = 0
-    for namespace in ("extract", "fulltext"):
+    for namespace in ("extract", "fulltext", "preprints"):
         directory = root / namespace
         if not directory.is_dir() or directory.is_symlink():
             continue

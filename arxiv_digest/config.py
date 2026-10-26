@@ -145,6 +145,10 @@ class Config:
     journals_timeout: int
     journals_lookback_days: int
     journals_mailto: str
+    preprint_enabled: bool
+    preprint_timeout: int
+    preprint_max_results: int
+    preprint_abstract_lookups: int
     sources_enabled: bool
     sources_path: str
     sources_max_items: int
@@ -209,10 +213,13 @@ class Config:
         positive = ("arxiv_fetch_max_results", "arxiv_page_size", "arxiv_max_pages", "arxiv_request_timeout",
                     "arxiv_request_retries", "max_papers", "llm_batch_size", "lookback_days", "smtp_timeout",
                     "llm_timeout", "fulltext_timeout", "fulltext_parse_timeout", "fulltext_max_chars", "fulltext_max_pages",
-                    "journals_rows", "journals_max_per", "journals_timeout", "sources_timeout", "sources_max_items", "zotero_limit")
+                    "journals_rows", "journals_max_per", "journals_timeout", "sources_timeout", "sources_max_items", "zotero_limit",
+                    "preprint_timeout", "preprint_max_results")
         for name in positive:
             if getattr(self, name) < 1:
                 raise ValueError(f"{name} 必须 >= 1")
+        if self.preprint_abstract_lookups < 0:
+            raise ValueError("PREPRINT_ABSTRACT_LOOKUPS 必须 >= 0")
         if self.deep_papers < 0 or self.brief_papers < 0 or self.deep_papers + self.brief_papers < 1:
             raise ValueError("DEEP_PAPERS / BRIEF_PAPERS 必须非负，且至少展示一篇")
         if not 1 <= self.min_rating <= 5:
@@ -293,6 +300,10 @@ def load_config() -> Config:
         journals_timeout=_env_int("JOURNALS_TIMEOUT", 30),
         journals_lookback_days=_env_int("JOURNALS_LOOKBACK_DAYS", 2),
         journals_mailto=_env("JOURNALS_MAILTO", "arxiv-digest@example.com"),
+        preprint_enabled=_env_bool("PREPRINT_ENABLED", True),
+        preprint_timeout=_env_int("PREPRINT_TIMEOUT", 20),
+        preprint_max_results=_env_int("PREPRINT_MAX_RESULTS", 5),
+        preprint_abstract_lookups=_env_int("PREPRINT_ABSTRACT_LOOKUPS", 4),
         sources_enabled=_env_bool("SOURCES_ENABLED", True),
         sources_path=_env("SOURCES_PATH", "config/sources.yaml"),
         sources_max_items=_env_int("SOURCES_MAX_ITEMS", 6),

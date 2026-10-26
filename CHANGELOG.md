@@ -1,5 +1,15 @@
 # 变更记录
 
+## v0.15.0 — 期刊论文也能读全文：DOI 反查 arXiv 预印本（2026-10-26，工作区）
+
+- **期刊全文兜底**：新增 `arxiv_digest/preprints.py`，按标题反查 arXiv（标题相似度 ≥0.90、作者姓氏、年份 ±2 三道校验），命中就用预印本 PDF 做精读；`venue`、`doi`、`id` 仍是期刊，来源徽标不改写成 arXiv。未命中一律回退摘要，不会因为没有预印本而丢论文。
+- **摘要补全**：Nature Astronomy 等 Nature 系在 Crossref 常常只给标题。`fetch_journal_papers` 新增 `preprocess`，先补摘要再过主题闸门，减少"只有标题被判为不相关"的误杀（此前 30 篇 NatAs 只留 1 篇）。
+- **缓存与礼貌**：命中缓存 180 天、未命中 14 天，请求间隔 ≥3 秒，避免每轮重复打 arXiv；`cache.prune_cache` 一并回收 `preprints/`。
+- **数值护栏改为按分句降级**：`background` / `verdict` / 七问里只有个别数字不可回查时，只删含该数字的那半句（`_salvage_text`），不再整段清空；整段没有可核对分句才回退"未提供/未检出"。verdict 回查失败时退回 `result` 生成一句话结论。
+- **新增配置**：`PREPRINT_ENABLED`（默认 true）、`PREPRINT_TIMEOUT=20`、`PREPRINT_MAX_RESULTS=5`、`PREPRINT_ABSTRACT_LOOKUPS=4`；`.env.example` 同步说明。
+- **验证**：126 项离线测试通过（新增 19 项）、26 项自检通过；真实外网核验 6 篇期刊有 3 篇匹配到 arXiv，两篇精读全部取到全文（118,165 / 80,514 字符），来源仍标 ApJ / A&A；未命中的 3 篇按设计回退摘要。
+- 外部投递、Zotero、反馈端点与云端 Actions 仍未验收。
+
 ## v0.14.2 — 本地实跑核验与默认快照路径（2026-10-26，工作区）
 
 - `DIGEST_JSON_PATH` 默认改为 `digest.json`：本地预览/实跑也会落快照，反馈 CLI 与服务能读到标题、作者、分类；显式留空仍可关闭（此前默认空，导致"按 README 跑预览→投票"学不到任何元数据）。
