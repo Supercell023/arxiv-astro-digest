@@ -1,6 +1,12 @@
 # 给下一位 AI 的交接说明
 
-最后更新：2026-10-28，**v0.17.0 工作区**。先读 [长期热点档案](ARCHIVE.md)、[期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+最后更新：2026-10-28，**v0.17.1 工作区**。先读 [长期热点档案](ARCHIVE.md)、[期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+
+## v0.17.1 当前进展：合表自检
+
+- 新增 `scripts/check_sheets.py`（`python -m scripts.check_sheets`）：只读检查反馈 CSV 表头（识别"CSV 指到档案表"的 gid 错配）、HTML/空响应、档案端点 `health`；退出码 0/1/2，不写行。
+- 文档：`docs/ARCHIVE.md` 增加「合表部署清单（推荐）」六步；`docs/FEEDBACK.md` 与 README 命令表补入口。
+- 验证：**163 项离线测试（新增 10 项）、27 项自检、`pip check` 通过**；真实端点、gid 与权限仍未验收。
 
 ## v0.17 当前进展：反馈表与热点档案合表
 

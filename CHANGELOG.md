@@ -1,5 +1,14 @@
 # 变更记录
 
+## v0.17.1 — 合表自检工具（2026-10-28，工作区）
+
+- 新增 `scripts/check_sheets.py`（`python -m scripts.check_sheets`）：只读检查反馈 CSV 与热点档案端点的接线。
+  - 反馈侧：校验表头必须是 `item,relevance,usefulness,t`；如果返回的是 `week_start,week_label,topic,votes`，直接提示"CSV 指向的是热点档案表"（最常见的 gid 指错 tab）；HTML 页面或空内容按权限/凭据错误处理。
+  - 档案侧：`archive.ready` 时调端点 `health`，未配置则跳过并提示。
+  - 退出码 0/1/2（通过 / 有失败 / 两项都没配置），不写任何行。
+- 文档：`docs/ARCHIVE.md` 增加「合表部署清单（推荐）」六步表（一份表格 + 两个 Web App + `FEEDBACK_SHEET_NAME` + gid 检查）；`docs/FEEDBACK.md`、README 命令表补入口。
+- **验证**：**163 项离线测试**（新增 10 项 `tests/test_check_sheets.py`）、27 项自检、`pip check` 干净。真实端点仍未验证。
+
 ## v0.17.0 — 反馈表与热点档案合表：投票按主题聚合（2026-10-28，工作区）
 
 - **新增 `feedback_view` 表**：`weekly_topics` 的同键表（`week_start + topic`），把你在邮件里投的两维票按论文所属主题分摊聚合：`votes` / `mean_relevance` / `mean_usefulness` / `top_useful` / `updated`。均值只统计给出该维的票，没给的那维留空，不按 0 算。

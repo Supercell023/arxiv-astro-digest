@@ -6,7 +6,7 @@
 
 每天定时抓取新论文与领域动态 → 抽取事实 → 按你的读者画像打分与评论 → 渲染成一封邮件（或 HTML 文件）发出。
 
-`v0.17.0` · Python ≥ 3.11 · MIT
+`v0.17.1` · Python ≥ 3.11 · MIT
 
 **v0.17 反馈与热点合表**：长期热点档案新增第五张表 `feedback_view`——把邮件里投的"相关性 / 有用性"按论文主题分摊聚合（`votes` / 两维均值 / 有用命中），与 `weekly_topics` 同键并排看"这个方向在变多"和"这个方向对我是有用的"的差别。反馈与档案可以共用一份 Google 表格：反馈 tab 由脚本属性 `FEEDBACK_SHEET_NAME` 指定，档案脚本的白名单读不到投票原文。[合表说明](docs/FEEDBACK.md)。
 
@@ -149,6 +149,7 @@ python -m arxiv_digest.main --out preview.html   # 真跑一次，只出 HTML �
 | `python scripts\feedback_server.py` | 本机反馈端点（`http://127.0.0.1:8765/log`） |
 | `python scripts\feedback.py record --id 2610.31660 --rel 2 --use 0` | 手工记一条两维反馈 |
 | `python scripts\feedback.py stats` | 看学到的偏好 |
+| `python -m scripts.check_sheets` | 只读检查反馈 CSV 与档案端点是否接好（合表时先跑这个） |
 | `python scripts\eval_analysis.py check --digest dump.json` | 评测抽取质量 |
 | `python scripts\refresh_pulse.py` | 重新抓一次脉搏材料 |
 
@@ -233,7 +234,7 @@ DeepSeek 思考模式默认开启，六个 `*_THINKING` 开关可分别控制（
 | v0.14 | 周日精选与兴趣闸门 / 跨领域资讯 / 审查 R01–R09 修复 |
 | v0.15 | 期刊论文反查 arXiv 预印本取全文（来源仍记期刊）/ 数值护栏按分句降级 |
 | v0.16 | 长期热点档案：全量论文按周写 Google 表格（明细 / 主题 / 概览 / 口径字典），影子期只写表 |
-| v0.17 | 反馈票按主题聚合进档案（feedback_view）/ 反馈与档案可共用一份表格 |
+| v0.17 | 反馈票按主题聚合进档案（feedback_view）/ 反馈与档案可共用一份表格 / 合表自检脚本 |
 
 完整变更见 [CHANGELOG.md](CHANGELOG.md)。
 

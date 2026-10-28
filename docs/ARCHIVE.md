@@ -104,6 +104,19 @@ python -m arxiv_digest.archive --health
 2. `FEEDBACK_SHEET_CSV_URL` 里的 `gid` 必须指向 `feedback` 这张表（地址栏 `#gid=` 后面的数字），不是 tab 序号。
 3. 隐私边界：档案脚本只读写 `SHEETS` 白名单里的表，`feedback` 不在其中，所以 `ARCHIVE_TOKEN` 拿不到投票原文；反过来反馈脚本也不碰档案表。两个 Web App 仍然分开部署。
 
+#### 合表部署清单（推荐）
+
+| 步骤 | 操作 | 完成标志 |
+| --- | --- | --- |
+| 1 | 新建**一个** Google 表格，第一张 tab 改名 `feedback`，A1:D1 填 `item / relevance / usefulness / t` | 表里没有多余列 |
+| 2 | 粘贴 `scripts/google_feedback.gs` → 脚本属性加 `FEEDBACK_SPREADSHEET_ID`、`FEEDBACK_SIGNING_KEY`、`FEEDBACK_CSV_READ_TOKEN`、`FEEDBACK_SHEET_NAME=feedback` | 属性四项齐全 |
+| 3 | 粘贴 `scripts/google_archive.gs`（可以是同一个项目里的另一个文件，也可以是独立项目）→ 属性 `ARCHIVE_SPREADSHEET_ID`（**同一个表格 ID**）、`ARCHIVE_TOKEN` | 两个 ID 相同 |
+| 4 | 两个脚本分别「部署 → 新建部署 → Web 应用 → 执行身份我 → 访问权限任何人」，各拿一个 `/exec` 地址 | 两个地址互不相同 |
+| 5 | `.env`：`FEEDBACK_URL`、`FEEDBACK_SIGNING_KEY`、`ARCHIVE_WEBHOOK_URL`、`ARCHIVE_TOKEN`；`FEEDBACK_SHEET_CSV_URL` 用反馈部署地址 + `?action=csv&token=<读取凭据>`，地址末尾的 `#gid=` 改成 `feedback` tab 的 gid | `gid` 指向 `feedback` |
+| 6 | 跑 `python -m scripts.check_sheets` | 输出两行 `[OK]` |
+
+`check_sheets` 会替你把两件最容易错的事挡在前面：**CSV 的 gid 指到了档案表**（会提示"指向的是热点档案表"），以及**反馈 tab 名与 `FEEDBACK_SHEET_NAME` 不一致**（端点会报错或表头不符）。它只读，不写任何行。
+
 ## 写入时机
 
 - 只在**邮件投递成功之后**（`commit_delivery`）写表；预览、失败、跳过都不会写。

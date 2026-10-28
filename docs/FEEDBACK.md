@@ -34,6 +34,8 @@ Actions 中签名密钥和 CSV URL 放 Secret。修改 Apps Script 后发布新�
 
 CSV 读取凭据只能读表；有效签名链接的持有人可以记录该链接对应的反馈，不要公开转发包含个人反馈入口的邮件。
 
+合表（反馈与热点档案共用一份表格）的完整步骤见 `docs/ARCHIVE.md` 的「合表部署清单」，配好后先跑 `python -m scripts.check_sheets` 只读自检两个端点。
+
 API 用法对照官方 [Web App](https://developers.google.com/apps-script/guides/web)、[HMAC](https://developers.google.com/apps-script/reference/utilities/utilities)、[Cache](https://developers.google.com/apps-script/reference/cache/cache) 文档。签名编码、确认流程、CSV 权限有离线桩测试；本次没有部署或验证真实 Google 服务。
 
 ## 合并与持久化
