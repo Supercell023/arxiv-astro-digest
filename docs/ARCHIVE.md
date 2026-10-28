@@ -10,9 +10,9 @@
 - 用四周移动平均抵消 arXiv 公告节律（周末/节假日公告少）；
 - 区分「预印本先行」与「期刊跟进」，看一个方向是刚起还是在收尾。
 
-## 四张表
+## 五张表
 
-一次部署会建四张表（若表已存在则复用；表头必须一致，否则会报错而不是悄悄写坏）。
+一次部署会建五张表（若表已存在则复用；表头必须一致，否则会报错而不是悄悄写坏）。前四张是抓取与热点，`feedback_view` 是你自己投票的聚合。
 
 ### `papers` — 明细，一行一篇
 
@@ -54,6 +54,19 @@
 
 `topic / aliases / pack / source / first_week / last_week / total_papers`。任何"这个主题到底包含什么"的争议都以这张表为准。
 
+### `feedback_view` — 周 × 主题的投票汇总
+
+键：`week_start + topic`。数据来自 `config/feedback.json`（本地）与反馈 Sheet（云端）合并后的票，按论文所属主题分摊。
+
+| 列 | 含义 |
+| --- | --- |
+| votes | 当周该主题下、你投过票的论文篇数 |
+| mean_relevance / mean_usefulness | 只对给出该维的票求均值；没给的那维留空，不按 0 算 |
+| top_useful | 「很有用」（有用性=2）的论文原始 id，最多 3 个，`;` 分隔 |
+| updated | 写这一行的日期 |
+
+它和 `weekly_topics` 用同一个键，可以直接并排看："这个方向在变多"和"这个方向对我是有用的"不一定是同一件事。
+
 ## 口径（看表前先看这里）
 
 - 一周从**周日**开始，与周报窗口一致；论文按 `published` 落在哪一周归档，跨周重抓不会重复。
@@ -82,6 +95,14 @@ python -m arxiv_digest.archive --health
 ```
 
 第一次写表时脚本会按 `SHEETS` 里的规范建表头；之后若手动改过表头，写入会失败并提示**表头不一致**，而不是静默覆盖。
+
+### 和反馈表共用一份表格（可选）
+
+可以只建**一个** Google 表格：`feedback`（投票原始行）放第一张，其余 `papers / weekly_topics / weekly_overview / dict / feedback_view` 由档案脚本自己建。此时：
+
+1. 反馈脚本（`scripts/google_feedback.gs`）的脚本属性 `FEEDBACK_SHEET_NAME` 写 `feedback`——不写时仍取第一张表，保持旧行为；**不要依赖"它一定是第一张"**，同名 tab 才稳。
+2. `FEEDBACK_SHEET_CSV_URL` 里的 `gid` 必须指向 `feedback` 这张表（地址栏 `#gid=` 后面的数字），不是 tab 序号。
+3. 隐私边界：档案脚本只读写 `SHEETS` 白名单里的表，`feedback` 不在其中，所以 `ARCHIVE_TOKEN` 拿不到投票原文；反过来反馈脚本也不碰档案表。两个 Web App 仍然分开部署。
 
 ## 写入时机
 

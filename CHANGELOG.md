@@ -1,5 +1,14 @@
 # 变更记录
 
+## v0.17.0 — 反馈表与热点档案合表：投票按主题聚合（2026-10-28，工作区）
+
+- **新增 `feedback_view` 表**：`weekly_topics` 的同键表（`week_start + topic`），把你在邮件里投的两维票按论文所属主题分摊聚合：`votes` / `mean_relevance` / `mean_usefulness` / `top_useful` / `updated`。均值只统计给出该维的票，没给的那维留空，不按 0 算。
+- **一份表格、两个 Web App**：反馈与档案可以共用同一个 Spreadsheet。反馈脚本不再假设"第一张表就是反馈表"，改为按脚本属性 `FEEDBACK_SHEET_NAME` 取 tab（缺省仍取第一张，向后兼容）；`FEEDBACK_SHEET_CSV_URL` 的 `gid` 必须指向该 tab。
+- **隐私边界不变**：档案脚本只读写 `SHEETS` 白名单里的表（新增 `feedback_view`），`feedback` 原文不在白名单内，`ARCHIVE_TOKEN` 拿不到投票原文；反馈脚本也不碰档案表。
+- **实现**：`archive.build_feedback_rows`（按 `canonical_id` 对齐 arXiv 版本号与 DOI 大小写）、`record(..., votes=...)`（无票不写表）、`PipelineResult.votes` 由 `_run_pipeline` 从合并后的 `FeedbackStore` 传入。
+- **验证**：**153 项离线测试**（新增 5 项反馈聚合用例）、**27 项自检**（"热点档案"增加反馈聚合断言）、`pip check` 干净。
+- **未验收**：真实 Apps Script 端点、共用表格时的 gid 与权限实测、云端 Actions。
+
 ## v0.16.0 — 长期热点档案：全量论文按周进 Google 表格（2026-10-28，工作区）
 
 - **新功能（影子期，只写表不改邮件）**：新增 `arxiv_digest/archive.py` 与 `scripts/google_archive.gs`。每天把**抓到的全部论文**（不只入选的 14 篇）按周写入私有 Google 表格：

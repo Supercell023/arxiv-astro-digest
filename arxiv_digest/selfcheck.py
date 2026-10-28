@@ -1149,7 +1149,16 @@ def _check_archive() -> str:
 
     signature = archive.HttpTransport("https://example.invalid", "key")._sign(b"payload")
     assert len(signature) == 64 and signature == signature.lower(), signature
-    return "周锚点/行宽/分享率/签名可核对；真实表格端点未验证"
+
+    # 反馈票按主题聚合：一票落在两个主题上就应生成两行，且均值只统计给出的那一维。
+    feedback = archive.build_feedback_rows(
+        rows=[{"id": "2610.12345v1", "topics": "弱透镜;星系团 / 群"}],
+        votes={"2610.12345": (2, 1)}, week=week)
+    assert len(feedback) == 2, feedback
+    assert all(len(row) == len(archive.FEEDBACK_HEADERS) for row in feedback), "反馈行宽与表头不一致"
+    first = dict(zip(archive.FEEDBACK_HEADERS, feedback[0]))
+    assert first["votes"] == "1" and first["mean_relevance"] == "2.0", first
+    return "周锚点/行宽/分享率/签名/反馈聚合可核对；真实表格端点未验证"
 
 
 def _check_theme() -> str:

@@ -6,7 +6,9 @@
 
 每天定时抓取新论文与领域动态 → 抽取事实 → 按你的读者画像打分与评论 → 渲染成一封邮件（或 HTML 文件）发出。
 
-`v0.16.0` · Python ≥ 3.11 · MIT
+`v0.17.0` · Python ≥ 3.11 · MIT
+
+**v0.17 反馈与热点合表**：长期热点档案新增第五张表 `feedback_view`——把邮件里投的"相关性 / 有用性"按论文主题分摊聚合（`votes` / 两维均值 / 有用命中），与 `weekly_topics` 同键并排看"这个方向在变多"和"这个方向对我是有用的"的差别。反馈与档案可以共用一份 Google 表格：反馈 tab 由脚本属性 `FEEDBACK_SHEET_NAME` 指定，档案脚本的白名单读不到投票原文。[合表说明](docs/FEEDBACK.md)。
 
 **v0.16 长期热点档案**：每天把**抓到的全部论文**（不只入选的 14 篇）按周写进一张私有 Google 表格——`papers` 明细、`weekly_topics` 周×主题（share / 环比 / 四周移动平均）、`weekly_overview` 周概览、`dict` 口径字典。纯规则打标（领域包 topics + 关键词），精读 4 篇额外带模型术语；只在发信成功后写，幂等 upsert，失败不影响投递。影子期只写表、不改邮件。[部署与口径](docs/ARCHIVE.md)。
 
@@ -122,7 +124,7 @@ ANALYSIS_ENABLED=true                        # 默认 false，不开就只有摘
 然后：
 
 ```bash
-python -m arxiv_digest.selfcheck                 # 26 项自检，不联网、不花钱
+python -m arxiv_digest.selfcheck                 # 27 项自检，不联网、不花钱
 python -m arxiv_digest.main --out preview.html   # 真跑一次，只出 HTML 不发信
 ```
 
@@ -136,7 +138,7 @@ python -m arxiv_digest.main --out preview.html   # 真跑一次，只出 HTML �
 
 | 命令 | 用途 |
 | --- | --- |
-| `python -m arxiv_digest.selfcheck` | 26 项离线自检（导入、配置、解析、分派、渲染、反馈、期刊、主题…） |
+| `python -m arxiv_digest.selfcheck` | 27 项离线自检（导入、配置、解析、分派、渲染、反馈、期刊、主题…） |
 | `python -m arxiv_digest.main --out preview.html` | 真跑一次，写 HTML 不发信、不写状态 |
 | `python -m arxiv_digest.main` | 完整流程，会发信并写 `state.json` |
 | `python scripts\build_preview.py` | 用录制数据渲染预览（不联网、不花钱） |
@@ -231,6 +233,7 @@ DeepSeek 思考模式默认开启，六个 `*_THINKING` 开关可分别控制（
 | v0.14 | 周日精选与兴趣闸门 / 跨领域资讯 / 审查 R01–R09 修复 |
 | v0.15 | 期刊论文反查 arXiv 预印本取全文（来源仍记期刊）/ 数值护栏按分句降级 |
 | v0.16 | 长期热点档案：全量论文按周写 Google 表格（明细 / 主题 / 概览 / 口径字典），影子期只写表 |
+| v0.17 | 反馈票按主题聚合进档案（feedback_view）/ 反馈与档案可共用一份表格 |
 
 完整变更见 [CHANGELOG.md](CHANGELOG.md)。
 
@@ -240,7 +243,7 @@ DeepSeek 思考模式默认开启，六个 `*_THINKING` 开关可分别控制（
 2. **`.env` 注释要独立成行**：`KEY=   # 注释` 会被 dotenv 当成值本身（`# 注释`）。新版代码会剥掉，但旧配置值得顺手清理。
 3. **`state.json` 兼容**：v0.13 迁移到 v2，旧 seen/fetched 保留；旧 daily 计数清空，新采集量按论文日期重建。随机 RSS ID 无法可靠迁移，资讯可能重复出现一次。
 4. **`deepseek-chat` / `deepseek-reasoner` 已下线**：DeepSeek 现在的模型名是 `deepseek-flash` / `deepseek-v4-pro`。
-5. **升级后先跑自检**：`python -m arxiv_digest.selfcheck`，26 项全绿再跑真实流程。
+5. **升级后先跑自检**：`python -m arxiv_digest.selfcheck`，27 项全绿再跑真实流程。
 6. **v0.12 起反馈是两维的**：旧 `up/meh/down` 仍能用（折算成两维同档），但新按钮直接写 `rel=` / `use=`；`config/feedback.json` 会自动升级。
 
 ---
@@ -271,7 +274,7 @@ arxiv_digest/
   state.py          跨天去重、源分频、采集量统计
   sources/          RSS / Indico 抓取
   templates/        邮件 HTML（无硬编码色值）
-  selfcheck.py      26 项离线自检
+  selfcheck.py      27 项离线自检
 config/            画像、领域包、期刊、源、日程、雷达、回放数据
 scripts/           预览、评测、反馈、反馈端点、脉搏刷新
 docs/              PRODUCT_PLAN.md / PROJECT_REVIEW.md / FEEDBACK.md

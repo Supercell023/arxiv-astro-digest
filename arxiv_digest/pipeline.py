@@ -97,6 +97,8 @@ class PipelineResult:
     snapshot: dict | None = None
     # 长期热点档案的行（列顺序 = archive.PAPERS_HEADERS）；预览/未启用时为 None。
     ledger: list[list[str]] | None = None
+    # 反馈票（规范 id -> (相关性, 有用性)），用于把投票按主题聚合进档案。
+    votes: dict[str, tuple[int | None, int | None]] | None = None
 
     @property
     def has_deliverable(self) -> bool:
@@ -794,7 +796,7 @@ def commit_delivery(config: Config, result: PipelineResult, *, delivery: str = "
         try:
             result.report["archive"] = archive.record(
                 config, result.ledger, today=_digest_today(config),
-                timezone_name=config.digest_timezone)
+                timezone_name=config.digest_timezone, votes=result.votes)
         except Exception as exc:  # noqa: BLE001 - 台账失败不能阻断已经成功的投递
             result.report["archive"] = {"ok": False, "error": type(exc).__name__}
             LOGGER.warning("热点档案写入失败（%s）；邮件与状态不受影响，下次运行会补写。",
@@ -970,6 +972,7 @@ def _run_pipeline(config: Config, *, persist_state: bool = False, preview: bool 
                 snippet_chars=config.archive_snippet_chars)
         except (OSError, ValueError, KeyError, TypeError) as exc:
             LOGGER.warning("热点档案行构建失败（%s），本次不写表。", type(exc).__name__)
+    votes = {key: (record.relevance, record.usefulness) for key, record in feedback.votes.items()}
     report = {
         "version": 1, "run_id": run_id, "date": day, "timezone": config.digest_timezone,
         "edition": edition.kind, "edition_key": edition.key, "period_start": str(edition.start),
@@ -1003,4 +1006,4 @@ def _run_pipeline(config: Config, *, persist_state: bool = False, preview: bool 
                           summary=summary, enriched=enriched, calendar=calendar, secondary=secondary,
                           talks=talks, sources=sources, trend=trend, pulse=pulse, radar=radar,
                           window_days=window_days, pending_state=state, pending_feedback=feedback, report=report,
-                          snapshot=snapshot, ledger=ledger)
+                          snapshot=snapshot, ledger=ledger, votes=votes)

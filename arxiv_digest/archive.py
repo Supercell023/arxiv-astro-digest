@@ -45,11 +45,13 @@ PAPERS_SHEET = "papers"
 TOPICS_SHEET = "weekly_topics"
 OVERVIEW_SHEET = "weekly_overview"
 DICT_SHEET = "dict"
+FEEDBACK_SHEET = "feedback_view"
 
 PAPERS_KEY = ("week_start", "id")
 TOPICS_KEY = ("week_start", "topic")
 OVERVIEW_KEY = ("week_start",)
 DICT_KEY = ("topic",)
+FEEDBACK_KEY = ("week_start", "topic")
 
 PAPERS_HEADERS = (
     "week_start", "week_label", "date", "id", "doi", "venue", "source_kind", "pack",
@@ -70,6 +72,11 @@ OVERVIEW_HEADERS = (
 )
 
 DICT_HEADERS = ("topic", "aliases", "pack", "source", "first_week", "last_week", "total_papers")
+
+FEEDBACK_HEADERS = (
+    "week_start", "week_label", "topic", "votes", "mean_relevance", "mean_usefulness",
+    "top_useful", "updated",
+)
 
 
 class ArchiveError(RuntimeError):
@@ -388,6 +395,57 @@ def summarize_week(
     return topic_rows, _dict_rows(start, current_counts, history_topics, topic_packs, topic_aliases or {}), overview
 
 
+def build_feedback_rows(
+    *,
+    rows: Sequence[Any],
+    votes: Mapping[str, tuple[int | None, int | None]],
+    week: WeekWindow,
+    updated: str = "",
+) -> list[list[str]]:
+    """把当周的投票按主题聚合成 ``feedback_view`` 的行。
+
+    ``votes`` 是「规范 id -> (相关性, 有用性)」，与 ``FeedbackStore.votes`` 同键口径
+    （arXiv 号去版本、doi 小写），因此跨版本重抓也能对上。
+    """
+
+    from .identity import canonical_id
+
+    buckets: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        item = row if isinstance(row, Mapping) else _row_dict(PAPERS_HEADERS, row)
+        key = canonical_id(str(item.get("id") or ""))
+        pair = votes.get(key) if key else None
+        if not pair:
+            continue
+        relevance, usefulness = pair
+        for topic in _split(item.get("topics")):
+            bucket = buckets.setdefault(topic, {"votes": 0, "relevance": [], "usefulness": [], "useful": []})
+            bucket["votes"] += 1
+            if relevance is not None:
+                bucket["relevance"].append(int(relevance))
+            if usefulness is not None:
+                bucket["usefulness"].append(int(usefulness))
+                if int(usefulness) == 2 and len(bucket["useful"]) < 3:
+                    bucket["useful"].append(str(item.get("id") or ""))
+
+    result: list[list[str]] = []
+    for topic in sorted(buckets):
+        bucket = buckets[topic]
+        relevance = bucket["relevance"]
+        usefulness = bucket["usefulness"]
+        result.append([
+            week.start_iso,
+            week.label,
+            topic,
+            str(bucket["votes"]),
+            str(round(sum(relevance) / len(relevance), 2)) if relevance else "",
+            str(round(sum(usefulness) / len(usefulness), 2)) if usefulness else "",
+            ";".join(bucket["useful"]),
+            updated,
+        ])
+    return result
+
+
 def _dict_rows(
     week_start: str,
     counts: Mapping[str, int],
@@ -523,6 +581,7 @@ def record(
     today: date | None = None,
     timezone_name: str | None = None,
     transport: Transport | None = None,
+    votes: Mapping[str, tuple[int | None, int | None]] | None = None,
 ) -> dict[str, Any]:
     """写出本周与上周的档案；任何传输问题都会抛 ArchiveError 由调用方兜住。"""
 
@@ -571,8 +630,15 @@ def record(
         handler.upsert(TOPICS_SHEET, TOPICS_HEADERS, topic_rows, TOPICS_KEY)
         handler.upsert(OVERVIEW_SHEET, OVERVIEW_HEADERS, [overview], OVERVIEW_KEY)
         handler.upsert(DICT_SHEET, DICT_HEADERS, dict_rows, DICT_KEY)
+        feedback_rows: list[list[str]] = []
+        if votes:
+            feedback_rows = build_feedback_rows(rows=merged, votes=votes, week=week,
+                                                updated=today.isoformat())
+            if feedback_rows:
+                handler.upsert(FEEDBACK_SHEET, FEEDBACK_HEADERS, feedback_rows, FEEDBACK_KEY)
         weeks.append({"week_start": week_start, "papers": len(merged),
-                      "topics": len(topic_rows), "finalized": finalized})
+                      "topics": len(topic_rows), "feedback": len(feedback_rows),
+                      "finalized": finalized})
     return {"ok": True, "written": written, "weeks": weeks}
 
 

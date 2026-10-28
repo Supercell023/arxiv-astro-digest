@@ -1,6 +1,14 @@
 # 给下一位 AI 的交接说明
 
-最后更新：2026-10-28，**v0.16.0 工作区**。先读 [长期热点档案](ARCHIVE.md)、[期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+最后更新：2026-10-28，**v0.17.0 工作区**。先读 [长期热点档案](ARCHIVE.md)、[期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+
+## v0.17 当前进展：反馈表与热点档案合表
+
+- 新增第五张档案表 `feedback_view`（`week_start + topic` 键）：把两维投票按论文主题分摊聚合，`votes / mean_relevance / mean_usefulness / top_useful / updated`；均值只算给出该维的票。与 `weekly_topics` 同键，可直接并排看"变多"与"对我有用"的差别。
+- `archive.build_feedback_rows` 用 `canonical_id` 对齐 arXiv 版本号与 DOI 大小写；`record(..., votes=...)` 无票不写表；`PipelineResult.votes` 由 `_run_pipeline` 从合并后的 `FeedbackStore` 传出。
+- `scripts/google_feedback.gs` 不再假设"第一张表"：脚本属性 `FEEDBACK_SHEET_NAME` 指定反馈 tab（缺省仍第一张，向后兼容），找不到时明确报错；档案脚本 `SHEETS` 白名单只加 `feedback_view`，读不到投票原文。
+- 合表部署：一份 Spreadsheet + 两个 Web App；`FEEDBACK_SHEET_CSV_URL` 的 `gid` 必须指向反馈 tab。
+- 本轮验证：**153 项 Python 回归（新增 5 项反馈聚合）、27 项自检（热点档案增加反馈断言）、`pip check` 通过**。真实 Apps Script 端点、共用表格的 gid/权限、云端 Actions **未验收**。
 
 ## v0.16 当前进展：长期热点档案（影子期）
 

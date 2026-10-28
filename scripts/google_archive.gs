@@ -23,7 +23,9 @@ var SHEETS = {
                   'ma4','arxiv_papers','journal_papers','mean_score','top_concepts','first_week','finalized'],
   weekly_overview: ['week_start','week_label','sampled','arxiv_papers','journal_papers','unique_categories',
                     'deep_reads','venues','top5_topics','top5_concepts','rising','falling','finalized'],
-  dict: ['topic','aliases','pack','source','first_week','last_week','total_papers']
+  dict: ['topic','aliases','pack','source','first_week','last_week','total_papers'],
+  feedback_view: ['week_start','week_label','topic','votes','mean_relevance','mean_usefulness',
+                  'top_useful','updated']
 };
 
 function _prop(name) {

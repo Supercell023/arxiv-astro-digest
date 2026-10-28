@@ -1,7 +1,11 @@
 /* Apps Script backend. Configure Script Properties; never put secrets in source.
  * FEEDBACK_SIGNING_KEY: same value as the Python sender's private configuration.
- * FEEDBACK_SPREADSHEET_ID: private sheet ID; first tab is the feedback table.
+ * FEEDBACK_SPREADSHEET_ID: private sheet ID.
+ * FEEDBACK_SHEET_NAME: tab that holds feedback rows (default: the first tab).
+ *   可以与长期热点档案共用一份表格：把反馈 tab 放在第一张，或在这里写死 tab 名。
+ *   FEEDBACK_SHEET_CSV_URL 里的 gid 必须指向这个 tab（见 docs/FEEDBACK.md）。
  * FEEDBACK_CSV_READ_TOKEN: a separate secret for read-only CSV export.
+ * Columns A-D must stay: item | relevance | usefulness | t
  */
 function _escape(value) {
   return String(value).replace(/[&<>"']/g, function(c) {
@@ -53,7 +57,12 @@ function _valid(params, key) {
 function _sheet(properties) {
   var id = properties.getProperty('FEEDBACK_SPREADSHEET_ID');
   if (!id) throw new Error('Missing spreadsheet configuration');
-  return SpreadsheetApp.openById(id).getSheets()[0];
+  var book = SpreadsheetApp.openById(id);
+  var name = properties.getProperty('FEEDBACK_SHEET_NAME');
+  if (!name) return book.getSheets()[0];
+  var sheet = book.getSheetByName(name);
+  if (!sheet) throw new Error('找不到反馈表：' + name);
+  return sheet;
 }
 
 function _csvCell(value) {

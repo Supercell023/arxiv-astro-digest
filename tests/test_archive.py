@@ -329,11 +329,63 @@ class RecordTests(unittest.TestCase):
         self.assertEqual(result["written"], 0)
         self.assertEqual(self.transport.upserts, [])
 
+    def test_record_writes_feedback_view_when_votes_given(self):
+        votes = {"2610.12345": (2, 1)}
+        result = archive.record(self.config, self.rows, today=date(2026, 10, 28),
+                                transport=self.transport, votes=votes)
+        headers, stored = self.transport.tables["feedback_view"]
+        self.assertEqual(headers, list(archive.FEEDBACK_HEADERS))
+        self.assertEqual(result["weeks"][0]["feedback"], len(stored))
+        self.assertGreaterEqual(len(stored), 1)
+        self.assertEqual({dict(zip(headers, values))["mean_relevance"] for values in stored}, {"2.0"})
+
+    def test_record_skips_feedback_view_without_votes(self):
+        archive.record(self.config, self.rows, today=date(2026, 10, 28), transport=self.transport)
+        self.assertNotIn("feedback_view", self.transport.tables)
+
     def test_transport_errors_surface(self):
         broken = FakeTransport()
         with patch.object(broken, "read", side_effect=ArchiveError("boom")):
             with self.assertRaises(ArchiveError):
                 archive.record(self.config, self.rows, transport=broken)
+
+
+class FeedbackViewTests(unittest.TestCase):
+    def test_votes_are_aggregated_by_topic(self):
+        week = WeekWindow(date(2026, 10, 25), date(2026, 11, 1))
+        rows = [
+            row("2610.11111v1", topics="弱透镜", source_kind="arxiv"),
+            row("2610.22222v1", topics="弱透镜;星系团 / 群", source_kind="arxiv"),
+            row("doi:10.1/x", topics="星系团 / 群", source_kind="journal", venue="ApJ"),
+        ]
+        votes = {"2610.11111": (2, 2), "2610.22222": (1, 0), "doi:10.1/x": (0, None)}
+        values = {item[2]: dict(zip(archive.FEEDBACK_HEADERS, item))
+                  for item in archive.build_feedback_rows(rows=rows, votes=votes, week=week)}
+        weak = values["弱透镜"]
+        self.assertEqual(weak["votes"], "2")
+        self.assertEqual(weak["mean_relevance"], "1.5")
+        self.assertEqual(weak["mean_usefulness"], "1.0")
+        self.assertEqual(weak["top_useful"], "2610.11111v1")
+        self.assertEqual(weak["week_start"], "2026-10-25")
+        cluster = values["星系团 / 群"]
+        self.assertEqual(cluster["votes"], "2")
+        self.assertEqual(cluster["mean_relevance"], "0.5")
+        self.assertEqual(cluster["mean_usefulness"], "0.0")
+
+    def test_version_suffix_and_doi_case_are_normalized(self):
+        week = WeekWindow(date(2026, 10, 25), date(2026, 11, 1))
+        rows = [row("2610.99999v3", topics="弱透镜"), row("doi:10.3847/ABC", topics="弱透镜", source_kind="journal")]
+        votes = {"2610.99999": (2, None), "doi:10.3847/abc": (None, 2)}
+        values = dict(zip(archive.FEEDBACK_HEADERS,
+                          archive.build_feedback_rows(rows=rows, votes=votes, week=week)[0]))
+        self.assertEqual(values["votes"], "2")
+        self.assertEqual(values["mean_relevance"], "2.0")
+        self.assertEqual(values["mean_usefulness"], "2.0")
+
+    def test_no_votes_means_no_rows(self):
+        week = WeekWindow(date(2026, 10, 25), date(2026, 11, 1))
+        self.assertEqual(archive.build_feedback_rows(rows=[row("2610.1v1", topics="弱透镜")],
+                                                     votes={}, week=week), [])
 
 
 class SignatureTests(unittest.TestCase):

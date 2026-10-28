@@ -20,7 +20,7 @@ python scripts/feedback_server.py
 
 1. 建私有 Sheet，表头依次为 `item,relevance,usefulness,t`。
 2. 新建 Apps Script，粘贴 scripts/google_feedback.gs。
-3. 在脚本属性设置 FEEDBACK_SPREADSHEET_ID、FEEDBACK_SIGNING_KEY、FEEDBACK_CSV_READ_TOKEN。后两个使用不同的私密随机值，不放源码、仓库或日志。
+3. 在脚本属性设置 FEEDBACK_SPREADSHEET_ID、FEEDBACK_SIGNING_KEY、FEEDBACK_CSV_READ_TOKEN。后两个使用不同的私密随机值，不放源码、仓库或日志。若这张表还复用给长期热点档案（见 `docs/ARCHIVE.md`），再加 `FEEDBACK_SHEET_NAME=feedback`，把投票写在指定 tab 而不是"第一张"。
 4. 部署为 Web 应用，以“我”身份执行，允许邮件浏览器访问部署入口；Sheet 本身仍私有。
 5. 在私有 .env 配置：
 
@@ -42,6 +42,7 @@ API 用法对照官方 [Web App](https://developers.google.com/apps-script/guide
 - 两维独立取最新记录。无时间戳的旧行按顺序合并，不覆盖较新的有时间戳决定。
 - 完整票值保存在忽略的 feedback.json；默认 workflow 不把个人 votes 提交进 state.json。
 - 云端每轮从 Sheet 重取票值，state 保留学习需要的公开论文元数据。
+- 与热点档案共用一份表格时：反馈行固定写 `feedback` tab（或 `FEEDBACK_SHEET_NAME` 指定的 tab），CSV 地址里的 `gid` 要指向同一张 tab；档案脚本只认自己的白名单表，读不到投票原文。投票还会按主题聚合进档案的 `feedback_view` 表，和 `weekly_topics` 用同一个键并排看。
 - 成功发送或确实没有待发送内容后，才提交本轮合并；预览只计算，不消费业务状态。
 
 ## 命令行
