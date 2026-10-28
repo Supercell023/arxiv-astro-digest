@@ -7,6 +7,7 @@
   - 档案侧：`archive.ready` 时调端点 `health`，未配置则跳过并提示。
   - 退出码 0/1/2（通过 / 有失败 / 两项都没配置），不写任何行。
 - 文档：`docs/ARCHIVE.md` 增加「合表部署清单（推荐）」六步表（一份表格 + 两个 Web App + `FEEDBACK_SHEET_NAME` + gid 检查）；`docs/FEEDBACK.md`、README 命令表补入口。
+- 文档：README 中英双语整篇重写——徽章头图、居中主张、组件式能力卡、Mermaid 流程图、折叠式命令与配置、双语切换按钮；`README.en.md` 与中文版逐节对齐。
 - **验证**：**163 项离线测试**（新增 10 项 `tests/test_check_sheets.py`）、27 项自检、`pip check` 干净。真实端点仍未验证。
 
 ## v0.17.0 — 反馈表与热点档案合表：投票按主题聚合（2026-10-28，工作区）

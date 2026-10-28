@@ -1,262 +1,325 @@
-# Daily arXiv Digest
+<div align="center" markdown="1">
 
-[中文](README.md) · [**English**](README.en.md)
+# arXiv Digest
 
-Turn one arXiv category feed into a daily research brief you can actually finish in **20 minutes** — and that makes a judgement for you.
+**One email a day. Only what is worth reading.**
 
-Every day it fetches new papers and field news → extracts facts → scores and comments against your reader profile → renders an email (or a standalone HTML file).
+Filtered coldly, then handed over.
 
-`v0.14.0` · Python ≥ 3.11 · MIT
+[![](https://img.shields.io/badge/version-0.17.1-6D28D9?style=flat-square)](CHANGELOG.md)
+[![](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
+[![](https://img.shields.io/badge/License-MIT-EAB308?style=flat-square)](LICENSE)
+[![](https://img.shields.io/badge/tests-163-22C55E?style=flat-square)](tests/)
+[![](https://img.shields.io/badge/selfcheck-27-0891B2?style=flat-square)](arxiv_digest/selfcheck.py)
+[![](https://img.shields.io/badge/Actions-Supported-2088FF?style=flat-square&logo=githubactions&logoColor=white)](.github/workflows/daily-arxiv-digest.yml)
 
-**v0.14:** Sundays select a fresh roundup from the previous seven complete local days, including papers already recommended during the week. Interest signals are required instead of filling quotas with weak category matches. Weekly defaults: up to 12 papers, 6 deep reads. News now covers astronomy, physics, chemistry and history/archaeology: about 30 items (up to 36), aiming for equal astronomy and other-field halves with shortage backfill. See the [implementation and acceptance report](docs/CHANGE_REPORT_2026-10-26_V014.md).
+[![](https://img.shields.io/badge/English-Current-8B5CF6?style=for-the-badge)](#)
+[![](https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-Switch-1E293B?style=for-the-badge)](README.md)
 
-> **Note:** the remaining historical sections below track v0.11. v0.12 (score breakdown, research background & method detail,
-> two-axis feedback, journal sources via Crossref, Zotero library matching) is documented in the
-> [Chinese README](README.md) and [CHANGELOG.md](CHANGELOG.md).
-
-Reliability update: previews do not consume delivery state; state is committed after SMTP succeeds. Stable identities, dated observations, complete v3 snapshots, quote/numeric checks, weekly material history, bounded PDF parsing and offline replay are implemented. Zotero titles/tags stay local unless `ZOTERO_SHARE_WITH_MODEL=true`.
-
-Read the [review baseline](docs/REVIEW_2026-10-26.md), [change/migration report](docs/CHANGE_REPORT_2026-10-26.md) and [AI handoff](docs/AI_HANDOFF.md). Run `python -B -m unittest discover -s tests -v` for offline regressions. External services and scientific accuracy still need separate acceptance tests.
-
----
-
-## 1. What this is
-
-Most people subscribe to arXiv like this: a pile of titles arrives every morning, and none of them get opened. The problem is not a lack of information — it is **decision paralysis caused by too much of it**. Of the dozens of new submissions, what you actually need is: *which two or three are relevant to me, why, and is it worth reading right now.*
-
-So this is not a summary relay. It does four things:
-
-1. **Filter** — score against domain packs and your profile; 14 papers make the email, the rest stay out of your way.
-2. **Extract** — pull *what data was used, how the sample was cut, how systematics were corrected, what method, what result* out of the full PDF, with a verbatim quote behind every field.
-3. **Comment** — write only on top of those extracted facts, give a reading recommendation, and check the paper against the field's usual failure modes.
-4. **Give you the wider picture** — what other fields are doing this week, what the community is arguing about, which data releases are coming.
+</div>
 
 ---
 
-## 2. What arrives each day
+It is not another feed you subscribed to.
 
-The email runs "the world first, then you":
+It does one thing a day: it reads everything that appeared on arXiv and a handful of astronomy journals, drops what you have already seen, what is unrelated to your field, and what has nothing to say, then hands over the rest. Four papers worth reading through, ten worth a glance. If you read only one, it will not take offense.
 
-| Section | Content | Notes |
+Judgment is not outsourced. The model extracts facts and applies rules; every number has to be traceable to the source text. No flattery, only checkable numbers.
+
+---
+
+<table>
+<tr>
+<td colspan="2" align="center"><sub><b>— Sources · Selection —</b></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<h4>🛰️ Six sources, one intake</h4>
+
+arXiv (including cross-lists), plus <b>ApJ, MNRAS, Nature Astronomy, AJ, A&amp;A</b>.
+Journal papers are matched back to their arXiv preprint by title for full text; the venue stays the journal.
+Anything already in your Zotero library is recognised, not sold back to you as news.
+
+</td>
+<td width="50%" valign="top">
+
+<h4>🧮 The score, itemised</h4>
+
+Keywords, Zotero, categories, library, feedback — each priced separately, summed into the total.
+No black box, no "overall rating".
+The email shows which term did the work.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="center"><sub><b>— Reading · Judgment —</b></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<h4>📖 Twelve sections, enough to decide</h4>
+
+Verdict, background, method, method chain, seven questions, key numbers, figure cues, what to do today, red flags, glossary, Chinese and English abstracts.
+
+Not a paraphrase of the abstract — the material you need to decide whether to read.
+
+</td>
+<td width="50%" valign="top">
+
+<h4>🧾 Two stages, evidence first</h4>
+
+Extract: data, processing, systematics, method, result, author limitations — each with a quote.
+Assess: only the extracted facts; numbers must be traceable; gaps are labelled "not found", never invented.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="center"><sub><b>— Feedback · Accumulation —</b></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<h4>🎯 Two questions, not five</h4>
+
+"Relevant to me" and "useful to me", three levels each.
+Answers land in a sheet, aggregated by topic and week; the next ranking remembers.
+It does not ask how you feel. It asks what happened.
+
+</td>
+<td width="50%" valign="top">
+
+<h4>🗂️ Trends, counted</h4>
+
+Everything collected lands in a weekly sheet: topic share, four-week moving average, journal-to-preprint ratio, rising and falling.
+The model is not allowed to declare a trend. Only counts.
+
+</td>
+</tr>
+</table>
+
+---
+
+## What one email contains
+
+| Section | Content | Author |
 | --- | --- | --- |
-| **LLM overview** | 3–5 sentence lead | The one thing worth noticing today |
-| **This week's pulse** | 3–4 threads the week converged on | Every claim must cite an arXiv ID; unsupported claims are dropped |
-| **Neighbourhood radar** | 1 item from each of 5 other fields | Exoplanets / stars / high-energy / instrumentation / solar system; the rest collapsed |
-| **Calendar** | Data releases, conferences, deadlines | `D-19` countdown; undated items show "expected May" |
-| **Deep read** | 4 papers × 10 blocks | See below |
-| **Skim** | 10 papers, one row each | One Chinese sentence + expandable bilingual abstract |
-| **The field** | Second-hand write-ups from 9 sources | Chinese title + 150–220 character Chinese digest + source badge |
-| **Submission volume** | This week vs last week, by field | Only verifiable counts, no invented "buzz" |
+| Header | Papers today, window, theme | Program |
+| Overview | The thread of today's issue | Model (numbers checked) |
+| Weekly pulse | What kept recurring this week | Model (rule fallback) |
+| Neighbour radar | Papers just outside your core field | Rules + model labels |
+| Calendar | Meetings, deadlines, observing calls | Config |
+| Deep read · 4 | Full twelve-section cards | Two-stage analysis |
+| Brief · 10 | One line, score, abstract | Single stage |
+| World in motion | Astronomy, physics, chemistry, history & archaeology | Secondary sources |
+| Submission trend | This week vs last week, sampled | Collection stats |
 
-**The 10 blocks of a deep-read card** (the centre of gravity of this project):
+**The twelve sections**: verdict and reading advice · score breakdown · background · method · method chain · seven Q&A · key numbers · figure cues · what to do today · red-flag audit · glossary · bilingual abstracts.
 
-1. One-line verdict + reading advice (read it today / method and figures only / archive it)
-2. Method chain: a left-to-right skeleton `data → sample cut → estimator → inference`
-3. Seven questions: data, processing, systematics, method, result, caveats, relevance to you
-4. Key numbers table: sample size, uncertainties, significance — each with a source quote
-5. Figure pointers: captions pulled from the PDF by regex (costs no model tokens)
-6. Three concrete things you can do today
-7. Red-flag audit: the field's usual pitfalls, one by one (discussed / partly / not mentioned)
-8. Glossary: only terms outside your profile's vocabulary
-9. Chinese abstract
-10. English abstract (collapsed, click to expand)
+"Full-text excerpt" means an excerpt. Not detecting something does not mean the paper never discussed it; the card says so.
 
 ---
 
-## 3. Three design decisions
+## How it judges
 
-**① Two stages, not one generation.**
-A cheap model first extracts structured facts from the full text (each field carries a `quote`); a stronger model then writes the commentary from those facts plus your profile. Benefits: a bad extraction is traceable to a field, commentary cannot invent numbers, facts can be cached, and swapping the commentary model does not require re-extraction.
+**Total = keywords + Zotero similarity + category bonus + library flag + learned feedback**
 
-**② Every claim carries evidence.**
-"This paper said X" in the pulse section must come with an arXiv ID; if it cannot, the claim is dropped. Silence beats a confident sentence with nothing behind it.
+| Term | Rule | Cap |
+| --- | --- | --- |
+| Keywords | `0.8 × hits` per keyword | 3.0 each |
+| Zotero | Bag-of-words overlap with starred items (title weighted 2×) | −2.5 ~ +3.0 |
+| Categories | `0.2 × min(count, 2)` | 0.4 |
+| Library | Already saved: −3.0, labelled | — |
+| Feedback | 0.65 relevance + 0.35 usefulness, by category and author | ±1.8 |
 
-**③ Domain knowledge lives in YAML, not in Python.**
-`config/packs/*.yaml` defines categories, review focus, common red flags, and pulse topics. Changing fields means editing YAML.
+Stars are just another way to write the score. The email gives the score and where it came from — not adjectives.
+
+**Hard rules**: every number must be found in the source. If it cannot be found, the clause is removed or marked "not found". A single unsupported clause is dropped; the whole section is not.
 
 ---
 
-## 4. Quick start (5 minutes)
+## What it accumulates
+
+One Google spreadsheet, five tabs:
+
+| Tab | One row is |
+| --- | --- |
+| `papers` | A collected paper (score breakdown, selected, deep-read) |
+| `weekly_topics` | One week × one topic: count, share, delta, 4-week average |
+| `weekly_overview` | One week: totals, journal vs preprint, top five topics |
+| `dict` | Topic dictionary: aliases, pack, first and last seen |
+| `feedback_view` | One week × one topic: votes, mean relevance, mean usefulness |
+
+The feedback sheet and the archive may share one spreadsheet, each with its own web app. `python -m scripts.check_sheets` says so plainly when a `gid` points at the wrong tab.
+
+---
+
+## How it runs
+
+```mermaid
+flowchart LR
+  A["arXiv + journals"] --> B["Dedupe · library match"]
+  B --> C["Interest gate"]
+  C --> D["Rank: itemised score"]
+  D --> E["Deep read · 4"]
+  D --> F["Brief · 10"]
+  E --> G["Extract → assess"]
+  G --> H["Number and quote check"]
+  H --> I["Email"]
+  F --> I
+  I --> J["Weekly sheets"]
+```
+
+Delivery is recorded only after the mail is accepted. A preview consumes no state and sends nothing; a failure is not quietly patched the next day.
+
+---
+
+## Quick start
 
 ```bash
 git clone https://github.com/Supercell023/arxiv-astro-digest.git
 cd arxiv-astro-digest
-
-python -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements.txt        # Windows
-# source .venv/bin/activate && pip install -r requirements.txt     # macOS / Linux
-
-cp .env.example .env        # Windows: copy .env.example .env
+python -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
 ```
 
 Minimal `.env`:
 
-```ini
-OPENAI_API_KEY=sk-...
-OPENAI_BASE_URL=https://api.deepseek.com     # point anywhere OpenAI-compatible
+```dotenv
+OPENAI_API_KEY=...
+OPENAI_BASE_URL=https://your-endpoint/v1
 OPENAI_MODEL=deepseek-flash
-ANALYSIS_ENABLED=true                        # defaults to false: off means no deep read
+ANALYSIS_ENABLED=true
 ```
 
-Then:
+Verify first, free of charge:
 
 ```bash
-python -m arxiv_digest.selfcheck                 # 26 offline checks, no network, no cost
-python -m arxiv_digest.main --out preview.html   # real run, HTML only, no email sent
+python -m arxiv_digest.selfcheck           # 27 checks, offline
+python -m arxiv_digest.main --out preview.html
 ```
 
-Add the five SMTP variables when you are happy, drop `--out`, and it starts mailing.
+To deliver, add the five SMTP values: `SMTP_HOST`, `SMTP_PORT`, SMTP user and password, `EMAIL_FROM`, `EMAIL_TO`.
 
-> Behind the GFW? Add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to pip.
+<details>
+<summary><b>Commands</b></summary>
 
----
-
-## 5. Common commands
+<br>
 
 | Command | Purpose |
 | --- | --- |
-| `python -m arxiv_digest.selfcheck` | 26 offline checks (imports, config, parsing, dispatch, rendering, themes…) |
-| `python -m arxiv_digest.main --out preview.html` | Real run; writes HTML, sends nothing, writes no state |
-| `python -m arxiv_digest.main` | Full run: sends the email and writes `state.json` |
-| `python scripts\build_preview.py` | Render from recorded data (offline, free) |
-| `python scripts\build_preview.py --theme light` | Preview the light theme |
-| `python scripts\preview_digest.py --out p.html` | Real data, HTML only |
-| `python scripts\feedback.py record --id 2610.31660 --vote up` | Record feedback |
-| `python scripts\feedback.py stats` | Inspect learned preferences |
-| `python scripts\eval_analysis.py check --digest dump.json` | Measure extraction quality |
-| `python scripts\refresh_pulse.py` | Re-fetch pulse material |
+| `python -m arxiv_digest.selfcheck` | Offline self-check, 27 items |
+| `python -m arxiv_digest.main --out preview.html` | Preview; no send, no state |
+| `python -m arxiv_digest.main` | Deliver |
+| `python -m scripts.build_preview --out preview.html` | Sample email (recorded replay) |
+| `python -m scripts.build_preview --replay digest.json --out preview.html` | Replay a snapshot |
+| `python -m unittest discover -s tests -v` | 163 offline tests |
+| `python -m scripts.preview_digest` | Frozen evaluation set |
+| `python -m scripts.feedback_server` | Local feedback endpoint (127.0.0.1:8765) |
+| `python -m scripts.feedback record --id <id> --rel 2 --use 1` | Record a vote |
+| `python -m scripts.feedback stats` | Inspect learned weights |
+| `python -m scripts.check_sheets` | Check both sheet wirings |
+| `python -m arxiv_digest.archive --health` | Archive endpoint health |
+| `python -m scripts.eval_analysis check` | Validate the evaluation set |
 
----
+</details>
 
-## 6. Configuration
+<details>
+<summary><b>Configuration</b></summary>
 
-All configuration variables are documented in [`.env.example`](.env.example). The ones you will actually touch:
+<br>
 
-| Variable | Default | Purpose |
+| Variable | Default | Meaning |
 | --- | --- | --- |
-| `DEEP_PAPERS` / `BRIEF_PAPERS` | 4 / 10 | Deep-read and skim counts (the 20-minute budget) |
-| `ANALYSIS_ENABLED` | false | Enable the two-stage deep read |
-| `FULLTEXT_ENABLED` | true | Download the PDF for deep-read papers |
-| `EMAIL_THEME` | dark | `dark` deep-space / `light` warm paper |
-| `EMAIL_ATTACH_HTML` | true | Attach a forwardable HTML file |
-| `CALENDAR_ENABLED` | true | Calendar section |
-| `RADAR_ENABLED` | true | Neighbourhood radar section |
-| `PULSE_ENABLED` | true | Weekly pulse section |
-| `TRANSLATE_ENABLED` | true | Chinese translation of second-hand items |
-| `FIELDS` | empty | Comma-separated domain pack ids; empty = all enabled |
+| `DEEP_PAPERS` / `BRIEF_PAPERS` | 4 / 10 | Layout only; content is written to the evidence |
+| `ANALYSIS_ENABLED` | false | Two-stage deep read |
+| `FULLTEXT_ENABLED` | true | Fetch PDFs for excerpts |
+| `PREPRINT_ENABLED` | true | Resolve journal DOIs to arXiv preprints |
+| `JOURNALS_ENABLED` | true | ApJ / MNRAS / NatAs / AJ / A&A |
+| `ARCHIVE_ENABLED` | true | Write the sheet (skipped when no URL) |
+| `ZOTERO_SKIP_COLLECTED` | false | Filter out what you already saved |
+| `FEEDBACK_URL` | empty | Feedback buttons; hidden when empty |
+| `FEEDBACK_SHEET_CSV_URL` | empty | CSV read-back of votes |
+| `DIGEST_TIMEZONE` | Asia/Shanghai | What "today" means |
+| `FIELDS` | empty | Domain packs; empty = all |
 
-**Model settings**: `OPENAI_BASE_URL` / `OPENAI_MODEL` / `ANALYSIS_EXTRACT_MODEL` / `ANALYSIS_ASSESS_MODEL` / `PULSE_MODEL`.
-DeepSeek enables thinking mode by default; six `*_THINKING` switches control it per call site (unset = follow the model default; DeepSeek is auto-disabled).
+The full list is in [docs/CONFIG.md](docs/CONFIG.md). Secrets belong in `.env` or repository secrets; glance at `git status` before committing.
 
-**Cost**: one full run is ~60k input + ~15k output tokens. On DeepSeek Flash that is about **$0.04/day** with thinking off and **$0.10/day** with it on.
+</details>
 
 ---
 
-## 7. Making it yours
+## Make it yours
 
-No code changes — three files:
+Three places and it is your digest:
 
-| File | Purpose |
+- `config/profile.yaml` — your field, probes, reading order
+- `config/packs/*.yaml` — domain packs: categories, topic aliases, red flags
+- `config/journals.yaml` — which journals to watch
+
+Three packs ship in the box: `galaxy_cosmology`, `galaxy_formation`, `generic`. Copy one and edit.
+
+---
+
+## Versions
+
+| Version | In one line |
 | --- | --- |
-| `config/profile.yaml` | Reader profile: who you are, what you care about, minutes per day, what the seven questions should ask |
-| `config/packs/*.yaml` | Domain pack: categories, review focus, red flags, pulse topics |
-| `config/sources.yaml` | Second-hand sources and conferences (Indico event ids) |
+| v0.12 | Itemised scores, background sections, two-dimensional feedback, journals, Zotero |
+| v0.13 | Sunday weekly edition, wider world news, R01–R09 fixes |
+| v0.14 | Weekly and news policy settled; frozen evaluation set |
+| v0.15 | Journal papers resolved to arXiv preprints for full text |
+| v0.15.1 | Keyword-aware excerpts; escaped separator fix |
+| v0.16 | Long-term archive: every collected paper, by week |
+| v0.17 | Votes aggregated by topic; one spreadsheet for both |
+| v0.17.1 | Sheet wiring checker |
 
-Three packs ship by default: `galaxy_cosmology`, `galaxy_formation`, `generic` (fallback).
-A new field is a copied YAML with new content, then its `id` added to `FIELDS`.
+Earlier history: [CHANGELOG.md](CHANGELOG.md).
+
+<details>
+<summary><b>Upgrade notes</b></summary>
+
+<br>
+
+1. Diff `.env.example` first; new keys have defaults, but behaviour may have changed.
+2. Comments in `.env` must sit on their own line, never after a value.
+3. `state.json` is v2; older files are ignored, not migrated.
+4. `deepseek-chat` is retired; use `deepseek-flash` or your own model.
+5. Run `python -m arxiv_digest.selfcheck` (27 items) after upgrading.
+6. Feedback has been two-dimensional since v0.12; old votes are mapped by level.
+
+</details>
 
 ---
 
-## 8. Upgrade notes
+## What it does not promise
 
-### Version history
-
-| Version | Theme |
+| Not available | Why |
 | --- | --- |
-| v0.1 | Baseline: fetch → score → Chinese summary → email |
-| v0.2 | Multi-source (RSS/Indico) + cross-day state + CI self-check |
-| v0.3 | Weekly pulse (count first, judge second, cite always) |
-| v0.4 | Neighbourhood radar / translation / feedback loop / eval set |
-| v0.5 | Collapsible sections, rebuilt "the field", typography pass |
-| v0.6 | LaTeX → Unicode, per-source cadence (daily/weekly), serif fonts |
-| v0.7 | Layout rebuild: journal masthead, section eyebrows, semantic palette |
-| v0.8 | Unified model layer `llm_client`, DeepSeek protocol support |
-| v0.9 | Thinking mode made explicit, batched translation |
-| v0.10 | HTML attachment / thicker field notes / per-section colours |
-| v0.11 | Deep-space dark theme + tokenised palettes (`EMAIL_THEME`) |
+| Astrobites full text | The site returns 403 |
+| Nature Astronomy abstracts | Crossref often has only the title |
+| Publisher PDFs | Anti-bot walls; falls back to the preprint |
+| Preprint vs version of record | Not compared; one version only |
+| Sites without RSS | Not scraped |
+| Live gravitational-wave alerts | Out of scope |
+| Paper discussion, citation graphs | Not integrated |
 
-Full details in [CHANGELOG.md](CHANGELOG.md).
-
-### Upgrading from an older copy
-
-1. **Diff your `.env`.** New variables all have defaults, but write `EMAIL_THEME`, `FULLTEXT_*`, `RADAR_*`, `TRANSLATE_*` explicitly so you do not think a feature is on when it is not.
-2. **Keep `.env` comments on their own line.** `KEY=   # comment` is parsed by dotenv as the literal value `# comment`. The code now strips it, but old files are worth cleaning.
-3. **`state.json` is compatible.** Since v0.6 it carries a `fetched` map for per-source cadence; missing keys are filled in automatically.
-4. **`deepseek-chat` / `deepseek-reasoner` are retired.** Current names are `deepseek-flash` and `deepseek-v4-pro`.
-5. **Run the self-check after upgrading** — 22 green before a real run.
+Nor does it promise: that every PDF has a text layer, that the daily volume is stable, that `<details>` expands in every mail client, or that Outlook renders textures. What it does promise: anything stated can be traced back to the source.
 
 ---
 
-## 9. Layout
+## Documents
 
-```
-arxiv_digest/
-  main.py           Entry point: SMTP preflight, --out mode, sending
-  pipeline.py       Main flow: fetch → analyse → pulse/radar/translate → render
-  config.py         Environment → Config
-  arxiv_client.py   arXiv API (paging, 429 backoff, adaptive lookback window)
-  analysis.py       Two stages: extract facts → write commentary
-  llm_client.py     Unified model calls (JSON fallback, thinking switch, truncation retry)
-  fulltext.py       PDF download, extraction, cleaning, condensing, caption mining
-  pulse.py          Weekly pulse: topic counts + evidence-constrained judgement
-  radar.py          Neighbourhood radar: cross-field sampling and collapsing
-  translate.py      Batched Chinese translation of second-hand items
-  feedback.py       Feedback learning (category / author weights)
-  calendar.py       Countdown to releases and conferences
-  packs.py          Domain pack loading and dispatch
-  profile.py        Reader profile
-  mathfmt.py        LaTeX → Unicode
-  theme.py          Two 54-key palettes
-  state.py          Cross-day dedupe, source cadence, submission counts
-  sources/          RSS and Indico fetchers
-  templates/        Email HTML (no hard-coded colours)
-  selfcheck.py      26 offline checks
-config/             Profile, packs, sources, calendar, radar, replay data
-scripts/            Preview, evaluation, feedback, pulse refresh
-docs/               PRODUCT_PLAN.md (design doc), PROJECT_REVIEW.md (early audit)
-```
-
----
-
-## 10. Data boundaries
-
-**Reliably available**: arXiv API (rate-limit friendly, with backoff), AAS Nova, NASA, Phys.org, Universe Today, ESA, ESO, DESI, Keck, Indico event exports.
-
-**Not available / deliberately out of scope**:
-
-| Item | Reason |
+| Document | Contents |
 | --- | --- |
-| Astrobites | Returns 403 to datacentre IPs (usually fine on GitHub Actions) |
-| hubblesite / webbtelescope / Chandra / NOIRLab | No public RSS (404) |
-| Real-time gravitational-wave alerts | Needs an always-on listener; Actions cannot do it |
-| Public paper discussion | Needs a backend and moderation |
-| Citation graphs | Needs an offline index |
+| [docs/CONFIG.md](docs/CONFIG.md) | Every setting |
+| [docs/FEEDBACK.md](docs/FEEDBACK.md) | Two-dimensional feedback and shared sheets |
+| [docs/ARCHIVE.md](docs/ARCHIVE.md) | The archive and its deployment |
+| [docs/PRODUCT_PLAN.md](docs/PRODUCT_PLAN.md) | Product judgment and definitions |
+| [docs/AI_HANDOFF.md](docs/AI_HANDOFF.md) | Handoff, limits, unverified items |
+| [CHANGELOG.md](CHANGELOG.md) | Version-by-version changes |
 
----
+MIT. Use it or not, no need to say hello.
 
-## 11. Known limitations
-
-- **Scanned PDFs** yield no text, so analysis falls back to the abstract (the card is marked "abstract only").
-- **Submission volume** needs two consecutive days of state; the first run shows nothing.
-- **Collapsing** relies on `<details>`: Apple Mail and iOS fold it, Gmail and Outlook expand it inline (acceptable — nothing is lost).
-- **Grid texture and card glow** are ignored by Outlook, which falls back to flat colours; readability is unaffected.
-- **There is no automatic check that a summary is faithful to the source** — only quotable evidence and a weekly manual spot-check.
-
----
-
-## 12. Docs and licence
-
-- [docs/PRODUCT_PLAN.md](docs/PRODUCT_PLAN.md) — design document (why it works this way, what broke in each version)
-- [docs/PROJECT_REVIEW.md](docs/PROJECT_REVIEW.md) — early project audit and scoring diagnosis
-- [CHANGELOG.md](CHANGELOG.md) — change log
-- [MIT License](LICENSE)
+<div align="center" markdown="1"><sub>It does not chase trends. It puts what is worth reading in front of you before you ask.</sub></div>
