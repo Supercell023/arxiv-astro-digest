@@ -1,6 +1,15 @@
 # 给下一位 AI 的交接说明
 
-最后更新：2026-10-26，**v0.15.1 工作区**。先读 [期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+最后更新：2026-10-28，**v0.16.0 工作区**。先读 [长期热点档案](ARCHIVE.md)、[期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+
+## v0.16 当前进展：长期热点档案（影子期）
+
+- 新增 `arxiv_digest/archive.py` + `scripts/google_archive.gs`：把**当天抓到的全部论文**（不只入选 14 篇）按周写入私有 Google 表格，四张表 `papers` / `weekly_topics` / `weekly_overview` / `dict`。
+- 接线：`_run_pipeline` 末尾构建 `PipelineResult.ledger`（`archive.ready(config)` 才构建，异常只 warning）；`commit_delivery` 在 feedback 持久化之后、写 `delivery` 之前调 `archive.record(...)`，失败只写 `report["archive"]`，不阻断投递；预览永远不写表。
+- 口径：周从周日开始（与周报一致）、按 `published` 本地日期归档；`share` 为样本内占比（多主题可 >100%）、上周为 0 时 delta 留空、`ma4` 为四周均值、`rising/falling` 需两周各 ≥2 篇。规则打标用领域包 `topics` + 关键词，`concepts` 只来自精读 4 篇。
+- 配置：`ARCHIVE_ENABLED/ARCHIVE_WEBHOOK_URL/ARCHIVE_TOKEN/ARCHIVE_TIMEOUT/ARCHIVE_MAX_ROWS/ARCHIVE_SNIPPET_CHARS`；URL 或令牌为空即整体跳过。`--health` 可单独检查端点。
+- 本轮验证：**148 项 Python 回归（新增 19 项）、27 项自检（新增热点档案）、`pip check` 通过**。真实 Apps Script 端点、云端 Actions 与表口径是否符合直觉（影子期 2 周）**未验收**，不要在报告里写成已验证。
+- 幂等：Apps Script 按复合键 upsert；每天写当周增量并重算聚合，周日 `finalized=1`，同时回填上一周。
 
 ## v0.15.1 当前进展：本地试跑复查（在 v0.15.0 之上）
 

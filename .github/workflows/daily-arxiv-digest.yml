@@ -189,6 +189,12 @@ jobs:
           PREPRINT_TIMEOUT: ${{ vars.PREPRINT_TIMEOUT }}
           PREPRINT_MAX_RESULTS: ${{ vars.PREPRINT_MAX_RESULTS }}
           PREPRINT_ABSTRACT_LOOKUPS: ${{ vars.PREPRINT_ABSTRACT_LOOKUPS }}
+          ARCHIVE_ENABLED: ${{ vars.ARCHIVE_ENABLED }}
+          ARCHIVE_WEBHOOK_URL: ${{ vars.ARCHIVE_WEBHOOK_URL }}
+          ARCHIVE_TIMEOUT: ${{ vars.ARCHIVE_TIMEOUT }}
+          ARCHIVE_MAX_ROWS: ${{ vars.ARCHIVE_MAX_ROWS }}
+          ARCHIVE_SNIPPET_CHARS: ${{ vars.ARCHIVE_SNIPPET_CHARS }}
+          ARCHIVE_TOKEN: ${{ secrets.ARCHIVE_TOKEN }}
           ZOTERO_SHARE_WITH_MODEL: ${{ vars.ZOTERO_SHARE_WITH_MODEL }}
           FEEDBACK_SIGNING_KEY: ${{ secrets.FEEDBACK_SIGNING_KEY }}
         run: python -B -m arxiv_digest.main

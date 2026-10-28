@@ -1103,6 +1103,55 @@ def _check_library() -> str:
     return "DOI/arXiv/标题三级匹配、标签权重、相似度理由均正常"
 
 
+def _check_archive() -> str:
+    """长期热点表：周口径、行宽与聚合口径都要能离线核对。"""
+
+    from datetime import date as _date
+    from datetime import datetime as _dt
+    from datetime import timezone as _tz
+
+    from . import archive
+    from .models import ScoreBreakdown
+
+    week = archive.week_window(_date(2026, 10, 28))
+    assert (week.start, week.end) == (_date(2026, 10, 25), _date(2026, 11, 1)), week
+    assert week.label == "2026-10-25 至 2026-10-31", week.label
+    assert archive.week_window(_date(2026, 11, 1)).start == _date(2026, 11, 1), "周日应属于下一周"
+
+    stamp = _dt(2026, 10, 26, tzinfo=_tz.utc)
+    deep_paper = Paper("2610.12345v1", "Weak lensing mass calibration", ["A. Test"],
+                       "richness with weak lensing", stamp, stamp, ["astro-ph.CO"], "", "",
+                       breakdown=ScoreBreakdown(keyword=2.4, category=0.2))
+    journal = Paper("doi:10.3847/x", "Cluster richness in ApJ", ["B. Test"],
+                    "cluster richness", stamp, stamp, [], "", "", venue="ApJ")
+    rows = archive.build_rows(papers=[deep_paper, journal], ranked=[deep_paper], enriched=[],
+                              packs=[], keywords=["weak lensing"], timezone_name="Asia/Shanghai")
+    assert len(rows) == 2, rows
+    assert all(len(row) == len(archive.PAPERS_HEADERS) for row in rows), "行宽与表头不一致"
+    assert dict(zip(archive.PAPERS_HEADERS, rows[0]))["s_keyword"] == "+2.40"
+    assert dict(zip(archive.PAPERS_HEADERS, rows[1]))["source_kind"] == "journal"
+
+    synthetic = [
+        {"week_start": "2026-10-25", "topics": "弱透镜", "source_kind": "arxiv", "deep": "0",
+         "score": "5.0", "categories": "astro-ph.CO", "venue": ""},
+        {"week_start": "2026-10-25", "topics": "弱透镜", "source_kind": "journal", "deep": "1",
+         "score": "3.0", "categories": "", "venue": "ApJ"},
+    ]
+    topic_rows, dict_rows, overview = archive.summarize_week(
+        week=week, rows=synthetic, prev_rows=[], history_topics=[], finalized=True,
+        topic_packs={"弱透镜": "galaxy_cosmology"})
+    values = dict(zip(archive.TOPICS_HEADERS, topic_rows[0]))
+    assert values["papers"] == "2" and values["share"] == "1.0000", values
+    assert values["arxiv_papers"] == "1" and values["journal_papers"] == "1", values
+    overview_values = dict(zip(archive.OVERVIEW_HEADERS, overview))
+    assert overview_values["sampled"] == "2" and overview_values["finalized"] == "1", overview_values
+    assert dict_rows and dict_rows[0][archive.DICT_HEADERS.index("topic")] == "弱透镜", dict_rows
+
+    signature = archive.HttpTransport("https://example.invalid", "key")._sign(b"payload")
+    assert len(signature) == 64 and signature == signature.lower(), signature
+    return "周锚点/行宽/分享率/签名可核对；真实表格端点未验证"
+
+
 def _check_theme() -> str:
     from .theme import DARK, LIGHT, available, normalize, palette
     from .emailer import render_email_html
@@ -1274,6 +1323,7 @@ def main(argv: list[str] | None = None) -> int:
     _check("分数构成", _check_breakdown)
     _check("期刊来源", _check_journals)
     _check("期刊闸门", _check_journal_gate)
+    _check("热点档案", _check_archive)
     _check("Zotero 库匹配", _check_library)
     _check("两阶段分析", _check_analysis)
     _check("公式排版", _check_math)

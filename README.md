@@ -6,7 +6,9 @@
 
 每天定时抓取新论文与领域动态 → 抽取事实 → 按你的读者画像打分与评论 → 渲染成一封邮件（或 HTML 文件）发出。
 
-`v0.15.0` · Python ≥ 3.11 · MIT
+`v0.16.0` · Python ≥ 3.11 · MIT
+
+**v0.16 长期热点档案**：每天把**抓到的全部论文**（不只入选的 14 篇）按周写进一张私有 Google 表格——`papers` 明细、`weekly_topics` 周×主题（share / 环比 / 四周移动平均）、`weekly_overview` 周概览、`dict` 口径字典。纯规则打标（领域包 topics + 关键词），精读 4 篇额外带模型术语；只在发信成功后写，幂等 upsert，失败不影响投递。影子期只写表、不改邮件。[部署与口径](docs/ARCHIVE.md)。
 
 **v0.15 期刊论文也能读全文**：ApJ / MNRAS / NatAs / AJ / A&A 的论文，按标题反查 arXiv 预印本取 PDF（标题相似度 + 作者 + 年份三道校验），命中就做全文精读，**来源徽标、DOI 与链接仍是期刊**；没命中回退摘要。Nature 系在 Crossref 常只给标题，现在先补摘要再过主题闸门。[实现与实测](docs/CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)。
 
@@ -169,6 +171,11 @@ python -m arxiv_digest.main --out preview.html   # 真跑一次，只出 HTML �
 | `ZOTERO_SKIP_COLLECTED` | false | false=库内命中扣分标注；true=直接不推 |
 | `FEEDBACK_URL` | 空 | 反馈按钮的落点（本机端点或 Apps Script Web App） |
 | `FEEDBACK_SHEET_CSV_URL` | 空 | Google Sheet 的 CSV 导出地址，每天合并回本地 |
+| `ARCHIVE_ENABLED` | true | 是否写长期热点表（需同时配 URL 与令牌） |
+| `ARCHIVE_WEBHOOK_URL` | 空 | Apps Script Web App 的 `/exec` 地址 |
+| `ARCHIVE_TOKEN` | 空 | 与 Apps Script 脚本属性一致的共享令牌 |
+| `ARCHIVE_MAX_ROWS` | 400 | 单次最多写多少行（超出分批） |
+| `ARCHIVE_SNIPPET_CHARS` | 160 | `papers` 表里摘要片段保留多少字 |
 | `EMAIL_THEME` | dark | `dark` 深空冷色 / `light` 暖纸浅色 |
 | `EMAIL_ATTACH_HTML` | true | 邮件附一份 HTML，可下载转发 |
 | `CALENDAR_ENABLED` | true | 近期日程板块 |
@@ -223,6 +230,7 @@ DeepSeek 思考模式默认开启，六个 `*_THINKING` 开关可分别控制（
 | v0.13 | 状态 v2、发信成功才消费、digest v3 快照、引文/数字回查、反馈签名 |
 | v0.14 | 周日精选与兴趣闸门 / 跨领域资讯 / 审查 R01–R09 修复 |
 | v0.15 | 期刊论文反查 arXiv 预印本取全文（来源仍记期刊）/ 数值护栏按分句降级 |
+| v0.16 | 长期热点档案：全量论文按周写 Google 表格（明细 / 主题 / 概览 / 口径字典），影子期只写表 |
 
 完整变更见 [CHANGELOG.md](CHANGELOG.md)。
 

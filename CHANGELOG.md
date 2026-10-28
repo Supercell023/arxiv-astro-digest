@@ -1,5 +1,19 @@
 # 变更记录
 
+## v0.16.0 — 长期热点档案：全量论文按周进 Google 表格（2026-10-28，工作区）
+
+- **新功能（影子期，只写表不改邮件）**：新增 `arxiv_digest/archive.py` 与 `scripts/google_archive.gs`。每天把**抓到的全部论文**（不只入选的 14 篇）按周写入私有 Google 表格：
+  - `papers`：一行一篇，33 列，含 `shown`/`deep`、分数构成五项、精读判断与置信；
+  - `weekly_topics`：周 × 主题，`share` / `prev_papers` / `delta_pct` / `ma4` / 预印本与期刊分列；
+  - `weekly_overview`：采样数、渠道、`venues`、`top5_topics`、`rising`/`falling`；
+  - `dict`：主题别名与口径字典，出现争议以它为准。
+- **口径**：周从周日开始（与周报一致），论文按 `published` 的本地日期归档；`share = 命中篇数 / 当周采样篇数`，一篇命中多主题会各占一行，所以各主题 share 之和可以 >100%；上周为 0 时 `delta_pct` 留空；`ma4` 为当周 + 前 3 周均值；`rising`/`falling` 要求两周各 ≥2 篇。只给可核对计数，不让模型断言"变热"。
+- **写入时机与幂等**：只在 `commit_delivery` 投递成功后写；预览、失败、跳过都不写。当天写增量并重算当周聚合，周日那封发出后置 `finalized=1`；同时回填上一周处理迟到论文。幂等靠 Apps Script 按复合键 upsert，重跑不产生重复行。
+- **失败隔离**：表格端点异常只记入 `run_report.json` 的 `archive` 字段并打 warning，**不影响发信**；下一次运行补写。`python -m arxiv_digest.archive --health` 可单独自检端点。
+- **配置**：`ARCHIVE_ENABLED=true`、`ARCHIVE_WEBHOOK_URL`、`ARCHIVE_TOKEN`（建议放 Secret）、`ARCHIVE_TIMEOUT=20`、`ARCHIVE_MAX_ROWS=400`、`ARCHIVE_SNIPPET_CHARS=160`；URL 或令牌为空时整体跳过。`.env.example` 与 workflow 的 `Send digest` env 已同步。
+- **验证**：**148 项离线测试**（新增 19 项 `tests/test_archive.py`）、**27 项自检**（新增"热点档案"）、`pip check` 干净。
+- **未验收**：真实 Apps Script 端点（需按 [部署说明](docs/ARCHIVE.md) 建表并部署后跑 `--health`）、云端 Actions、表格长期口径是否与直觉一致（影子期 2 周后再决定是否进周报）。
+
 ## v0.15.1 — 本地试跑复查：全文节选不再只剩引言、推荐依据不再二次转义（2026-10-26，工作区）
 
 - **全文节选用"节选"而不是"前 N 字符"**：`analysis._excerpt` 超预算时走 `fulltext.condense`（开头 45% + 含样本/筛选/系统误差/协方差关键词的句子）。此前 `_clip(text, 36_000)` 直接截断，PDF 一长就只剩引言，精读卡满屏"全文节选未检出"（用户 22:16 的预览里 4 篇精读的 data/processing/method 都在截断点之后）。同一份缓存 PDF 复核：旧节选缺 `sampling`/`systematics`/`covariance`，新节选三者全含。

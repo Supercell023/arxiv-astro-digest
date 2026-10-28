@@ -225,18 +225,29 @@ class Config:
     world_news_max_items: int = 36
     world_astronomy_percent: int = 50
     world_news_max_age_days: int = 7
+    archive_enabled: bool = True
+    archive_webhook_url: str = ""
+    archive_token: str = field(default="", repr=False)
+    archive_timeout: int = 20
+    archive_max_rows: int = 400
+    archive_snippet_chars: int = 160
 
     def __post_init__(self) -> None:
         positive = ("arxiv_fetch_max_results", "arxiv_page_size", "arxiv_max_pages", "arxiv_request_timeout",
                     "arxiv_request_retries", "max_papers", "llm_batch_size", "lookback_days", "smtp_timeout",
                     "llm_timeout", "fulltext_timeout", "fulltext_parse_timeout", "fulltext_max_chars", "fulltext_max_pages",
                     "journals_rows", "journals_max_per", "journals_timeout", "sources_timeout", "sources_max_items", "zotero_limit",
-                    "preprint_timeout", "preprint_max_results")
+                    "preprint_timeout", "preprint_max_results", "archive_timeout", "archive_max_rows",
+                    "archive_snippet_chars")
         for name in positive:
             if getattr(self, name) < 1:
                 raise ValueError(f"{name} 必须 >= 1")
         if self.preprint_abstract_lookups < 0:
             raise ValueError("PREPRINT_ABSTRACT_LOOKUPS 必须 >= 0")
+        if not 1 <= self.archive_max_rows <= 1000:
+            raise ValueError("ARCHIVE_MAX_ROWS 必须在 1 到 1000 之间")
+        if not 40 <= self.archive_snippet_chars <= 2000:
+            raise ValueError("ARCHIVE_SNIPPET_CHARS 必须在 40 到 2000 之间")
         if self.deep_papers < 0 or self.brief_papers < 0 or self.deep_papers + self.brief_papers < 1:
             raise ValueError("DEEP_PAPERS / BRIEF_PAPERS 必须非负，且至少展示一篇")
         if not 1 <= self.min_rating <= 5:
@@ -380,4 +391,10 @@ def load_config() -> Config:
         world_news_max_items=_env_int("WORLD_NEWS_MAX_ITEMS", 36),
         world_astronomy_percent=_env_int("WORLD_ASTRONOMY_PERCENT", 50),
         world_news_max_age_days=_env_int("WORLD_NEWS_MAX_AGE_DAYS", 7),
+        archive_enabled=_env_bool("ARCHIVE_ENABLED", True),
+        archive_webhook_url=_env("ARCHIVE_WEBHOOK_URL", ""),
+        archive_token=os.getenv("ARCHIVE_TOKEN", ""),
+        archive_timeout=_env_int("ARCHIVE_TIMEOUT", 20),
+        archive_max_rows=_env_int("ARCHIVE_MAX_ROWS", 400),
+        archive_snippet_chars=_env_int("ARCHIVE_SNIPPET_CHARS", 160),
     )

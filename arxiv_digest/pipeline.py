@@ -65,6 +65,7 @@ from .zotero_client import (
 )
 from .preprints import enrich_summary, preprint_pdf_url
 from .llm_client import LLMOptions, usage_scope, usage_snapshot
+from . import archive
 
 LOGGER = logging.getLogger(__name__)
 
@@ -94,6 +95,8 @@ class PipelineResult:
     pending_feedback: FeedbackStore | None = None
     report: dict = field(default_factory=dict)
     snapshot: dict | None = None
+    # 长期热点档案的行（列顺序 = archive.PAPERS_HEADERS）；预览/未启用时为 None。
+    ledger: list[list[str]] | None = None
 
     @property
     def has_deliverable(self) -> bool:
@@ -787,6 +790,15 @@ def commit_delivery(config: Config, result: PipelineResult, *, delivery: str = "
                 result.report["feedback_persisted"] = False
                 LOGGER.warning("投递状态已保存，但本地反馈未能持久化；表格记录可在下次重新导入。")
         result.pending_feedback = None
+    if delivery != "preview" and result.ledger:
+        try:
+            result.report["archive"] = archive.record(
+                config, result.ledger, today=_digest_today(config),
+                timezone_name=config.digest_timezone)
+        except Exception as exc:  # noqa: BLE001 - 台账失败不能阻断已经成功的投递
+            result.report["archive"] = {"ok": False, "error": type(exc).__name__}
+            LOGGER.warning("热点档案写入失败（%s）；邮件与状态不受影响，下次运行会补写。",
+                           type(exc).__name__)
     result.report["delivery"] = delivery
     update_diagnostics(config, result)
 
@@ -948,6 +960,16 @@ def _run_pipeline(config: Config, *, persist_state: bool = False, preview: bool 
                         if key in feedback.votes or key in recent_ids}
     state.feedback = feedback.to_dict()
     prune(state, today=today)
+    ledger = None
+    if archive.ready(config):
+        try:
+            ledger = archive.build_rows(
+                papers=all_papers, ranked=ranked, enriched=enriched,
+                packs=select_packs(load_packs(config.packs_dir), config.fields),
+                keywords=config.arxiv_keywords, timezone_name=config.digest_timezone,
+                snippet_chars=config.archive_snippet_chars)
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            LOGGER.warning("热点档案行构建失败（%s），本次不写表。", type(exc).__name__)
     report = {
         "version": 1, "run_id": run_id, "date": day, "timezone": config.digest_timezone,
         "edition": edition.kind, "edition_key": edition.key, "period_start": str(edition.start),
@@ -981,4 +1003,4 @@ def _run_pipeline(config: Config, *, persist_state: bool = False, preview: bool 
                           summary=summary, enriched=enriched, calendar=calendar, secondary=secondary,
                           talks=talks, sources=sources, trend=trend, pulse=pulse, radar=radar,
                           window_days=window_days, pending_state=state, pending_feedback=feedback, report=report,
-                          snapshot=snapshot)
+                          snapshot=snapshot, ledger=ledger)
