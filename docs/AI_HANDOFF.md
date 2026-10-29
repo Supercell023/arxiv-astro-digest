@@ -1,6 +1,14 @@
 # 给下一位 AI 的交接说明
 
-最后更新：2026-10-28，**v0.17.1 工作区**。先读 [长期热点档案](ARCHIVE.md)、[期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+最后更新：2026-10-29，**v0.18.0 工作区**。先读 [长期热点档案](ARCHIVE.md)、[期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+
+## v0.18 当前进展：中文摘要与雷达口吻
+
+- 模型漏条目不再回落英文：`_fallback_paper_summary` 返回空串，`generate_digest_content` 对缺失条目单篇补写（最多 6 篇），失败后以"不要出现任何数字"再试一次；`_salvage_summary` 按分句保留可回查内容，删太多则判半句、交给重试。
+- 精读卡摘要只接受"含中文 + 数字可回查"的文本，否则用 `verdict + result` 组合；模板在无摘要时明确写"英文原摘要见下方"。
+- `evidence.numbers_supported_ignoring_dates` 让 `2026 年 7 月` 与 `July 2026` 等价，`translate` 改用该版本，世界新闻不再整段回落英文。
+- 雷达从"每方向一条卡"改成 `Radar.overview` 一段话（模型写 150–260 字，数字回查；规则兜底也成段），条目收进 `<details>`；"扫一眼即可"已从代码与模板删除（自检有断言）。
+- 验证：**176 项离线测试（新增 13 项）、27 项自检、`pip check` 通过**；真实模型 5 篇 5/5 中文，雷达段渲染已截图确认。未验证：全量邮件、SMTP、云端 Actions。
 
 ## v0.17.1 当前进展：合表自检
 

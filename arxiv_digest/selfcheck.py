@@ -716,6 +716,9 @@ def _check_radar() -> str:
     )
     assert radar.blocks[0].headline.title.startswith("First detection"), "信号词没排在前面"
     assert radar.blocks[0].headline.summary, "每条都必须带解读，不能只有标题"
+    assert "扫一眼" not in radar.blocks[0].headline.summary, "规则解读还在用旧口吻"
+    assert radar.overview.startswith("本期各方向新投稿"), "雷达总述段没生成"
+    assert "不占精读篇幅" in radar.overview, "雷达总述段缺少折叠说明"
     assert radar.blocks[0].folded_count == 1, "同一方向的其余条目应折叠"
     assert len(radar.hits) == 2, "摊平后应包含全部命中"
     capped = select_blocks([Neighborhood("e", "系", ("astro-ph.EP",))], papers, per_field=1)
@@ -728,7 +731,13 @@ def _check_radar() -> str:
 
     empty = select_blocks([Neighborhood("x", "空", ("astro-ph.XX",))], papers)
     assert empty.is_empty, "没有命中时应为空"
-    return f"{len(neighborhoods)} 个方向；信号词优先、每方向 1 条上版、其余折叠、已读跳过均正常"
+
+    template = (Path(__file__).resolve().parent / "templates" / "digest_email.html").read_text(
+        encoding="utf-8"
+    )
+    assert "扫一眼" not in template, "模板里还残留“扫一眼”"
+    assert "radar.overview" in template, "雷达总述段没接到模板"
+    return f"{len(neighborhoods)} 个方向；信号词优先、总述段、折叠清单、已读跳过均正常"
 
 
 def _check_translate() -> str:

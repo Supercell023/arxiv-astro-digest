@@ -545,6 +545,27 @@ def _salvage_text(value: str, source: str) -> str:
     return "".join(kept).strip()
 
 
+_CJK_RE = re.compile(r"[\u4e00-\u9fff]")
+
+
+def _has_chinese(text: str) -> bool:
+    return bool(_CJK_RE.search(text or ""))
+
+
+def _compose_summary(analysis: Analysis) -> str:
+    """精读取到中文事实时，用它拼一段中文摘要，别再落回英文兜底。"""
+
+    parts = [
+        part.strip()
+        for part in (analysis.verdict, analysis.result)
+        if part and part.strip() and part not in (MISSING, MISSING_FULLTEXT)
+    ]
+    if not parts:
+        return ""
+    text = "。".join(part.rstrip("。；;，,") for part in parts) + "。"
+    return text[:220]
+
+
 def assess(
     client: Any,
     model: str,
@@ -664,8 +685,11 @@ def analyze_paper(
         options=assess_options,
         source_text=_excerpt(fulltext) if fulltext else _clip(paper.summary),
     )
-    summary = paper.chinese_summary if numbers_supported(paper.chinese_summary, paper.summary) else ""
-    summary = summary or analysis.result
+    # 只接受真正的中文摘要：英文摘要混进"中文摘要"位置会被读成没翻完。
+    summary = paper.chinese_summary
+    if not _has_chinese(summary) or not numbers_supported(summary, paper.summary):
+        summary = ""
+    summary = summary or _compose_summary(analysis)
     return _copy_paper(paper, analysis=analysis, chinese_summary=summary)
 
 

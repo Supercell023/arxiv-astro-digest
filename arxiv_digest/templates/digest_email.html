@@ -144,43 +144,29 @@
         <tr>
           <td style="padding: 16px 22px 4px;">
             <div style="font-size: 14px; font-weight: 700; color: {{ P.radar }}; letter-spacing: 0.6px; padding-left: 10px; border-left: 4px solid {{ P.radar }};">邻域雷达 · 别的方向这周在动什么</div>
-            <div style="font-size: 11px; color: {{ P.faint }}; line-height: 1.72; padding-top: 4px;">每个方向先展开一条，其余折叠。只看标题和一句话，不占你的精读预算。</div>
+            {% if radar.overview %}
+            <div style="font-size: 13px; color: {{ P.body }}; line-height: 1.85; padding-top: 8px;">{{ radar.overview }}</div>
+            {% endif %}
           </td>
         </tr>
-        {% for block in radar.blocks %}
-        {% if block.headline %}
-        {% set hit = block.headline %}
         <tr>
-          <td style="padding: 12px 22px 10px; border-top: 1px solid {{ P.tint_pulse2 }};">
-            <div style="font-size: 10.5px; font-weight: 700; color: {{ P.pulse }}; letter-spacing: 0.3px;">{{ block.neighborhood }}<span style="color: {{ P.faint3 }}; font-weight: 400;"> · {{ hit.category }}{% if hit.published %} · {{ hit.published }}{% endif %}</span>{% if block.total %}<span style="color: {{ P.faint4 }}; font-weight: 400;"> · 本次采集 {{ block.total }} 篇</span>{% endif %}</div>
-            <div style="padding-top: 3px;">
-              <a href="{{ hit.url | safe_url }}" style="color: {{ P.text }}; text-decoration: none; font-size: 13.5px; font-weight: 600; line-height: 1.5;">{{ hit.title }}</a>
-            </div>
-            {% if hit.display_summary %}
-            <div style="font-size: 12px; color: {{ P.body2 }}; line-height: 1.75; padding-top: 4px;">{{ hit.display_summary }}</div>
-            {% endif %}
-            {% if hit.abstract %}
-            <details style="padding-top: 4px;">
-              <summary style="cursor: pointer; font-size: 11px; color: {{ P.faint4 }};">摘要原文</summary>
-              <div style="font-size: 11.5px; color: {{ P.muted5 }}; line-height: 1.7; padding-top: 3px;">{{ hit.abstract }}</div>
-            </details>
-            {% endif %}
-            {% if block.folded_count %}
-            <details style="padding-top: 6px;">
-              <summary style="cursor: pointer; font-size: 11.5px; color: {{ P.pulse }}; font-weight: 600;">再看 {{ block.neighborhood }} 这周另外 {{ block.folded_count }} 条</summary>
-              {% for more in block.rest %}
-              <div style="padding: 8px 0 2px;">
-                <div style="font-size: 10px; color: {{ P.faint3 }};">{{ more.category }}{% if more.published %} · {{ more.published }}{% endif %}</div>
-                <a href="{{ more.url | safe_url }}" style="color: {{ P.body }}; text-decoration: none; font-size: 12.5px; font-weight: 600; line-height: 1.5;">{{ more.title }}</a>
-                {% if more.display_summary %}<div style="font-size: 11.5px; color: {{ P.body2 }}; line-height: 1.7; padding-top: 2px;">{{ more.display_summary }}</div>{% endif %}
+          <td style="padding: 4px 22px 14px; border-top: 1px solid {{ P.tint_pulse2 }};">
+            <details style="padding-top: 8px;">
+              <summary style="cursor: pointer; font-size: 11.5px; color: {{ P.pulse }}; font-weight: 600;">展开各方向条目（只列标题，不占精读篇幅）</summary>
+              {% for block in radar.blocks %}
+              <div style="padding-top: 10px;">
+                <div style="font-size: 10.5px; font-weight: 700; color: {{ P.pulse }}; letter-spacing: 0.3px;">{{ block.neighborhood }}<span style="color: {{ P.faint4 }}; font-weight: 400;"> · 本次采集 {{ block.total }} 篇</span></div>
+                {% if block.headline %}
+                <div style="padding-top: 3px;"><a href="{{ block.headline.url | safe_url }}" style="color: {{ P.text }}; text-decoration: none; font-size: 12.5px; font-weight: 600; line-height: 1.55;">{{ block.headline.title }}</a></div>
+                {% endif %}
+                {% for more in block.rest %}
+                <div style="padding-top: 3px;"><a href="{{ more.url | safe_url }}" style="color: {{ P.body2 }}; text-decoration: none; font-size: 12px; line-height: 1.55;">{{ more.title }}</a></div>
+                {% endfor %}
               </div>
               {% endfor %}
             </details>
-            {% endif %}
           </td>
         </tr>
-        {% endif %}
-        {% endfor %}
         {% if radar.counts %}
         <tr>
           <td style="padding: 6px 22px 16px; border-top: 1px solid {{ P.tint_pulse2 }}; font-size: 10.5px; color: {{ P.faint }}; line-height: 1.7;">
@@ -415,9 +401,13 @@
                   <table width="100%" cellpadding="0" cellspacing="0" style="background: {{ P.panel }}; border-radius: 6px;">
                   <tr>
                     <td style="padding: 12px 16px;">
+                      {% if paper.chinese_summary %}
                       <span style="font-size: 11px; font-weight: 600; color: {{ P.soft }}; text-transform: uppercase; letter-spacing: 0.5px;">中文摘要</span>
                       <br>
                       <span style="font-size: 14px; color: {{ P.body }}; line-height: 1.75;">{{ paper.chinese_summary }}</span>
+                      {% else %}
+                      <span style="font-size: 12px; color: {{ P.faint }}; line-height: 1.75;">本次未生成中文摘要；英文原摘要见下方「展开中英文摘要」。</span>
+                      {% endif %}
                     </td>
                   </tr>
                   </table>
@@ -574,11 +564,11 @@
             </div>
             <div style="font-size: 12px; color: {{ P.muted2 }}; padding-top: 3px;">
               {{ paper.authors[:2]|join(", ") }}{% if paper.authors|length > 2 %} et al.{% endif %} &middot; {% if paper.venue %}<span style="color: {{ P.cal }};">{{ paper.venue }}</span> &middot; {% endif %}{{ paper.categories|join(" / ") }}</div>
-            <div style="font-size: 13px; color: {{ P.body }}; line-height: 1.72; padding-top: 6px;">{{ paper.brief_zh }}</div>
+            <div style="font-size: 13px; color: {{ P.body }}; line-height: 1.72; padding-top: 6px;">{% if paper.brief_zh %}{{ paper.brief_zh }}{% else %}<span style="color: {{ P.faint }};">本次未生成中文摘要，点开看英文原摘要</span>{% endif %}</div>
             <details style="padding-top: 4px;">
               <summary style="cursor: pointer; font-size: 11.5px; color: {{ P.muted }};">展开中英文摘要</summary>
               <div style="padding: 8px 0 0 12px; border-left: 2px solid {{ P.line }};">
-                <div style="font-size: 12.5px; color: {{ P.body2 }}; line-height: 1.85;">{{ paper.chinese_summary }}</div>
+                {% if paper.chinese_summary %}<div style="font-size: 12.5px; color: {{ P.body2 }}; line-height: 1.85;">{{ paper.chinese_summary }}</div>{% endif %}
                 <div style="font-size: 12px; color: {{ P.muted5 }}; line-height: 1.72; font-style: italic; padding-top: 8px;">{{ paper.summary }}</div>
               </div>
             </details>

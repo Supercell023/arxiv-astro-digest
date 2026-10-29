@@ -107,7 +107,7 @@ The model is not allowed to declare a trend. Only counts.
 | Header | Papers today, window, theme | Program |
 | Overview | The thread of today's issue | Model (numbers checked) |
 | Weekly pulse | What kept recurring this week | Model (rule fallback) |
-| Neighbour radar | Papers just outside your core field | Rules + model labels |
+| Neighbour radar | One paragraph on what moved elsewhere; entries collapsed below | Rules + model overview |
 | Calendar | Meetings, deadlines, observing calls | Config |
 | Deep read · 4 | Full twelve-section cards | Two-stage analysis |
 | Brief · 10 | One line, score, abstract | Single stage |
@@ -274,6 +274,7 @@ Three packs ship in the box: `galaxy_cosmology`, `galaxy_formation`, `generic`. 
 | v0.16 | Long-term archive: every collected paper, by week |
 | v0.17 | Votes aggregated by topic; one spreadsheet for both |
 | v0.17.1 | Sheet wiring checker |
+| v0.18 | No English left in Chinese summaries; radar is one paragraph |
 
 Earlier history: [CHANGELOG.md](CHANGELOG.md).
 

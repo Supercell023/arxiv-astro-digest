@@ -457,8 +457,8 @@ class IntegrationBoundaryTests(WorkspaceCase):
 
     def test_overview_sees_all_selected_papers(self):
         from arxiv_digest.llm import generate_digest_content
-        client = FakeClient([{"paper_summaries": {str(i): "summary" for i in range(5)}},
-                             {"paper_summaries": {"5": "summary"}}, {"overall_summary": "All six"}])
+        client = FakeClient([{"paper_summaries": {str(i): "这是中文摘要要点。" for i in range(5)}},
+                             {"paper_summaries": {"5": "这是中文摘要要点。"}}, {"overall_summary": "All six"}])
         with patch("openai.OpenAI", return_value=client):
             summary, enriched = generate_digest_content("dummy", "fake", [paper(str(i), title=f"Title {i}") for i in range(6)],
                                                        max_llm_papers=6, batch_size=5)

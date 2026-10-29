@@ -19,7 +19,7 @@ from typing import Any, Sequence
 
 from .llm_client import LLMOptions, call_json
 from .sources import Item
-from .evidence import numbers_supported
+from .evidence import numbers_supported_ignoring_dates
 
 LOGGER = logging.getLogger(__name__)
 
@@ -118,8 +118,12 @@ def translate_items(
         translated.append(
             replace(
                 item,
-                title_zh=(patch["title_zh"] or item.title_zh) if numbers_supported(patch["title_zh"], item.title + " " + item.text) else "",
-                text_zh=(patch["text_zh"] or item.text_zh) if numbers_supported(patch["text_zh"], item.title + " " + item.text) else "",
+                title_zh=(patch["title_zh"] or item.title_zh)
+                if numbers_supported_ignoring_dates(patch["title_zh"], item.title + " " + item.text)
+                else "",
+                text_zh=(patch["text_zh"] or item.text_zh)
+                if numbers_supported_ignoring_dates(patch["text_zh"], item.title + " " + item.text)
+                else "",
             )
         )
     return translated

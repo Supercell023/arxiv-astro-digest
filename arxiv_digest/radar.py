@@ -19,6 +19,7 @@ from typing import Any, Iterable, Sequence
 
 from .models import Paper
 from .identity import canonical_id
+from .evidence import numbers_supported
 from .llm_client import LLMOptions, call_json
 
 LOGGER = logging.getLogger(__name__)
@@ -134,6 +135,8 @@ class Radar:
     counts: tuple[tuple[str, int], ...] = ()
     basis: str = "rule"
     quiet: str = ""
+    # 一段话的本周综述：邮件只给这一段，条目列表折叠在下面。
+    overview: str = ""
 
     @property
     def is_empty(self) -> bool:
@@ -263,7 +266,27 @@ def _rule_reason(title: str) -> str:
 
 
 def _fallback_reason(neighborhood: Neighborhood) -> str:
-    return f"{neighborhood.label}这周信号最强的条目之一，扫一眼标题即可"
+    return f"{neighborhood.label}本周值得留意的一篇"
+
+
+def _rule_overview(blocks: Sequence[RadarBlock], counts: Sequence[tuple[str, int]]) -> str:
+    """没有模型时也要有一段话，而不是一串"扫一眼即可"。"""
+
+    talking = [(name, count) for name, count in counts if count]
+    if not blocks:
+        return ""
+    parts: list[str] = []
+    if talking:
+        parts.append("本期各方向新投稿：" + "、".join(f"{name} {count} 篇" for name, count in talking))
+    heads = [
+        f"{block.neighborhood}《{block.headline.title.rstrip('.')}》"
+        for block in blocks
+        if block.headline is not None
+    ]
+    if heads:
+        parts.append("每个方向挑一条代表工作：" + "；".join(heads))
+    parts.append("完整清单折叠在下方，不占精读篇幅")
+    return "。".join(parts) + "。"
 
 
 def _primary_category(paper: Paper) -> str:
@@ -379,7 +402,12 @@ def select_blocks(
         if len(blocks) >= max_fields:
             break
 
-    return Radar(blocks=tuple(blocks), counts=tuple(counts), basis="rule")
+    return Radar(
+        blocks=tuple(blocks),
+        counts=tuple(counts),
+        basis="rule",
+        overview=_rule_overview(blocks, counts),
+    )
 
 
 def select_hits(
@@ -415,17 +443,17 @@ def build_radar_prompt(radar: Radar) -> str:
             if hit.abstract:
                 lines.append(f"    摘要：{hit.abstract[:260]}")
         lines.append("")
-    lines.append("给每篇写一条中文解读，80-110 字，两句话：")
-    lines.append("1. 它做了什么（用摘要里的事实，不要编）；")
-    lines.append("2. 为什么一个星系宇宙学研究者可能在意它——是方法可迁移、数据可复用，还是结论与其领域冲突。")
+    lines.append("写一段中文综述（150-260 字），读者是研究星系团与星系宇宙学的博士生：")
+    lines.append("1. 先给各方向本周的投稿量与整体动向；")
+    lines.append("2. 再点名 2-3 篇代表工作，用标题里的关键词指代，说明为什么值得看；")
+    lines.append("3. 不要逐篇罗列，不要写「扫一眼即可」这类空话。")
     lines.append("")
     lines.append("硬规则：")
     lines.append("1. 只用标题和摘要里出现的信息，不要编造数字、样本量或结论；")
     lines.append("2. 不要复述标题；")
-    lines.append("3. 摘要不足以判断就直说「摘要看不出方法细节」，不要补空话；")
-    lines.append("4. 不要因为它是别的方向就写成「与本领域无关」——那等于没写。")
+    lines.append("3. 摘要不足以判断就直说「摘要看不出方法细节」，不要补空话。")
     lines.append("")
-    lines.append('输出 JSON：{"items": [{"index": 1, "summary": "…"}]}')
+    lines.append('输出 JSON：{"overview": "…"}')
     return "\n".join(lines)
 
 
@@ -463,10 +491,8 @@ def annotate_radar(
         return radar
 
     raw_items = payload.get("items")
-    if not isinstance(raw_items, list):
-        return radar
     mapping: dict[int, str] = {}
-    for raw in raw_items:
+    for raw in raw_items if isinstance(raw_items, list) else []:
         if not isinstance(raw, dict):
             continue
         try:
@@ -476,6 +502,16 @@ def annotate_radar(
         text = _coerce_text(raw.get("summary"))
         if text:
             mapping[index] = text
+
+    source = " ".join(
+        f"{block.neighborhood} {block.total} 篇 "
+        + " ".join(f"{hit.title} {hit.abstract}" for hit in ([block.headline] if block.headline else []) + list(block.rest))
+        for block in radar.blocks
+    )
+    raw_overview = _coerce_text(payload.get("overview"))
+    overview = radar.overview
+    if raw_overview and numbers_supported(raw_overview, source):
+        overview = raw_overview
 
     counter = 0
     updated: list[RadarBlock] = []
@@ -499,7 +535,7 @@ def annotate_radar(
                 total=block.total,
             )
         )
-    return Radar(blocks=tuple(updated), counts=radar.counts, basis="model", quiet=radar.quiet)
+    return Radar(blocks=tuple(updated), counts=radar.counts, basis="model", quiet=radar.quiet, overview=overview)
 
 
 def _replace_hit(hit: RadarHit, *, summary: str) -> RadarHit:
