@@ -6,10 +6,10 @@
 
 冷眼筛过一遍，再交到你手上。
 
-[![](https://img.shields.io/badge/version-0.19.0-6D28D9?style=flat-square)](CHANGELOG.md)
+[![](https://img.shields.io/badge/version-0.19.1-6D28D9?style=flat-square)](CHANGELOG.md)
 [![](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
 [![](https://img.shields.io/badge/License-MIT-EAB308?style=flat-square)](LICENSE)
-[![](https://img.shields.io/badge/tests-183-22C55E?style=flat-square)](tests/)
+[![](https://img.shields.io/badge/tests-194-22C55E?style=flat-square)](tests/)
 [![](https://img.shields.io/badge/selfcheck-27-0891B2?style=flat-square)](arxiv_digest/selfcheck.py)
 [![](https://img.shields.io/badge/Actions-Supported-2088FF?style=flat-square&logo=githubactions&logoColor=white)](.github/workflows/daily-arxiv-digest.yml)
 

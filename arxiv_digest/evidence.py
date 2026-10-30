@@ -5,13 +5,34 @@ These checks do not prove scientific meaning, units or entailment.
 from __future__ import annotations
 
 import re
+import unicodedata
 from decimal import Decimal, DecimalException
 
 _NUMBER = re.compile(r"(?<![A-Za-z0-9.])([+-]?\d[\d,]*(?:\.\d+)?(?:[eE][+-]?\d+)?)(?:\s*([千万亿]))?")
 
 
+def _compact(text: str) -> str:
+    """压成只含字母/数字/汉字的串，吸收 PDF 抽取造成的断词、连字符与全半角差异。
+
+    PDF 里 "inflation-\ninduced"、"ﬁ" 合字、页码插行、Unicode 引号都会被
+    clean_text 弄成和模型抄写不完全一致的样子；直接子串比对会把真引文判成
+    编造，整条事实被清空。这里只保留字符序列，词序和字母仍然要对得上。
+    """
+    normalized = unicodedata.normalize("NFKC", text or "")
+    normalized = normalized.replace("\u00ad", "")  # 软连字符
+    return re.sub(r"[^0-9a-z\u4e00-\u9fff]+", "", normalized.casefold())
+
+
 def quote_in_source(quote: str | None, source: str) -> bool:
-    return bool(quote and " ".join(quote.split()).casefold() in " ".join(source.split()).casefold())
+    if not quote:
+        return False
+    packed = _compact(quote)
+    # 太短的串几乎必然在长文里出现，不能算"引文可回查"。
+    if len(packed) < 6:
+        return False
+    if " ".join(quote.split()).casefold() in " ".join(source.split()).casefold():
+        return True
+    return len(packed) >= 12 and packed in _compact(source)
 
 
 def _numbers(text: str) -> set[Decimal]:

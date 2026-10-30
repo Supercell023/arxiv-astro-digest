@@ -1,6 +1,14 @@
 # 给下一位 AI 的交接说明
 
-最后更新：2026-10-30，**v0.19.0 工作区**。先读 [长期热点档案](ARCHIVE.md)、[期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+最后更新：2026-10-30，**v0.19.1 工作区**。先读 [长期热点档案](ARCHIVE.md)、[期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+
+## v0.19.1 当前进展：精读字段不再被三道闸门清空
+
+- 真实全文下"数据/处理/系统误差/方法/结果/作者局限"大面积为空，根因不是节选而是校验过严：①`extract_bundle` 要求 value 的每个数字都出现在它自己那条短 quote 里 ②`quote_in_source` 只认逐字子串，扛不住 PDF 断词连字符与合字 ③模型偶尔只返回字符串、没有 quote。
+- 现在：数字按**全文**校验，对不上的按分句抢救（`_keep_fact` → `_salvage_text`）；引文比对先 NFKC 压缩再匹配（短于 12 字符仍要求逐字）；无 quote 的字符串事实在数字可回查且 ≥10 字时保留；Stage B 的 `supported_text` 纳入 `value`。
+- 抽取 prompt 明确"字段必须是 `{value, quote}` 对象，quote 逐字照抄英文"。
+- 验证：**194 项离线测试（新增 11 项 `tests/test_evidence_quotes.py`）、27 项自检、`pip check` 通过**；真实模型 + 真实 PDF 全流程复跑（4 篇精读）：两篇 7/7、一篇 5/7，"全文节选未检出"13 → 4 处，余下是期刊论文无 arXiv 预印本、basis 退化为摘要所致。
+- 边界：quote 缺失时只剩数字校验，属有意放宽；真要逐句核对仍需看卡片里的引文。
 
 ## v0.19 当前进展：精读直接读整篇 PDF
 

@@ -160,6 +160,8 @@ def build_extract_prompt(paper: Paper, *, fulltext: str | None = None) -> str:
 
 只抽取原文明确写出的内容；某个字段原文没提，就把该字段整条设为 null。
 不要用领域常识补全，不要把"通常如此"写成事实。
+每个字段必须是 {{"value": "…", "quote": "…"}} 对象，不要把一句话直接当字符串塞进字段名。
+quote 逐字照抄原文英文（不改词序、不翻译、不合并两句），value 才是中文概括。
 {source_note}
 
 JSON 输出格式：
@@ -275,11 +277,10 @@ def extract_bundle(
             pass
     if payload is None:
         payload = _chat_json(client, model, _SYSTEM_EXTRACT, prompt, options=options)
-    facts = {key: fact if quote_in_source(fact.quote, source) and numbers_supported(fact.value, fact.quote or "") else Fact()
-             for key, fact in coerce_facts(payload).items()}
+    facts = {key: _keep_fact(fact, source) for key, fact in coerce_facts(payload).items()}
     numbers = tuple(number for number in coerce_numbers(payload)
                     if quote_in_source(number.quote, source)
-                    and numbers_supported(number.label + " " + number.value, number.quote or ""))
+                    and numbers_supported(number.label + " " + number.value, source))
     if cache_path and (any(not fact.is_missing for fact in facts.values()) or numbers):
         try:
             atomic_json(cache_path, payload)
@@ -530,6 +531,36 @@ def coerce_analysis(
     )
 
 
+def _keep_fact(fact: Fact, source: str) -> Fact:
+    """引文必须在全文里；数字对不上时只删那一句，别把整条事实清空。
+
+    Stage A 的 value 常把多个数字概括进一段话，而 quote 只截其中一句；
+    早先要求"value 的每个数字都出现在它自己的 quote 里"，结果真实全文也
+    一片 Fact()——卡片全显示"全文节选未检出"。现在数字按全文校验，仍对
+    不上的就按分句抢救。
+
+    模型偶尔不按 schema 返回对象、只给一段字符串（没有 quote）。这种事实
+    没有原文引文可核，但只要数字能在全文里找到、长度够，就保留——比让
+    整张卡片空着更符合"读全文"的目的。
+    """
+    if fact.is_missing:
+        return Fact()
+    if fact.quote and not quote_in_source(fact.quote, source):
+        return Fact()
+    if not fact.quote:
+        value = (fact.value or "").strip()
+        if len(value) >= 10 and numbers_supported(value, source):
+            return Fact(value=value, quote=None)
+        return Fact()
+    if numbers_supported(fact.value, source):
+        return fact
+    salvaged = _salvage_text(fact.value, source)
+    if len(salvaged) >= 8:
+        LOGGER.debug("Stage A 分句已过滤不可回查数字：%s", salvaged[:40])
+        return Fact(value=salvaged, quote=fact.quote)
+    return Fact()
+
+
 def _salvage_text(value: str, source: str) -> str:
     """删掉含不可回查数字的分句，保留其余分句。
 
@@ -604,8 +635,9 @@ def assess(
     values = {key: getattr(analysis, key) if not facts.get(key, Fact()).is_missing
               else (MISSING_FULLTEXT if basis == "fulltext" else MISSING)
               for key in FACT_KEYS}
-    supported_text = " ".join([fact.quote or "" for fact in facts.values()]
-                              + [number.quote or "" for number in numbers] + list(figures))
+    supported_text = " ".join(
+        [part for fact in facts.values() for part in (fact.value or "", fact.quote or "")]
+        + [number.quote or "" for number in numbers] + list(figures))
     for key in (*FACT_KEYS, "background", "method_detail", "verdict"):
         value = values.get(key, getattr(analysis, key))
         if numbers_supported(value, supported_text):
