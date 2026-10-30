@@ -14,6 +14,95 @@
 
 ---
 
+## 〇、配置路径：先最小，再全面
+
+本地验证只要四行 `.env`（见下一节）。要让它在 GitHub Actions 上每天自己发信，按两条路径走。
+
+```mermaid
+flowchart TB
+  subgraph A["模式一 · 最小可用 · 约 10 分钟"]
+    A1["7 个 Secret + 6 个 Variable<br/>密钥 · SMTP · 端点 · 分类"] --> A2["Actions 写权限<br/>Read and write"]
+    A2 --> A3["手动 dispatch<br/>收到第一封"]
+  end
+  subgraph B["模式二 · 全面 · 再加约 30 分钟"]
+    B1["Google 表格 + 两个脚本<br/>feedback 页签 · 6 个属性"] --> B2["授权 → 部署<br/>两条 /exec"]
+    B2 --> B3["回填 5 项<br/>2 Variable + 3 Secret"]
+    B3 --> B4["check_sheets + 点按钮<br/>验证一次"]
+  end
+  A3 --> B1
+```
+
+### 模式一：13 项
+
+仓库 **Settings → Secrets and variables → Actions**，Secrets 与 Variables 各建一张表。
+
+| # | 放哪 | 变量 | 填什么 | 从哪拿 |
+| --- | --- | --- | --- | --- |
+| 1 | Secret | `OPENAI_API_KEY` | `sk-` 开头的密钥 | 中转站或 DeepSeek 控制台 |
+| 2 | Secret | `SMTP_HOST` | `smtp.qq.com` 等 | [第二节](#二用哪个邮箱发信)的对照表 |
+| 3 | Secret | `SMTP_PORT` | `465`（SSL）或 `587`（STARTTLS） | 同上 |
+| 4 | Secret | `SMTP_USERNAME` | 完整邮箱地址 | 你的账号 |
+| 5 | Secret | `SMTP_PASSWORD` | 授权码，不是登录密码 | 邮箱设置里生成 |
+| 6 | Secret | `EMAIL_FROM` | 一般与 `SMTP_USERNAME` 相同 | 你的账号 |
+| 7 | Secret | `EMAIL_TO` | 收件邮箱，可逗号分隔多个 | 你的账号 |
+| 8 | Variable | `OPENAI_BASE_URL` | `https://api.deepseek.com/v1` | 中转站给的地址 |
+| 9 | Variable | `OPENAI_MODEL` | `deepseek-flash` 等 | 与端点匹配的模型名 |
+| 10 | Variable | `DIGEST_TIMEZONE` | `Asia/Shanghai` | 决定"今天"的口径 |
+| 11 | Variable | `ANALYSIS_ENABLED` | `true` | 默认 false，不开精读只剩一两句 |
+| 12 | Variable | `ARXIV_CATEGORIES` | `astro-ph.CO,astro-ph.GA` | 英文逗号分隔 |
+| 13 | Variable | `ARXIV_KEYWORDS` | 你的研究词 | 逗号分隔，重复会自动去重 |
+
+两点容易出错：`SMTP_PORT` 必须放 **Secrets**（工作流读的是 `secrets.SMTP_PORT`）；仓库权限要到 **Settings → Actions → General → Workflow permissions** 选 **Read and write**，否则 `state.json` 写不回去，第二天会重复推送。
+
+### 模式二：Google 侧 6 个属性 + 回填 5 项
+
+一份表格、两个 Apps Script，各自独立部署。
+
+**表格**：新建后把第一张页签改名为 `feedback`，`A1:D1` 填 `item`、`relevance`、`usefulness`、`t`。其余页签由档案脚本首次写入时自动创建，不要手改表头。
+
+**反馈脚本**（`scripts/google_feedback.gs`）的脚本属性：
+
+| 属性 | 值 |
+| --- | --- |
+| `FEEDBACK_SPREADSHEET_ID` | 表格地址里 `/d/` 与 `/edit` 之间那一段 |
+| `FEEDBACK_SIGNING_KEY` | 随机串一 |
+| `FEEDBACK_CSV_READ_TOKEN` | 随机串二，与串一不同 |
+| `FEEDBACK_SHEET_NAME` | `feedback` |
+
+**档案脚本**（`scripts/google_archive.gs`）的脚本属性：
+
+| 属性 | 值 |
+| --- | --- |
+| `ARCHIVE_SPREADSHEET_ID` | 与反馈脚本同一张表 |
+| `ARCHIVE_TOKEN` | 随机串三，与前两个都不同 |
+
+随机串用 `openssl rand -hex 32`（Git Bash）、`python -c "import secrets;print(secrets.token_hex(32))"` 或 PowerShell 的 `RandomNumberGenerator` 生成，**三个值互不相同**。读取口令会出现在 URL 里，泄漏即可被改写反馈表。
+
+两个脚本各自「部署 → 新建部署 → Web 应用 → 执行身份：我 → 访问权限：任何人」，复制得到的 `/exec` 地址（不是 `/dev`）。
+
+**回填到 GitHub**：
+
+| 位置 | 名称 | 值 |
+| --- | --- | --- |
+| Variable | `FEEDBACK_URL` | 反馈脚本的 `/exec` |
+| Variable | `ARCHIVE_WEBHOOK_URL` | 档案脚本的 `/exec` |
+| Secret | `FEEDBACK_SIGNING_KEY` | 与脚本属性逐字符一致 |
+| Secret | `FEEDBACK_SHEET_CSV_URL` | `反馈 /exec?action=csv&token=<读取口令>` |
+| Secret | `ARCHIVE_TOKEN` | 与脚本属性一致 |
+
+改完 Apps Script 代码必须「管理部署 → 编辑 → 新版本」，否则 `/exec` 仍指向旧快照。换掉签名密钥会让已发出的邮件里所有按钮失效。
+
+### 走完两条路径后
+
+```bash
+python -m arxiv_digest.archive --health   # 档案端点是否可用
+python -m scripts.check_sheets            # 两张表接线是否对齐
+```
+
+再到 Actions 手动 dispatch 一次，`run_report.json` 里 `delivery=committed`、`archive.ok=true` 即全链路通。
+
+---
+
 ## 一、最小可用配置
 
 ### A. 真实数据预览（不发信，会联网并可能产生模型费用）

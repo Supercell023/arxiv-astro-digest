@@ -6,10 +6,10 @@
 
 冷眼筛过一遍，再交到你手上。
 
-[![](https://img.shields.io/badge/version-0.17.1-6D28D9?style=flat-square)](CHANGELOG.md)
+[![](https://img.shields.io/badge/version-0.18.0-6D28D9?style=flat-square)](CHANGELOG.md)
 [![](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
 [![](https://img.shields.io/badge/License-MIT-EAB308?style=flat-square)](LICENSE)
-[![](https://img.shields.io/badge/tests-163-22C55E?style=flat-square)](tests/)
+[![](https://img.shields.io/badge/tests-176-22C55E?style=flat-square)](tests/)
 [![](https://img.shields.io/badge/selfcheck-27-0891B2?style=flat-square)](arxiv_digest/selfcheck.py)
 [![](https://img.shields.io/badge/Actions-Supported-2088FF?style=flat-square&logo=githubactions&logoColor=white)](.github/workflows/daily-arxiv-digest.yml)
 
@@ -202,6 +202,24 @@ python -m arxiv_digest.main --out preview.html
 
 要发到邮箱，再补 SMTP 五项：`SMTP_HOST`、`SMTP_PORT`、SMTP 用户与密码、`EMAIL_FROM`、`EMAIL_TO`。
 
+要在云端每天自己发信，配置分两段走：先让邮件到得了，再决定要不要反馈与档案。
+
+```mermaid
+flowchart TB
+  subgraph A["模式一 · 最小可用 · 约 10 分钟"]
+    A1["7 个 Secret + 6 个 Variable<br/>密钥 · SMTP · 端点 · 分类"] --> A2["Actions 写权限<br/>Read and write"]
+    A2 --> A3["手动 dispatch<br/>收到第一封"]
+  end
+  subgraph B["模式二 · 全面 · 再加约 30 分钟"]
+    B1["Google 表格 + 两个脚本<br/>feedback 页签 · 6 个属性"] --> B2["授权 → 部署<br/>两条 /exec"]
+    B2 --> B3["回填 5 项<br/>2 Variable + 3 Secret"]
+    B3 --> B4["check_sheets + 点按钮<br/>验证一次"]
+  end
+  A3 --> B1
+```
+
+逐项填什么、从哪拿，见 [docs/CONFIG.md](docs/CONFIG.md) 的「〇、配置路径」。
+
 <details>
 <summary><b>常用命令</b></summary>
 
@@ -214,7 +232,7 @@ python -m arxiv_digest.main --out preview.html
 | `python -m arxiv_digest.main` | 正式投递 |
 | `python -m scripts.build_preview --out preview.html` | 样例邮件（录制回放） |
 | `python -m scripts.build_preview --replay digest.json --out preview.html` | 用快照回放 |
-| `python -m unittest discover -s tests -v` | 163 项离线测试 |
+| `python -m unittest discover -s tests -v` | 176 项离线测试 |
 | `python -m scripts.preview_digest` | 固定评测集 |
 | `python -m scripts.feedback_server` | 本机反馈端点（127.0.0.1:8765） |
 | `python -m scripts.feedback record --id <id> --rel 2 --use 1` | 命令行记一票 |

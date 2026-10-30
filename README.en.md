@@ -6,10 +6,10 @@
 
 Filtered coldly, then handed over.
 
-[![](https://img.shields.io/badge/version-0.17.1-6D28D9?style=flat-square)](CHANGELOG.md)
+[![](https://img.shields.io/badge/version-0.18.0-6D28D9?style=flat-square)](CHANGELOG.md)
 [![](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
 [![](https://img.shields.io/badge/License-MIT-EAB308?style=flat-square)](LICENSE)
-[![](https://img.shields.io/badge/tests-163-22C55E?style=flat-square)](tests/)
+[![](https://img.shields.io/badge/tests-176-22C55E?style=flat-square)](tests/)
 [![](https://img.shields.io/badge/selfcheck-27-0891B2?style=flat-square)](arxiv_digest/selfcheck.py)
 [![](https://img.shields.io/badge/Actions-Supported-2088FF?style=flat-square&logo=githubactions&logoColor=white)](.github/workflows/daily-arxiv-digest.yml)
 
@@ -202,6 +202,24 @@ python -m arxiv_digest.main --out preview.html
 
 To deliver, add the five SMTP values: `SMTP_HOST`, `SMTP_PORT`, SMTP user and password, `EMAIL_FROM`, `EMAIL_TO`.
 
+To have it mail itself every day in the cloud, configure in two stages: first make delivery work, then decide whether you want feedback and archive.
+
+```mermaid
+flowchart TB
+  subgraph A["Mode 1 · Minimal · about 10 minutes"]
+    A1["7 Secrets + 6 Variables<br/>key · SMTP · endpoint · categories"] --> A2["Actions write access<br/>Read and write"]
+    A2 --> A3["Manual dispatch<br/>first mail arrives"]
+  end
+  subgraph B["Mode 2 · Full · about 30 minutes more"]
+    B1["Google Sheet + two scripts<br/>feedback tab · 6 properties"] --> B2["Authorize → Deploy<br/>two /exec URLs"]
+    B2 --> B3["Backfill 5 values<br/>2 Variables + 3 Secrets"]
+    B3 --> B4["check_sheets + click<br/>verify once"]
+  end
+  A3 --> B1
+```
+
+What each value is and where to get it: [docs/CONFIG.md](docs/CONFIG.md), section "〇、配置路径".
+
 <details>
 <summary><b>Commands</b></summary>
 
@@ -214,7 +232,7 @@ To deliver, add the five SMTP values: `SMTP_HOST`, `SMTP_PORT`, SMTP user and pa
 | `python -m arxiv_digest.main` | Deliver |
 | `python -m scripts.build_preview --out preview.html` | Sample email (recorded replay) |
 | `python -m scripts.build_preview --replay digest.json --out preview.html` | Replay a snapshot |
-| `python -m unittest discover -s tests -v` | 163 offline tests |
+| `python -m unittest discover -s tests -v` | 176 offline tests |
 | `python -m scripts.preview_digest` | Frozen evaluation set |
 | `python -m scripts.feedback_server` | Local feedback endpoint (127.0.0.1:8765) |
 | `python -m scripts.feedback record --id <id> --rel 2 --use 1` | Record a vote |
