@@ -7,7 +7,7 @@
 
 import unittest
 
-from arxiv_digest.analysis import _keep_fact
+from arxiv_digest.analysis import _keep_fact, _one_line_conclusion, _strip_missing_notes
 from arxiv_digest.evidence import quote_in_source
 from arxiv_digest.models import Fact
 
@@ -66,6 +66,37 @@ class KeepFactTests(unittest.TestCase):
 
     def test_empty_fact_stays_empty(self) -> None:
         self.assertIsNone(_keep_fact(Fact(), SOURCE).value)
+
+
+class ConclusionLineTests(unittest.TestCase):
+    def test_short_text_is_untouched(self) -> None:
+        self.assertEqual(_one_line_conclusion("样本为 24 个近邻星系。"), "样本为 24 个近邻星系。")
+
+    def test_long_text_cuts_at_sentence_end(self) -> None:
+        text = "a" * 40 + "。" + "b" * 100
+        self.assertEqual(_one_line_conclusion(text), "a" * 40 + "。")
+
+    def test_long_text_without_sentence_end_gets_ellipsis(self) -> None:
+        text = "x" * 200
+        out = _one_line_conclusion(text)
+        self.assertTrue(out.endswith("…"))
+        self.assertLessEqual(len(out), 71)
+
+    def test_cut_prefers_comma_over_mid_word(self) -> None:
+        text = "前半句说清楚结论，" + "y" * 100
+        out = _one_line_conclusion(text)
+        self.assertTrue(out.endswith("…"))
+        self.assertNotIn("y", out)
+
+
+class StripMissingNoteTests(unittest.TestCase):
+    def test_note_inside_sentence_is_removed(self) -> None:
+        cleaned = _strip_missing_notes("样本为 24 个星系。恒星质量区间全文节选未检出。")
+        self.assertNotIn("全文节选未检出", cleaned)
+        self.assertIn("样本为 24 个星系", cleaned)
+
+    def test_note_only_becomes_empty(self) -> None:
+        self.assertEqual(_strip_missing_notes("全文节选未检出"), "")
 
 
 if __name__ == "__main__":

@@ -134,6 +134,22 @@ def _strip_missing_notes(value: str) -> str:
     return "" if not cleaned.strip("，。；、！？：;:, \t") else cleaned.strip()
 
 
+def _one_line_conclusion(text: str, limit: int = 70) -> str:
+    """把一句话结论压到一行，优先在句读处收尾，别把半句砍在词中间。"""
+    text = (text or "").strip()
+    if not text or len(text) <= limit:
+        return text
+    head = text[:limit]
+    for mark in ("。", "！", "？", "；", ";"):
+        index = head.rfind(mark)
+        if index >= 6:
+            return text[: index + 1]
+    index = head.rfind("，")
+    if index >= 6:
+        return head[:index].rstrip() + "…"
+    return head.rstrip() + "…"
+
+
 def _text(value: Any, default: str = "") -> str:
     if isinstance(value, str):
         return " ".join(value.split())
@@ -649,17 +665,21 @@ def assess(
         else:
             LOGGER.warning("过滤评论中数字无法回查的字段：%s", key)
             values[key] = MISSING_FULLTEXT if basis == "fulltext" else MISSING
-    for key in ("background", "method_detail"):
+    for key in (*FACT_KEYS, "background", "method_detail"):
         value = values.get(key)
-        if value:
-            values[key] = _strip_missing_notes(value)
+        if not value:
+            continue
+        cleaned = _strip_missing_notes(value)
+        # 整段都只是占位符时保留占位标签，别渲染成空白行。
+        values[key] = cleaned or (MISSING_FULLTEXT if basis == "fulltext" else MISSING)
     background_value = values.get("background") or ""
     if facts.get("motivation", Fact()).is_missing and not background_value:
         values["background"] = "原文未提供可核对的研究动机"
     verdict = _strip_missing_notes(values.get("verdict") or "")
     if not verdict or verdict in (MISSING, MISSING_FULLTEXT):
         fallback = _strip_missing_notes(values.get("result") or analysis.result)
-        verdict = fallback[:60] if fallback and fallback not in (MISSING, MISSING_FULLTEXT) else "原文未提供可核对的一句话结论"
+        verdict = (_one_line_conclusion(fallback) if fallback and fallback not in (MISSING, MISSING_FULLTEXT)
+                   else "原文未提供可核对的一句话结论")
     values["verdict"] = verdict
     for key in ("for_you", "read_reason", "relevance_reason"):
         value = getattr(analysis, key)
