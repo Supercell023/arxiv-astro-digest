@@ -6,10 +6,10 @@
 
 冷眼筛过一遍，再交到你手上。
 
-[![](https://img.shields.io/badge/version-0.18.0-6D28D9?style=flat-square)](CHANGELOG.md)
+[![](https://img.shields.io/badge/version-0.19.0-6D28D9?style=flat-square)](CHANGELOG.md)
 [![](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
 [![](https://img.shields.io/badge/License-MIT-EAB308?style=flat-square)](LICENSE)
-[![](https://img.shields.io/badge/tests-176-22C55E?style=flat-square)](tests/)
+[![](https://img.shields.io/badge/tests-183-22C55E?style=flat-square)](tests/)
 [![](https://img.shields.io/badge/selfcheck-27-0891B2?style=flat-square)](arxiv_digest/selfcheck.py)
 [![](https://img.shields.io/badge/Actions-Supported-2088FF?style=flat-square&logo=githubactions&logoColor=white)](.github/workflows/daily-arxiv-digest.yml)
 
@@ -252,7 +252,7 @@ flowchart TB
 | --- | --- | --- |
 | `DEEP_PAPERS` / `BRIEF_PAPERS` | 4 / 10 | 只决定排版；内容按证据写足 |
 | `ANALYSIS_ENABLED` | false | 精读两阶段分析 |
-| `FULLTEXT_ENABLED` | true | 抓 PDF 取全文节选 |
+| `FULLTEXT_ENABLED` | true | 抓 PDF，整篇全文送给模型 |
 | `PREPRINT_ENABLED` | true | 期刊论文反查 arXiv 预印本 |
 | `JOURNALS_ENABLED` | true | ApJ / MNRAS / NatAs / AJ / A&A |
 | `ARCHIVE_ENABLED` | true | 写 Google 表格（未配 URL 自动跳过） |

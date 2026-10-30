@@ -56,7 +56,7 @@ def build_papers(spec: dict, *, allow_network: bool = False) -> tuple[list[Paper
             if not raw.get("fetch_fulltext"):
                 continue
             text = fetch_fulltext(pdf_url_for(paper.abs_url, paper.pdf_url),
-                                  max_chars=int(spec.get("fulltext_max_chars") or 40000))
+                                  max_chars=int(spec.get("fulltext_max_chars") or 0))
             notes.append(f"{paper.id}: PDF {'已获取' if text else '失败，保留录制内容'}")
             if text and paper.analysis:
                 papers[index] = replace(paper, analysis=replace(paper.analysis, figures=extract_figure_captions(text)))

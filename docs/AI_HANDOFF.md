@@ -1,6 +1,13 @@
 # 给下一位 AI 的交接说明
 
-最后更新：2026-10-29，**v0.18.0 工作区**。先读 [长期热点档案](ARCHIVE.md)、[期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+最后更新：2026-10-30，**v0.19.0 工作区**。先读 [长期热点档案](ARCHIVE.md)、[期刊全文兜底报告](CHANGE_REPORT_2026-10-26_JOURNAL_FULLTEXT.md)、[审查修复报告](CHANGE_REPORT_2026-10-26_PATCH.md)、[v0.14.0 审查全文](REVIEW_2026-10-26_V2.md)、[周报/资讯改动与验收报告](CHANGE_REPORT_2026-10-26_V014.md)、[v0.14 验证记录](VALIDATION_2026-10-26_V014.json) 和 [配置说明](CONFIG.md)。然后按需回看 [v0.13 复审](REVIEW_2026-10-26_POST_FIX.md)、[原审阅基线](REVIEW_2026-10-26.md) 与 [v0.13 改动报告](CHANGE_REPORT_2026-10-26.md)。`PROJECT_REVIEW.md` 是早期历史材料。
+
+## v0.19 当前进展：精读直接读整篇 PDF
+
+- `FULLTEXT_MAX_CHARS=0` / `FULLTEXT_MAX_PAGES=0` 为新默认：`fetch_fulltext` 下载的全文（砍参考文献后）原样返回，`condense` 与 `analysis._excerpt` 只在显式正数预算时才裁剪；`_extract_pdf_text` 在 `max_pages<=0` 时解析全部页。
+- 单篇全文分析抛错时自动用摘要重跑一次（`analyze_papers`），避免一张卡片整篇空白；每篇日志打印"全文 N 字符，整篇送入抽取"。
+- 验证：**183 项离线测试（新增 7 项 `tests/test_fulltext_unlimited.py`）、27 项自检、`pip check` 通过**；真实 PDF `2610.35100` 抽出 49,750 字符（旧 40k 预算下仅 24,977），`sample`/`systematic` 在文中。真实模型两阶段与 SMTP 未复跑。
+- 已知边界：全文远超模型上下文时仍会失败，走摘要降级；`MAX_EXTRACT_CHARS=500_000` 是抽取层硬上限，触顶会 warning。
 
 ## v0.18 当前进展：中文摘要与雷达口吻
 

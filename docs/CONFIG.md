@@ -233,8 +233,8 @@ QQ / 163 会校验发件人与登录账号是否一致，不一致直接拒发�
 | 变量 | 默认 | 说明 |
 | --- | --- | --- |
 | `FULLTEXT_ENABLED` | true | 关闭则精读退回摘要级（卡片标"仅摘要"） |
-| `FULLTEXT_MAX_CHARS` | 40000 | 送进模型的正文上限，约 1 万 token |
-| `FULLTEXT_MAX_PAGES` | 40 | 最多解析多少页 |
+| `FULLTEXT_MAX_CHARS` | 0 | 送进模型的正文上限；**0 = 整篇全文，不截取** |
+| `FULLTEXT_MAX_PAGES` | 0 | 最多解析多少页；0 = 所有页 |
 | `FULLTEXT_TIMEOUT` | 120 | 单篇下载超时（秒） |
 
 关掉全文能省一半成本，但 `data / processing / systematics` 三个字段会大面积变成"摘要未提"。

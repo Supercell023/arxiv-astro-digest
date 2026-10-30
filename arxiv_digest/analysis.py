@@ -39,7 +39,7 @@ EXTRACT_KEYS: tuple[str, ...] = FACT_KEYS + ("motivation",)
 # 数值回查失败时按分句降级：只丢含不可回查数字的那半句，不整段清空。
 _CLAUSE_SPLIT = re.compile(r"[^。！？；;]+[。！？；;]?")
 MAX_TEXT_CHARS = 2200
-MAX_FULLTEXT_PROMPT_CHARS = 36_000
+MAX_FULLTEXT_PROMPT_CHARS = 0  # 0 = 整篇全文送进模型，不节选
 MAX_NUMBERS = 6
 MAX_CONCEPTS = 4
 MISSING = "摘要未提"
@@ -104,10 +104,11 @@ def _clip(text: str, limit: int = MAX_TEXT_CHARS) -> str:
 
 
 def _excerpt(text: str, limit: int = MAX_FULLTEXT_PROMPT_CHARS) -> str:
-    """在 prompt 预算内挑全文：保留开头，再补含样本/筛选/系统误差关键词的句子。
+    """返回送进模型的全文。
 
-    以前直接截前 N 个字符，论文一长就只剩引言：数据、处理、系统误差都被截在
-    预算之外，精读卡于是满屏"全文节选未检出"（2026-10-26 本地实跑复现）。
+    默认 limit=0：整篇原样返回，不截取、不做关键词挑选——模型自己从全文里找
+    "样本怎么选、误差怎么校正"，不再因为节选只覆盖引言而满屏"全文节选未检出"。
+    仍保留 limit>0 的分支，供测试与手动降级使用。
     """
     if limit <= 0 or len(text) <= limit:
         return text
@@ -669,6 +670,8 @@ def analyze_paper(
 ) -> Paper:
     pack = dispatch(packs, paper.categories, hint=paper.pack_hint, title=paper.title)
     basis = "fulltext" if fulltext else "abstract"
+    if fulltext:
+        LOGGER.info("%s 全文 %d 字符，整篇送入抽取。", paper.id, len(fulltext))
     bundle = extract_bundle(client, extract_model, paper, fulltext=fulltext, options=extract_options, cache_dir=cache_dir)
     figures = extract_figure_captions(fulltext) if fulltext else ()
     analysis = assess(
@@ -731,5 +734,25 @@ def analyze_papers(
             )
         except Exception as exc:
             LOGGER.warning("两阶段分析失败（%s）：%s，保留原摘要。", paper.id, exc)
+            if texts.get(paper.id):
+                # 全文最常见的失败原因是超出模型上下文：退回摘要再试一次，
+                # 至少让卡片有摘要级判断，而不是整篇空白。
+                try:
+                    results[paper.id] = analyze_paper(
+                        client,
+                        paper,
+                        profile,
+                        packs,
+                        extract_model=extract_model,
+                        assess_model=assess_model,
+                        fulltext=None,
+                        library=library,
+                        extract_options=extract_options,
+                        assess_options=assess_options,
+                        cache_dir=cache_dir,
+                    )
+                    LOGGER.info("全文分析失败，已用摘要重试：%s", paper.id)
+                except Exception as retry_exc:
+                    LOGGER.warning("摘要重试仍失败（%s）：%s", paper.id, retry_exc)
 
     return [results.get(paper.id, paper) if paper.id in target_ids else paper for paper in papers]

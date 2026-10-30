@@ -294,10 +294,12 @@ def _check_fulltext() -> str:
     long_text = ("head sentence about sample selection. " * 40) + ("tail " * 200)
     trimmed = condense(long_text, max_chars=600)
     assert len(trimmed) <= 1200, "裁剪没生效"
+    assert condense(long_text) == long_text, "默认应整篇返回，不做截取"
+    assert condense(long_text, max_chars=0) == long_text, "max_chars=0 应视为不限制"
 
     assert pdf_url_for("https://arxiv.org/abs/2610.26492").endswith("/pdf/2610.26492")
     assert pdf_url_for("https://arxiv.org/abs/1234", "https://x/y.pdf") == "https://x/y.pdf"
-    return "断行修复 / 砍参考文献 / 预算裁剪 / PDF 链接推导 均正常"
+    return "断行修复 / 砍参考文献 / 默认全文（可选裁剪）/ PDF 链接推导 均正常"
 
 
 def _check_analysis() -> str:

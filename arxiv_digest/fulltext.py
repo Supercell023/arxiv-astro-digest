@@ -28,8 +28,8 @@ from .storage import atomic_json
 
 LOGGER = logging.getLogger(__name__)
 
-DEFAULT_MAX_CHARS = 40_000
-DEFAULT_MAX_PAGES = 40
+DEFAULT_MAX_CHARS = 0  # 0 = 整篇全文，不再裁剪
+DEFAULT_MAX_PAGES = 0  # 0 = 所有页
 DEFAULT_TIMEOUT = 120
 DOWNLOAD_ATTEMPTS = 2
 MAX_PDF_BYTES = 25 * 1024 * 1024
@@ -137,7 +137,7 @@ def _extract_pdf_text(pdf_bytes: bytes, *, max_pages: int = DEFAULT_MAX_PAGES) -
 
     try:
         reader = PdfReader(io.BytesIO(pdf_bytes))
-        pages = islice(reader.pages, max(0, max_pages))
+        pages = reader.pages if max_pages <= 0 else islice(reader.pages, max_pages)
     except Exception as exc:
         LOGGER.warning("解析 PDF 失败：%s", exc)
         return ""
@@ -150,6 +150,7 @@ def _extract_pdf_text(pdf_bytes: bytes, *, max_pages: int = DEFAULT_MAX_PAGES) -
             chunks.append(chunk)
             used += len(chunk)
             if used >= MAX_EXTRACT_CHARS:
+                LOGGER.warning("PDF 正文超过 %d 字符上限，后续页已丢弃。", MAX_EXTRACT_CHARS)
                 break
         except Exception as exc:  # 单页坏掉不该毁掉整篇
             LOGGER.debug("单页抽取失败：%s", exc)
@@ -209,7 +210,10 @@ def cut_references(text: str) -> str:
 
 
 def condense(text: str, max_chars: int = DEFAULT_MAX_CHARS) -> str:
-    """按预算保留"开头 + 关键词句"，给模型一个高信息密度的窗口。"""
+    """按预算保留"开头 + 关键词句"，给模型一个高信息密度的窗口。
+
+    max_chars <= 0 时原样返回（默认行为：整篇全文送进模型，不做截取）。
+    """
     if max_chars <= 0 or len(text) <= max_chars:
         return text
 

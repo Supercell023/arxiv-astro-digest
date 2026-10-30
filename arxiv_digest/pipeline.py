@@ -20,7 +20,7 @@ from .contracts import DIGEST_VERSION, paper_to_dict
 from .identity import canonical_id
 from .storage import atomic_json, delivery_lock
 from .cache import prune_cache
-from .fulltext import DEFAULT_MAX_PAGES, fetch_fulltext, pdf_url_for
+from .fulltext import fetch_fulltext, pdf_url_for
 from .feedback import (
     apply_feedback,
     load_feedback,
@@ -158,7 +158,7 @@ def _fetch_fulltexts(config: Config, papers: list[Paper]) -> dict[str, str]:
         text = fetch_fulltext(
             url,
             max_chars=config.fulltext_max_chars,
-            max_pages=config.fulltext_max_pages or DEFAULT_MAX_PAGES,
+            max_pages=config.fulltext_max_pages,
             timeout=config.fulltext_timeout,
             parse_timeout=config.fulltext_parse_timeout,
             cache_dir=config.cache_dir,

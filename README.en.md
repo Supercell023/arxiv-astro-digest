@@ -6,10 +6,10 @@
 
 Filtered coldly, then handed over.
 
-[![](https://img.shields.io/badge/version-0.18.0-6D28D9?style=flat-square)](CHANGELOG.md)
+[![](https://img.shields.io/badge/version-0.19.0-6D28D9?style=flat-square)](CHANGELOG.md)
 [![](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
 [![](https://img.shields.io/badge/License-MIT-EAB308?style=flat-square)](LICENSE)
-[![](https://img.shields.io/badge/tests-176-22C55E?style=flat-square)](tests/)
+[![](https://img.shields.io/badge/tests-183-22C55E?style=flat-square)](tests/)
 [![](https://img.shields.io/badge/selfcheck-27-0891B2?style=flat-square)](arxiv_digest/selfcheck.py)
 [![](https://img.shields.io/badge/Actions-Supported-2088FF?style=flat-square&logo=githubactions&logoColor=white)](.github/workflows/daily-arxiv-digest.yml)
 
@@ -252,7 +252,7 @@ What each value is and where to get it: [docs/CONFIG.md](docs/CONFIG.md), sectio
 | --- | --- | --- |
 | `DEEP_PAPERS` / `BRIEF_PAPERS` | 4 / 10 | Layout only; content is written to the evidence |
 | `ANALYSIS_ENABLED` | false | Two-stage deep read |
-| `FULLTEXT_ENABLED` | true | Fetch PDFs for excerpts |
+| `FULLTEXT_ENABLED` | true | Fetch full PDFs; no truncation |
 | `PREPRINT_ENABLED` | true | Resolve journal DOIs to arXiv preprints |
 | `JOURNALS_ENABLED` | true | ApJ / MNRAS / NatAs / AJ / A&A |
 | `ARCHIVE_ENABLED` | true | Write the sheet (skipped when no URL) |

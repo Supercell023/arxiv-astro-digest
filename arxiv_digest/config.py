@@ -235,13 +235,17 @@ class Config:
     def __post_init__(self) -> None:
         positive = ("arxiv_fetch_max_results", "arxiv_page_size", "arxiv_max_pages", "arxiv_request_timeout",
                     "arxiv_request_retries", "max_papers", "llm_batch_size", "lookback_days", "smtp_timeout",
-                    "llm_timeout", "fulltext_timeout", "fulltext_parse_timeout", "fulltext_max_chars", "fulltext_max_pages",
+                    "llm_timeout", "fulltext_timeout", "fulltext_parse_timeout",
                     "journals_rows", "journals_max_per", "journals_timeout", "sources_timeout", "sources_max_items", "zotero_limit",
                     "preprint_timeout", "preprint_max_results", "archive_timeout", "archive_max_rows",
                     "archive_snippet_chars")
         for name in positive:
             if getattr(self, name) < 1:
                 raise ValueError(f"{name} 必须 >= 1")
+        # 0 表示"不截断"：全文整篇送进模型。
+        for name in ("fulltext_max_chars", "fulltext_max_pages"):
+            if getattr(self, name) < 0:
+                raise ValueError(f"{name} 必须 >= 0（0 = 不限制）")
         if self.preprint_abstract_lookups < 0:
             raise ValueError("PREPRINT_ABSTRACT_LOOKUPS 必须 >= 0")
         if not 1 <= self.archive_max_rows <= 1000:
@@ -318,8 +322,8 @@ def load_config() -> Config:
         packs_dir=_env("PACKS_DIR", "config/packs"),
         fields=_split_csv(_env("FIELDS", "")),
         fulltext_enabled=_env_bool("FULLTEXT_ENABLED", True),
-        fulltext_max_chars=_env_int("FULLTEXT_MAX_CHARS", 40000),
-        fulltext_max_pages=_env_int("FULLTEXT_MAX_PAGES", 40),
+        fulltext_max_chars=_env_int("FULLTEXT_MAX_CHARS", 0),
+        fulltext_max_pages=_env_int("FULLTEXT_MAX_PAGES", 0),
         fulltext_timeout=_env_int("FULLTEXT_TIMEOUT", 120),
         journals_enabled=_env_bool("JOURNALS_ENABLED", True),
         journals_path=_env("JOURNALS_PATH", "config/journals.yaml"),
