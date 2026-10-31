@@ -405,7 +405,53 @@
     "2610.40015": "2026-10-30",
     "2610.40326": "2026-10-30",
     "2610.40272": "2026-10-30",
-    "2610.39587": "2026-10-30"
+    "2610.39587": "2026-10-30",
+    "doi:10.1051/0004-6361/202661781": "2026-10-31",
+    "doi:10.1093/mnras/stag2074": "2026-10-31",
+    "2610.40534": "2026-10-31",
+    "doi:10.1093/mnras/stag2063": "2026-10-31",
+    "2610.40411": "2026-10-31",
+    "2610.40606": "2026-10-31",
+    "2610.40633": "2026-10-31",
+    "2610.40610": "2026-10-31",
+    "2610.40347": "2026-10-31",
+    "2610.39788": "2026-10-31",
+    "2610.40550": "2026-10-31",
+    "2610.38973": "2026-10-31",
+    "doi:10.1051/0004-6361/202663016": "2026-10-31",
+    "2610.39118": "2026-10-31",
+    "2610.39431": "2026-10-31",
+    "2610.40341": "2026-10-31",
+    "doi:10.3847/1538-4357/aea97f": "2026-10-31",
+    "rss:universetoday:ee0f1202a6a4824a7ab76b85": "2026-10-31",
+    "rss:physorg:2227946ae268012d19eb5d18": "2026-10-31",
+    "rss:universetoday:44b5e19453dd1b05c3c0575e": "2026-10-31",
+    "rss:universetoday:d604f158253750ffcfea3f9c": "2026-10-31",
+    "rss:physorg:0f7b868b8a15bcc90158cc85": "2026-10-31",
+    "rss:nasa:82f7fcab2882faffcbd4fa03": "2026-10-31",
+    "rss:aasnova:bb8372d343116eb2cce4843f": "2026-10-31",
+    "rss:physorg:ed153a15e0b7dc8c95bd5dcd": "2026-10-31",
+    "rss:aasnova:c799beadb83780962f4023d8": "2026-10-31",
+    "rss:nasa:895117d699b6a272628a3058": "2026-10-31",
+    "rss:nasa:7aa6dab0376044f6c887c5ca": "2026-10-31",
+    "rss:physorg:ba3a6537082e7ca4d1df6889": "2026-10-31",
+    "rss:physorg:c197962fd3faae4613efe199": "2026-10-31",
+    "rss:physorg-physics:de44ae3fff1793e13a9a36d0": "2026-10-31",
+    "rss:physorg-physics:00239dab412796bec1b0833b": "2026-10-31",
+    "rss:physorg-physics:9fabda28f7948ecffbd47b5c": "2026-10-31",
+    "rss:physorg-physics:2b35d319cb5e07b548c176d4": "2026-10-31",
+    "rss:physorg-physics:d69e2c368a62463a8fa8c701": "2026-10-31",
+    "rss:sciencedaily-physics:2f68d9270b17c58271fa4003": "2026-10-31",
+    "rss:sciencedaily-physics:54ab6a90455a94bd0bcf8d3d": "2026-10-31",
+    "rss:physorg-chemistry:768deab041753f81b37bab8c": "2026-10-31",
+    "rss:physorg-chemistry:eefd0e11294f7f3f6ea785bf": "2026-10-31",
+    "rss:physorg-chemistry:77871bdadcaef5d9b3664a54": "2026-10-31",
+    "rss:sciencedaily-archaeology:8cbc5e7f2766ed418664ef3f": "2026-10-31",
+    "2610.40527": "2026-10-31",
+    "2610.40375": "2026-10-31",
+    "2610.40631": "2026-10-31",
+    "2610.40493": "2026-10-31",
+    "2610.40456": "2026-10-31"
   },
   "daily": {
     "2026-10-26": {
@@ -452,24 +498,30 @@
       "astro-ph.IM": 2,
       "hep-th": 2,
       "astro-ph.HE": 1
+    },
+    "2026-10-30": {
+      "astro-ph.SR": 1,
+      "astro-ph.GA": 5,
+      "astro-ph.CO": 6,
+      "astro-ph.HE": 2
     }
   },
   "fetched": {
     "astrobites": "2026-10-26",
-    "aasnova": "2026-10-30",
-    "nasa": "2026-10-30",
-    "physorg": "2026-10-30",
-    "universetoday": "2026-10-30",
+    "aasnova": "2026-10-31",
+    "nasa": "2026-10-31",
+    "physorg": "2026-10-31",
+    "universetoday": "2026-10-31",
     "esa": "2026-10-26",
     "eso": "2026-10-26",
     "desi": "2026-10-26",
     "keck": "2026-10-26",
-    "physorg-physics": "2026-10-30",
-    "sciencedaily-physics": "2026-10-30",
-    "physorg-chemistry": "2026-10-30",
-    "sciencedaily-chemistry": "2026-10-30",
-    "smithsonian-history": "2026-10-30",
-    "sciencedaily-archaeology": "2026-10-30"
+    "physorg-physics": "2026-10-31",
+    "sciencedaily-physics": "2026-10-31",
+    "physorg-chemistry": "2026-10-31",
+    "sciencedaily-chemistry": "2026-10-31",
+    "smithsonian-history": "2026-10-31",
+    "sciencedaily-archaeology": "2026-10-31"
   },
   "observations": {
     "2610.35570": {
@@ -1167,6 +1219,62 @@
     "2610.38654": {
       "day": "2026-10-29",
       "category": "astro-ph.GA"
+    },
+    "2610.40656": {
+      "day": "2026-10-30",
+      "category": "astro-ph.SR"
+    },
+    "2610.40633": {
+      "day": "2026-10-30",
+      "category": "astro-ph.GA"
+    },
+    "2610.40617": {
+      "day": "2026-10-30",
+      "category": "astro-ph.CO"
+    },
+    "2610.40610": {
+      "day": "2026-10-30",
+      "category": "astro-ph.HE"
+    },
+    "2610.40609": {
+      "day": "2026-10-30",
+      "category": "astro-ph.GA"
+    },
+    "2610.40606": {
+      "day": "2026-10-30",
+      "category": "astro-ph.HE"
+    },
+    "2610.40550": {
+      "day": "2026-10-30",
+      "category": "astro-ph.CO"
+    },
+    "2610.40534": {
+      "day": "2026-10-30",
+      "category": "astro-ph.GA"
+    },
+    "2610.40415": {
+      "day": "2026-10-30",
+      "category": "astro-ph.CO"
+    },
+    "2610.40411": {
+      "day": "2026-10-30",
+      "category": "astro-ph.CO"
+    },
+    "2610.40388": {
+      "day": "2026-10-30",
+      "category": "astro-ph.GA"
+    },
+    "2610.40365": {
+      "day": "2026-10-30",
+      "category": "astro-ph.GA"
+    },
+    "2610.40347": {
+      "day": "2026-10-30",
+      "category": "astro-ph.CO"
+    },
+    "2610.40341": {
+      "day": "2026-10-30",
+      "category": "astro-ph.CO"
     }
   },
   "materials": {
@@ -1763,24 +1871,6 @@
       "date": "2026-10-26",
       "text": "The James Webb Space Telescope (JWST) and Nancy Roman Space Telescope are revealing the universe's earliest chapters in detail. To help astronomers understand what they are seeing, researchers at the Center for Astrophysics | Harvard & Smithsonian have developed \"Lumina,\" one of the largest and most detailed simulations ever created of the early universe.",
       "url": "https://phys.org/news/2026-10-lumina-simulation-early-universe-life.html"
-    },
-    "rss:aasnova:a2bdbae9e2de3fc0b8cb2e8f": {
-      "id": "rss:aasnova:a2bdbae9e2de3fc0b8cb2e8f",
-      "kind": "secondary",
-      "title": "Radio Observations of the Unusual Tidal Disruption Event AT 2022wtn: A Fast and Highly Energetic Outflow",
-      "source": "AAS Nova",
-      "date": "2026-10-24",
-      "text": "Gavin Farley et al 2026 ApJ 1006 139 Astronomers continue to find tidal disruption events with diverse properties; AT 2022wtn is an unusually powerful non-relativistic tidal disruption event potentially exhibiting an accretion disk state transition outflow. The post Radio Observations of the Unusual Tidal Disruption Event AT 2022wtn: A Fast and Highly Energetic Outflow appeared first on AAS Nova .",
-      "url": "https://doi.org/10.3847/1538-4357/ae81aa#new_tab?utm_source=rss&utm_medium=rss&utm_campaign=radio-observations-of-the-unusual-tidal-disruption-event-at-2022wtn-a-fast-and-highly-energetic-outflow"
-    },
-    "rss:aasnova:c0dc2e352693a54acb8994bc": {
-      "id": "rss:aasnova:c0dc2e352693a54acb8994bc",
-      "kind": "secondary",
-      "title": "Anybody Home? Black Hole Occupation Fraction Helps Clarify Galactic History",
-      "source": "AAS Nova",
-      "date": "2026-10-24",
-      "text": "Most galaxies are expected to contain at least one massive black hole, but how robust is this prediction? New research uses simulations to look at which galaxies tend to have more or fewer black holes, and with what properties. The post Anybody Home? Black Hole Occupation Fraction Helps Clarify Galactic History appeared first on AAS Nova .",
-      "url": "https://aasnova.org/2026/10/23/anybody-home-black-hole-occupation-fraction-helps-clarify-galactic-history/?utm_source=rss&utm_medium=rss&utm_campaign=anybody-home-black-hole-occupation-fraction-helps-clarify-galactic-history"
     },
     "2610.37455": {
       "id": "2610.37455v1",
@@ -3527,6 +3617,267 @@
       "date": "2026-10-29",
       "text": "Sixty-three light-years from Earth, in the small, faint constellation known as Pictor (which is Latin for \"painter\"), there lies a strange structure that has puzzled astronomers for the last two years. Nicknamed the \"Cat's Tail,\" this dark feature stretches across an abyss of space about a thousand times the average distance between Earth and the sun.",
       "url": "https://phys.org/news/2026-10-enormous-cat-tail-cosmic-collision.html"
+    },
+    "2610.40656": {
+      "id": "2610.40656v1",
+      "kind": "paper",
+      "title": "The $δ$ Scuti instability strip and period-luminosity relation as seen by TESS and Gaia DR3",
+      "source": "arXiv",
+      "date": "2026-10-30",
+      "text": "We present an asteroseismic survey of 1,526,218 A- and F-type stars in and around the $δ$ Scuti instability strip using TESS 10-minute cadence data, which resolve the full $δ$ Scuti pulsation spectra across nearly the entire sky. We derive homogeneous stellar parameters from Gaia DR3 parallaxes and archival photometry, with temperatures that agree with interferometry to within ~300 K. A Positive--Unlabelled classifier identifies 156,706 $δ$ Scuti pulsators, which on average rotate significantly faster than non-variable A-type stars. Within the instability strip in the $T_{eff}$--$\\log L$ plane, the pulsator fraction peaks at 30% over the full sample and rises to 80% in the brightest magnitude bins. Detection sensitivity therefore accounts for much, but not all, of the apparent impurity of the strip. Our period--luminosity relation agrees with previous determinations, and we recast it as ",
+      "url": "https://arxiv.org/abs/2610.40656v1"
+    },
+    "2610.40633": {
+      "id": "2610.40633v1",
+      "kind": "paper",
+      "title": "PRISMS GHZ8: Evidence for a Young Burst and Potential Merger Activity at z=10.23",
+      "source": "arXiv",
+      "date": "2026-10-30",
+      "text": "UV-bright galaxies in the early Universe provide important constraints on the rapid build-up of stellar mass and the sources responsible for cosmic reionization. However, the physical processes that drive their high UV luminosities remain unclear. Here we report JWST/MIRI LRS spectroscopy of GHZ8, a UV-bright galaxy at z=10.23 with a magnification $μ=1.23$. The spectrum shows a $\\sim 5σ$ detection for the $\\rm Hβ$-[OIII] complex and $\\sim 4σ$ for $\\rm Hα$ line, with fluxes of $3.2\\pm0.9\\times10^{-18}$ and $\\rm 1.7\\pm0.4\\times10^{-18}\\,erg\\,s^{-1}\\,cm^{-2}$, respectively. Based on JWST/NIRCam imaging, we find that GHZ8 consists of two components separated only by 0.16\" ($\\approx600$ pc): a bright, extended main component and a faint, compact southeastern clump, hereafter referred to as GHZ8-main and GHZ8-SE. Through morphological decomposition, we find demagnified $M_{UV}=-19.91\\pm0.10$ a",
+      "url": "https://arxiv.org/abs/2610.40633v1"
+    },
+    "2610.40617": {
+      "id": "2610.40617v1",
+      "kind": "paper",
+      "title": "Field-level inference under pressure: the information content of the thermal Sunyaev-Zel'dovich field",
+      "source": "arXiv",
+      "date": "2026-10-30",
+      "text": "The thermal Sunyaev--Zel'dovich (tSZ) field is highly non-Gaussian and contains cosmological information that cannot be fully captured by its angular power spectrum. In this work, we investigate the information content of this field using a convolutional neural network (CNN), and compare to simple and interpretable summary statistics, in a simulation-based inference (SBI) framework. We perform the first field-level analysis of the tSZ field, using a suite of $10{,}000$ simulated Compton-$y$ maps, where we jointly vary the cosmological parameters $Ω_c$ and $σ_8$ (the density fraction for cold dark matter and the matter clustering amplitude, respectively) and two parameters describing the amplitude and shape of the electron pressure profile, $P_0$ and $β$, that aim to capture astrophysical uncertainties. We consider both noiseless simulations and simulations including realistic Simons Obse",
+      "url": "https://arxiv.org/abs/2610.40617v1"
+    },
+    "2610.40610": {
+      "id": "2610.40610v1",
+      "kind": "paper",
+      "title": "The Conditional CMB Visibility of High-Redshift X-Ray Cavities in Galaxy clusters",
+      "source": "arXiv",
+      "date": "2026-10-30",
+      "text": "At high redshift, the cosmic microwave background (CMB) both cools relativistic leptons and provides seed photons for inverse-Compton (IC) X-ray emission. These two effects link the particle content of a bubble directly to the soft X-ray depression used to identify a cavity. We derive a physical criterion connecting lepton cooling, bubble volume, enthalpy evolution, and 0.5--2 keV X-ray visibility, while separating intrinsic filling of the X-ray depression from detector-dependent cavity recovery. For uncooled electron populations described by a power law with spectral index $s=2.5$, minimum Lorentz factor $100\\leqγ_{\\min}\\leq1000$, and maximum Lorentz factor $γ_{\\max}=10^5$, the measured atmosphere of the testbed high-redshift cluster SPT-CL J2215$-$3537 requires 0.6--1.2\\% of the pressure in radiating leptons to fill the soft-band deficit. Across the full tested ranges of $s$, $γ_{\\min}",
+      "url": "https://arxiv.org/abs/2610.40610v1"
+    },
+    "2610.40609": {
+      "id": "2610.40609v1",
+      "kind": "paper",
+      "title": "From Dispersion to Metallicity: Probing the Milky Way Circumgalactic Medium with Fast Radio Bursts",
+      "source": "arXiv",
+      "date": "2026-10-30",
+      "text": "Circumgalactic Medium (CGM) plays a critical role in galactic evolution, serving as the primary reservoir for accretion and outflows. In this work, we present a novel statistical analysis to derive CGM metallicity from the dispersion measure (DM) of 25 Fast Radio Burst (FRB) sightlines. By combining metallicity-dependent oxygen absorption DM estimates with metallicity-independent FRB DMs, we directly constrain the metallicity of the hot phase of the Milky Way (MW) CGM. Considering different diffuse baryon fractions ($f_{\\text{d}} = 0.0, 0.6, 0.8$) in the Intergalactic Medium (IGM) and intervening halos, the median metallicities of CGM are $Z_{\\text{CGM}} = 0.12_{-0.04}^{+0.09} \\, Z_{\\odot}$, $0.26_{-0.12}^{+0.18} \\, Z_{\\odot}$, and $0.39_{-0.20}^{+0.26} \\, Z_{\\odot}$, respectively, by the bootstrapping method. Super-solar metallicity is seen in multiple sightlines for $f_d=0.8$, which is",
+      "url": "https://arxiv.org/abs/2610.40609v1"
+    },
+    "2610.40606": {
+      "id": "2610.40606v1",
+      "kind": "paper",
+      "title": "The unresolved high-mass frontier of the black hole Fundamental Plane",
+      "source": "arXiv",
+      "date": "2026-10-30",
+      "text": "Accreting black holes follow a Fundamental Plane (FP) linking radio and X-ray luminosities to black hole mass, but whether this relation changes in the ultramassive regime, above $\\sim10^{10}\\,\\Msun$, remains unresolved. Brightest cluster galaxies (BCGs) provide the most direct access to this regime, although earlier claims of enhanced radio emission relied largely on heterogeneous nuclear measurements and black hole masses inferred from host-galaxy proxies. We recalibrate the forward FP using galaxies with direct dynamical mass measurements and reassess the evidence for a high-mass radio excess using the available BCG data. We find that the archival proxy-mass sample cannot uniquely establish such an excess because the inferred signal remains sensitive to the mass calibration and radio-selection properties of the sample. Using mock observing programs, we further show that the predictive",
+      "url": "https://arxiv.org/abs/2610.40606v1"
+    },
+    "2610.40550": {
+      "id": "2610.40550v1",
+      "kind": "paper",
+      "title": "An Empirically Calibrated [C II] Luminosity-Halo Mass Relation for Line Intensity Mapping",
+      "source": "arXiv",
+      "date": "2026-10-30",
+      "text": "Millimeter-wave line intensity mapping aims to observe the high-redshift universe through the 158 $μ$m fine-structure line of [C II], the brightest far-infrared line of star-forming galaxies. Whether a [C II] experiment at $z>4$ measures the clustering of large-scale structure, which carries rich cosmological information, rather than the shot noise of the emitters depends on the amplitude and the shape of the [C II] power spectrum. Forecasts often build the power spectrum from a halo mass--luminosity relation, $L(M_h)$, chained from scaling relations measured in other regimes or read off simulations, without a quantified uncertainty. We instead calibrate a double power-law $L(M_h,z)$ on [C II] data alone: the mean [C II] intensity from tomographic cross-correlation at $0.4<z<4.2$ and the luminosity-function measurements and limits at $z\\simeq0$ and $4.3\\lesssim z\\lesssim8$. The four para",
+      "url": "https://arxiv.org/abs/2610.40550v1"
+    },
+    "2610.40534": {
+      "id": "2610.40534v1",
+      "kind": "paper",
+      "title": "The IRAC Distant Cluster Survey",
+      "source": "arXiv",
+      "date": "2026-10-30",
+      "text": "We present the Infrared Array Camera (IRAC) Distant Cluster Survey (IDCS), a catalog of 825 galaxy cluster and group candidates identified in the Boötes field using the PZWav detection code. Candidates are selected using photometric redshift probability distributions derived from twelve-band optical and infrared imaging. The catalog spans $0.08 < z < 2.0$ (median $z = 0.93$) and includes 147 systems at $z \\geq 1.5$. For $z < 1.5$, simulations indicate a purity of $93\\%$ at the adopted S/N $\\geq 4$ threshold and $50\\%$ completeness at $\\log(M_{200c}/M_\\odot) = 13.74 \\pm 0.01$. We validate the cluster photometric redshifts through comparison with spectroscopic data, finding $σ_z/(1+z)=0.017$. Including 18 previously published IRAC Shallow Cluster Survey (ISCS) systems, a total of 80 IDCS cluster candidates are now confirmed through spectroscopy and/or X-ray observations. DESI DR1 spectrosc",
+      "url": "https://arxiv.org/abs/2610.40534v1"
+    },
+    "2610.40415": {
+      "id": "2610.40415v1",
+      "kind": "paper",
+      "title": "OCCAMS: A Multi-Task Learning-Based Investigation of the CMB Power Spectra",
+      "source": "arXiv",
+      "date": "2026-10-30",
+      "text": "How many latent variables are needed to fit the cosmic microwave background (CMB) temperature and polarisation power spectra when a neural network is given no cosmological model, and to what extent do they map onto the standard cosmological parameters? We use multi-task learning with variational autoencoders trained on CLASS-generated spectra (TT, TE, EE) over $2\\le\\ell\\le2500$. No cosmological model is built into the network, and the number of latent variables, $L$, is varied over $L=5$, $6$ and $7$. Their fits are compared to the Planck 2018 data using $\\hatχ^2$, AIC, BIC and Bayesian evidence. Their correspondence with cosmological parameters is measured with normalised mutual information post-training. The loss weights are set within a single training run by uncertainty weighting, with the weight of the disentanglement term either fixed (semi-automated, SA) or learned (completely aut",
+      "url": "https://arxiv.org/abs/2610.40415v1"
+    },
+    "2610.40411": {
+      "id": "2610.40411v1",
+      "kind": "paper",
+      "title": "UNIONS: Red and blue alignments of DESI DR1 galaxies",
+      "source": "arXiv",
+      "date": "2026-10-30",
+      "text": "Intrinsic alignments (IA) of galaxies are a dominant source of systematics in weak-lensing cosmological analyses, and direct measurements on spectroscopic samples are the primary source of priors on their amplitude. We measure the IA of galaxies from the first data release (DR1) of the Dark Energy Spectroscopic Instrument (DESI) as a function of colour, stellar mass, and halo mass, by cross-correlating the DESI spectroscopic catalogues with the weak-lensing shape catalogue of the Ultraviolet Near-Infrared Optical Northern Survey (UNIONS) over up to 2400 deg$^2$. We fit the three-dimensional galaxy-galaxy and galaxy-shape multipoles of the DESI BGS, LRG, and ELG samples, split by colour and stellar mass, with the non-linear linear alignment (NLA) and the tidal alignment and tidal torquing (TATT) models. Halo masses are measured for the BGS red sample from galaxy-galaxy lensing and extende",
+      "url": "https://arxiv.org/abs/2610.40411v1"
+    },
+    "2610.40388": {
+      "id": "2610.40388v1",
+      "kind": "paper",
+      "title": "On the Proper 3D Modeling of Orbits in Wide Binary Gravity Tests",
+      "source": "arXiv",
+      "date": "2026-10-30",
+      "text": "A gravitationally-bound system of wide binary stars with precise 3D relative displacement $\\mathbf{r}$ and velocity $\\mathbf{v}$ can allow a Keplerian orbit reconstruction for an assumed gravitational parameter $G$. A sufficiently large sample of such systems can also be used to directly infer $G$ specific to the sample. When the sky-plane angular coordinates are (essentially) exact and the distances to the binary stars are sufficiently precise, the orbit modeling can be readily done using two internal consistency relations provided by the ratio of angular separations in R.A.\\ and decl.\\ and the physical sky-plane separation $s$ that must be satisfied by any Keplerian orbits. A recent study argued that treating $a$ explicitly free with an empirical prior imposed on it can dramatically change the inference of $G$ in the Chae et al.\\ sample of 36 wide binaries. Here I introduce and test a ",
+      "url": "https://arxiv.org/abs/2610.40388v1"
+    },
+    "2610.40365": {
+      "id": "2610.40365v1",
+      "kind": "paper",
+      "title": "Complex Organic Molecules in Protostars with ALMA Spectral Surveys (COMPASS) VIII. First interstellar detection of fully deuterated methyl cyanide",
+      "source": "arXiv",
+      "date": "2026-10-30",
+      "text": "Deuteration is a powerful metric to gain insight into the formation pathways of interstellar molecules in star forming regions. Our primary goal is to search for the fully deuterated form of methyl cyanide, CD3CN, in the ISM. We used a sensitive imaging spectral survey of the protostellar system L1551 IRS5 in the Taurus molecular cloud performed as part of the Large Program carried out with the Atacama Large Millimeter/submillimeter Array (ALMA) called Complex Organic Molecules in Protostars with ALMA Spectral Surveys (COMPASS). We derived the column densities of methyl cyanide and several of its less abundant isotopologs, including deuterated ones, under the assumption of local thermodynamic equilibrium. All three deuterated isotopologs of methyl cyanide were detected toward the northern binary component of L1551 IRS5. In particular, we report the first interstellar detection of CD3CN. ",
+      "url": "https://arxiv.org/abs/2610.40365v1"
+    },
+    "2610.40347": {
+      "id": "2610.40347v1",
+      "kind": "paper",
+      "title": "Cosmological tests of chameleon dark energy with dark sector coupling",
+      "source": "arXiv",
+      "date": "2026-10-30",
+      "text": "Recent DESI measurements of baryon acoustic oscillations favor a value of $Ω_{\\mathrm m}$ different from that preferred by Planck cosmic microwave background observations. Combined with supernova data, these observations suggest an evolving dark energy equation of state that crosses $w=-1$. As a potential solution to multiple cosmological problems, chameleon dark energy has attracted increasing attention in recent years. In this work, we constrain a chameleon model in which late-time cosmic acceleration is driven by a canonical scalar field nonminimally coupled to dark matter. At early times, the scalar field evolves under the combined influence of its potential and the nonminimal coupling, and its effective mass greatly exceeds the Hubble parameter. The chameleon model with energy transfer from dark energy to dark matter yields a best-fit improvement of $Δχ^2=-7.25$ relative to $Λ\\mathr",
+      "url": "https://arxiv.org/abs/2610.40347v1"
+    },
+    "2610.40341": {
+      "id": "2610.40341v1",
+      "kind": "paper",
+      "title": "Cosmological lensing as a jump process",
+      "source": "arXiv",
+      "date": "2026-10-30",
+      "text": "We develop a jump-process formalism for the probability density function (PDF) of gravitational lensing fields. In the Born approximation, each lens adds a jump to the convergence $κ$ and the two components of the shear, making lensing a jump process in redshift. For independent lenses, the joint PDF of the lensing fields obeys a compensated Kolmogorov-Feller equation, which we solve in closed form in Fourier space and extend to clustered lenses using their two-point correlation function. A Fourier-Hankel inversion then yields the joint PDF of $κ$ and the shear magnitude $γ$, from which the magnification PDF follows, including its high-magnification tail, without sampling noise. We use these PDFs to train an updated version of the FLUMEN emulator, which makes likelihood-based inference from the full magnification distribution feasible across cosmologies. To motivate such analyses, we est",
+      "url": "https://arxiv.org/abs/2610.40341v1"
+    },
+    "doi:10.1093/mnras/stag2074": {
+      "id": "doi:10.1093/mnras/stag2074",
+      "kind": "paper",
+      "title": "pop-cosmos : Galaxy size evolution across structural and star-formation classifications in COSMOS-Web",
+      "source": "MNRAS",
+      "date": "2026-10-30",
+      "text": "Galaxy sizes are correlated with stellar mass and redshift, as characterised by size scaling relations. The inferred forms of these scaling relations are sensitive to how galaxies are classified – either by their star formation activity (e.g. specific star-formation rate, sSFR) or by their morphology markers (e.g. bulge-to-total ratio, Sérsic index). We combine stellar mass and sSFR estimates from pop-cosmos (a generative model trained on COSMOS2020 Spitzer IRAC Ch. 1 &lt; 26) with size and morphology measurements from COSMOS-Web, obtaining 99 369 galaxies. By investigating the size–mass and the size–redshift relations, we show that: (i) the sSFR/morphology splits give quantitatively different slopes, intercepts, and intrinsic scatter behaviour; (ii) intrinsic scatter depends on structural morphology but not on sSFR, which constrains the galaxy–halo connection; (iii) the quiescent and bu",
+      "url": "https://doi.org/10.1093/mnras/stag2074"
+    },
+    "doi:10.1093/mnras/stag2063": {
+      "id": "doi:10.1093/mnras/stag2063",
+      "kind": "paper",
+      "title": "Extracting intrinsic alignments in the Dark Energy Survey’s year 1 data, using the self-calibration method and LSST-DESC tools",
+      "source": "MNRAS",
+      "date": "2026-10-30",
+      "text": "We present the implementation of a Self-Calibration of Intrinsic Alignments of galaxies as an extension to the Vera C. Rubin Observatory’s Legacy Survey of Space and Time (LSST) Dark Energy Science Collaboration (DESC)’s weak lensing 3x2pt pipeline (TXPipe). As a demonstration, we have run this pipeline on the Dark Energy Survey (DES) year one data set. We find indications of a non-zero intrinsic alignment signal in the higher redshift bins, while in the lower bins our results look more uncertain. We believe this is caused by known issues with the individual galaxies photo-z estimation. This effect is particularly harmful for the self-calibration method, since it has high requirements for reliable estimation of the photo-zs, and the need for individual galaxy point estimates and tomographic binning to match. We show how different methods of recreating the redshift probability distributio",
+      "url": "https://doi.org/10.1093/mnras/stag2063"
+    },
+    "rss:universetoday:ee0f1202a6a4824a7ab76b85": {
+      "id": "rss:universetoday:ee0f1202a6a4824a7ab76b85",
+      "kind": "secondary",
+      "title": "Hera Probe Sees Asteroid Pair Separately for First Time",
+      "source": "Universe Today",
+      "date": "2026-10-31",
+      "text": "Planetary defense is a growing concern among the scientific community, as efforts have been made to design and implement missions meant to deflect incoming threats to the Earth well in advance. In 2022, NASA intentionally collided the Double Asteroid Redirection test (DART) planetary defense spacecraft into the smaller asteroid of the binary asteroid, Didymos and Dimorphos, with the latter being the smaller one…",
+      "url": "https://www.universetoday.com/articles/hera-probe-sees-asteroid-pair-separately-for-first-time"
+    },
+    "rss:physorg:2227946ae268012d19eb5d18": {
+      "id": "rss:physorg:2227946ae268012d19eb5d18",
+      "kind": "secondary",
+      "title": "Figuring out where cosmic neutrinos come from is tricky—radio telescopes could help find 'ghost particles' origin",
+      "source": "Phys.org 天文",
+      "date": "2026-10-31",
+      "text": "Neutrinos are funny little particles that weigh almost nothing, making them one of the universe's most elusive building blocks. They can come from objects as mundane as bananas and as exotic as supernovas—the exploding death throes of massive stars. Most neutrinos stream through space and pass through the Earth without interacting with anything.",
+      "url": "https://phys.org/news/2026-10-figuring-cosmic-neutrinos-tricky-radio.html"
+    },
+    "rss:universetoday:44b5e19453dd1b05c3c0575e": {
+      "id": "rss:universetoday:44b5e19453dd1b05c3c0575e",
+      "kind": "secondary",
+      "title": "What Could Split a Black Hole in Two?",
+      "source": "Universe Today",
+      "date": "2026-10-31",
+      "text": "We all know that black holes can collide. It has happened since black holes began to form, early in cosmic time. The result is always a clash that gives off gravitational waves and a giant bang. Since black holes have such strong gravity, it's almost impossible to imagine a way that any force could break one apart. Yet, that's the task that a group of scientists in Europe set for themselves.",
+      "url": "https://www.universetoday.com/articles/what-could-split-a-black-hole-in-two"
+    },
+    "rss:universetoday:d604f158253750ffcfea3f9c": {
+      "id": "rss:universetoday:d604f158253750ffcfea3f9c",
+      "kind": "secondary",
+      "title": "Queen's University Belfast Students Find Neptune's Elusive Trojan Asteroids",
+      "source": "Universe Today",
+      "date": "2026-10-31",
+      "text": "Astronomers at Queen’s University Belfast have led an international team studying new solar system bodies near Neptune, helping to unravel the mysteries of our solar system’s evolution.",
+      "url": "https://www.universetoday.com/articles/queens-university-belfast-students-find-neptunes-elusive-trojan-asteroids"
+    },
+    "rss:physorg:0f7b868b8a15bcc90158cc85": {
+      "id": "rss:physorg:0f7b868b8a15bcc90158cc85",
+      "kind": "secondary",
+      "title": "Tiny photonic chip links telescopes together to view the universe in 'astonishing' detail",
+      "source": "Phys.org 天文",
+      "date": "2026-10-31",
+      "text": "A tiny glass chip developed by researchers at Heriot-Watt University has linked two telescopes together to enable them to act as a single powerful instrument, marking an important step toward a new generation of astronomical technology.",
+      "url": "https://phys.org/news/2026-10-tiny-photonic-chip-links-telescopes.html"
+    },
+    "rss:nasa:82f7fcab2882faffcbd4fa03": {
+      "id": "rss:nasa:82f7fcab2882faffcbd4fa03",
+      "kind": "secondary",
+      "title": "NASA Releases MAX POWER Key Events for Media, Participants",
+      "source": "NASA 新闻",
+      "date": "2026-10-31",
+      "text": "America’s newest aerospace expo and air show – MAX POWER – is fast approaching, and NASA has announced key events beginning Friday, Nov. 6, and running through Sunday, Nov. 8, hosted on and near the agency’s Kennedy Space Center in Florida. Through multiple park experiences at MAX POWER, NASA and a variety of external collaborators […]",
+      "url": "https://www.nasa.gov/news-release/nasa-releases-max-power-key-events-for-media-participants/"
+    },
+    "rss:aasnova:bb8372d343116eb2cce4843f": {
+      "id": "rss:aasnova:bb8372d343116eb2cce4843f",
+      "kind": "secondary",
+      "title": "DPS 58: Days 3 and 4",
+      "source": "AAS Nova",
+      "date": "2026-10-31",
+      "text": "Days 3 and 4 of the 58th Division for Planetary Sciences meeting brought insights from subsurface ice on Mars, discoveries of Neptune trojans, and stories of advocacy successes. The post DPS 58: Days 3 and 4 appeared first on AAS Nova .",
+      "url": "https://aasnova.org/2026/10/30/dps-58-days-3-and-4/?utm_source=rss&utm_medium=rss&utm_campaign=dps-58-days-3-and-4"
+    },
+    "rss:physorg:ed153a15e0b7dc8c95bd5dcd": {
+      "id": "rss:physorg:ed153a15e0b7dc8c95bd5dcd",
+      "kind": "secondary",
+      "title": "A gamma-ray powerhouse's smoking gun? Gas trail points to microquasar jets",
+      "source": "Phys.org 天文",
+      "date": "2026-10-31",
+      "text": "In 2016, a binary star system emitting unusually strong gamma rays was discovered in our galactic neighborhood. Now, astronomers have found the smoking gun, or rather, a smoking trail of cool molecular gas that suggests jets emanating from a microquasar—one of the few known outside the Milky Way—are responsible.",
+      "url": "https://phys.org/news/2026-10-gamma-ray-powerhouse-gun-gas.html"
+    },
+    "rss:aasnova:c799beadb83780962f4023d8": {
+      "id": "rss:aasnova:c799beadb83780962f4023d8",
+      "kind": "secondary",
+      "title": "The Cosmic Sulfur Depletion Problem Extends to Interstellar Object 3I/ATLAS",
+      "source": "AAS Nova",
+      "date": "2026-10-31",
+      "text": "John W. Noonan et al 2026 ApJL 1007 L42 Hubble Space Telescope observations of 3I/ATLAS show that the comet’s coma is depleted in sulfur, which may be due to its formation in a cold, sulfur-depleted environment that was shielded from ultraviolet light. The post The Cosmic Sulfur Depletion Problem Extends to Interstellar Object 3I/ATLAS appeared first on AAS Nova .",
+      "url": "https://doi.org/10.3847/2041-8213/ae9290#new_tab?utm_source=rss&utm_medium=rss&utm_campaign=the-cosmic-sulfur-depletion-problem-extends-to-interstellar-object-3i-atlas"
+    },
+    "rss:nasa:895117d699b6a272628a3058": {
+      "id": "rss:nasa:895117d699b6a272628a3058",
+      "kind": "secondary",
+      "title": "NASA’s James Webb Space Telescope Captures Eerie Cat’s Head",
+      "source": "NASA 新闻",
+      "date": "2026-10-30",
+      "text": "Intricate structures within the Cat’s Head Nebula are illuminated in this mid-infrared view from NASA’s James Webb Space Telescope released on Oct. 29, 2026. The distinctive “cat’s head” shape of the nebula was likely sculpted over time by the intense ultraviolet radiation and winds from massive stars in the Carina Nebula. As this stellar feedback […]",
+      "url": "https://www.nasa.gov/image-article/nasas-james-webb-space-telescope-captures-eerie-cats-head/"
+    },
+    "rss:nasa:7aa6dab0376044f6c887c5ca": {
+      "id": "rss:nasa:7aa6dab0376044f6c887c5ca",
+      "kind": "secondary",
+      "title": "NASA Explores Potential Commercial Servicing for Hubble Telescope",
+      "source": "NASA 新闻",
+      "date": "2026-10-30",
+      "text": "NASA issued a Request for Information Oct. 29 to learn more about industry capabilities for in-space servicing to support the agency’s Hubble Space Telescope.",
+      "url": "https://science.nasa.gov/missions/hubble/nasa-explores-potential-commercial-servicing-for-hubble-telescope/"
+    },
+    "rss:physorg:ba3a6537082e7ca4d1df6889": {
+      "id": "rss:physorg:ba3a6537082e7ca4d1df6889",
+      "kind": "secondary",
+      "title": "JWST reveals a distant galaxy that may let most of its ionizing radiation escape",
+      "source": "Phys.org 天文",
+      "date": "2026-10-30",
+      "text": "Astronomers using the James Webb Space Telescope (JWST) have found evidence that a distant, exceptionally blue galaxy may allow most of its ionizing radiation to escape into space. Known as EBG-1, the gravitationally lensed galaxy is seen at a redshift of 9.244, about 530 million years after the Big Bang. The paper was posted to the arXiv preprint server on Oct. 16.",
+      "url": "https://phys.org/news/2026-10-jwst-reveals-distant-galaxy-ionizing.html"
+    },
+    "rss:physorg:c197962fd3faae4613efe199": {
+      "id": "rss:physorg:c197962fd3faae4613efe199",
+      "kind": "secondary",
+      "title": "Extraterrestrial detection inspired by firefly communications could distinguish alien signals from pulsars",
+      "source": "Phys.org 天文",
+      "date": "2026-10-30",
+      "text": "When we think of extraterrestrial intelligence that might be out there among the stars, we tend to think of creatures not too unlike us, though maybe with gray skin, probably bald and with big black eyes. We focus on the familiar, humanoids. But there are many intelligent species on Earth that are nonhumanoid: dolphins, crows, pigs and—with swarm if not individual intelligence—ants and bees…",
+      "url": "https://phys.org/news/2026-10-extraterrestrial-firefly-communications-distinguish-alien.html"
     }
   },
   "feedback": {
@@ -6215,9 +6566,9 @@
           "astro-ph.CO"
         ],
         "authors": [
-          "Auclair Pierre",
-          "Gharib Chams",
-          "Steer Danièle"
+          "Pierre Auclair",
+          "Chams Gharib",
+          "Danièle Steer"
         ]
       },
       "2610.39980": {
@@ -7147,6 +7498,281 @@
           "Eduardo Banados",
           "Silvia Belladitta",
           "Frederick Davies"
+        ]
+      },
+      "2610.40656": {
+        "title": "The $δ$ Scuti instability strip and period-luminosity relation as seen by TESS and Gaia DR3",
+        "categories": [
+          "astro-ph.SR",
+          "astro-ph.GA"
+        ],
+        "authors": [
+          "Daniel Hey",
+          "Simon Murphy",
+          "Timothy R. Bedding",
+          "Anuj Gautam",
+          "Daniel Huber",
+          "Yaguang Li",
+          "Ian Berry",
+          "Hyde Kenney",
+          "Prasad Mani",
+          "Tom Love",
+          "Mykyta Kliapets"
+        ]
+      },
+      "2610.40633": {
+        "title": "PRISMS GHZ8: Evidence for a Young Burst and Potential Merger Activity at z=10.23",
+        "categories": [
+          "astro-ph.GA"
+        ],
+        "authors": [
+          "Ruqiu Lin",
+          "Jorge Zavala",
+          "Javier Álvarez-Márquez",
+          "Luis Colina",
+          "Marco Castellano",
+          "Adriano Fontana",
+          "Paola Santini",
+          "Lorenzo Napolitano",
+          "Sarah Kendrew",
+          "Alejandro Crespo Gómez",
+          "Victoria Salazar",
+          "Abdurro'uf",
+          "Stefano Carniani",
+          "Tiger Hsiao",
+          "Yuichi Harikane",
+          "Mahmoud Hamed",
+          "Takuya Hashimoto",
+          "Akio Inoue",
+          "Danial Langeroodi",
+          "Rui Marques-Chaves",
+          "Ikki Mitsuhashi",
+          "Yurina Nakazato",
+          "Borja Pérez-Díaz",
+          "Pierluigi Rinaldi",
+          "Carlota Prieto-Jiménez",
+          "Ana Varo-O'Ferrall",
+          "Fang-Ting Yuan",
+          "Shuairu Zhu",
+          "Zhen-Ya Zheng"
+        ]
+      },
+      "2610.40617": {
+        "title": "Field-level inference under pressure: the information content of the thermal Sunyaev-Zel'dovich field",
+        "categories": [
+          "astro-ph.CO"
+        ],
+        "authors": [
+          "Carmen Embil Villagra",
+          "Adrian E. Bayer",
+          "William R. Coulton",
+          "Alina Sabyr",
+          "Francisco Villaescusa-Navarro",
+          "Blake D. Sherwin",
+          "Anthony Challinor",
+          "J. Colin Hill",
+          "Nicholas Battaglia"
+        ]
+      },
+      "2610.40610": {
+        "title": "The Conditional CMB Visibility of High-Redshift X-Ray Cavities in Galaxy clusters",
+        "categories": [
+          "astro-ph.HE",
+          "astro-ph.CO",
+          "astro-ph.GA"
+        ],
+        "authors": [
+          "Ramananda Santra",
+          "Samik Mitra"
+        ]
+      },
+      "2610.40609": {
+        "title": "From Dispersion to Metallicity: Probing the Milky Way Circumgalactic Medium with Fast Radio Bursts",
+        "categories": [
+          "astro-ph.GA"
+        ],
+        "authors": [
+          "Manami Roy",
+          "Sanskriti Das",
+          "Smita Mathur",
+          "Anjali Gupta",
+          "Yair Krongold"
+        ]
+      },
+      "2610.40606": {
+        "title": "The unresolved high-mass frontier of the black hole Fundamental Plane",
+        "categories": [
+          "astro-ph.HE",
+          "astro-ph.GA",
+          "astro-ph.IM"
+        ],
+        "authors": [
+          "Ramananda Santra",
+          "Samik Mitra",
+          "Shahram Abbassi"
+        ]
+      },
+      "2610.40550": {
+        "title": "An Empirically Calibrated [C II] Luminosity-Halo Mass Relation for Line Intensity Mapping",
+        "categories": [
+          "astro-ph.CO",
+          "astro-ph.GA"
+        ],
+        "authors": [
+          "Oliver Jeong",
+          "Martin White"
+        ]
+      },
+      "2610.40534": {
+        "title": "The IRAC Distant Cluster Survey",
+        "categories": [
+          "astro-ph.GA"
+        ],
+        "authors": [
+          "Karolina Garcia",
+          "Anthony H. Gonzalez",
+          "Mark Brodwin",
+          "Peter Eisenhardt",
+          "Tyler George",
+          "Nadia Hansen",
+          "S. A. Stanford",
+          "Daniel Stern",
+          "Khunanon Thongkham",
+          "Ariane Trudeau",
+          "Michael J. I. Brown",
+          "Buell T. Jannuzi"
+        ]
+      },
+      "2610.40415": {
+        "title": "OCCAMS: A Multi-Task Learning-Based Investigation of the CMB Power Spectra",
+        "categories": [
+          "astro-ph.CO",
+          "astro-ph.IM",
+          "cs.LG"
+        ],
+        "authors": [
+          "Ankit Mandal",
+          "Rahul Shah",
+          "Md. Wali Hossain",
+          "Somasri Sen",
+          "Anjan A Sen",
+          "Supratik Pal"
+        ]
+      },
+      "2610.40411": {
+        "title": "UNIONS: Red and blue alignments of DESI DR1 galaxies",
+        "categories": [
+          "astro-ph.CO",
+          "astro-ph.GA"
+        ],
+        "authors": [
+          "R. Paviot",
+          "C. Murray",
+          "M. Kilbinger",
+          "C. Daley",
+          "F. Hervas-Peters",
+          "A. Corinaldi",
+          "T. de Boer",
+          "S. Guerrini",
+          "M. J. Hudson",
+          "G. S. H. Paek",
+          "L. Van Waerbeke",
+          "J. Yun"
+        ]
+      },
+      "2610.40388": {
+        "title": "On the Proper 3D Modeling of Orbits in Wide Binary Gravity Tests",
+        "categories": [
+          "astro-ph.GA",
+          "astro-ph.IM",
+          "astro-ph.SR"
+        ],
+        "authors": [
+          "Kyu-Hyun Chae"
+        ]
+      },
+      "2610.40365": {
+        "title": "Complex Organic Molecules in Protostars with ALMA Spectral Surveys (COMPASS) VIII. First interstellar detection of fully deuterated methyl cyanide",
+        "categories": [
+          "astro-ph.GA"
+        ],
+        "authors": [
+          "A. Belloche",
+          "J. K. Jørgensen",
+          "M. N. Drozdovskaya",
+          "S. Spezzano",
+          "A. Coutens",
+          "J. -E. Lee",
+          "F. Cruz-Sáenz de Miera",
+          "D. Harsono",
+          "J. -H. Jeong",
+          "S. Maret",
+          "B. A. McGuire",
+          "P. Nazari",
+          "A. L. Plunkett",
+          "Y. -L. Yang",
+          "H. -S. Yun"
+        ]
+      },
+      "2610.40347": {
+        "title": "Cosmological tests of chameleon dark energy with dark sector coupling",
+        "categories": [
+          "astro-ph.CO",
+          "hep-ph"
+        ],
+        "authors": [
+          "Jia-Qi Wang",
+          "Zong-Kuan Guo",
+          "Shao-Jiang Wang"
+        ]
+      },
+      "2610.40341": {
+        "title": "Cosmological lensing as a jump process",
+        "categories": [
+          "astro-ph.CO"
+        ],
+        "authors": [
+          "Galymzhan Baltabay",
+          "Ville Vaskonen"
+        ]
+      },
+      "doi:10.1051/0004-6361/202661781": {
+        "title": "Mitigating the overcooling problem with sink-based bursty star formation in a high-z dwarf galaxy",
+        "authors": [
+          "Cheonsu Kang",
+          "Taysun Kimm",
+          "Daniel Han",
+          "Maxime Rey",
+          "Fred S. Thompson",
+          "Martin P. Rey",
+          "Harley Katz"
+        ]
+      },
+      "doi:10.1093/mnras/stag2074": {
+        "title": "pop-cosmos : Galaxy size evolution across structural and star-formation classifications in COSMOS-Web",
+        "authors": [
+          "Madalina N Tudorache",
+          "Hiranya V Peiris",
+          "Stephen Thorp",
+          "Sinan Deger",
+          "Daniel J Mortlock",
+          "Gurjeet Jagwani",
+          "Anik Halder",
+          "Boris Leistedt",
+          "Benedict Van den Bussche",
+          "Joel Leja"
+        ]
+      },
+      "doi:10.1093/mnras/stag2063": {
+        "title": "Extracting intrinsic alignments in the Dark Energy Survey’s year 1 data, using the self-calibration method and LSST-DESC tools",
+        "authors": [
+          "Eske M Pedersen",
+          "Leonel Medina-Varela",
+          "Emily Phillips Longley",
+          "Mustapha Ishak",
+          "Joe Zuntz",
+          "Chihway Chang",
+          "C Danielle Leonard"
         ]
       }
     }
