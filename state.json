@@ -1327,7 +1327,16 @@
     "2611.26547": "2026-11-21",
     "2611.26425": "2026-11-21",
     "2611.26411": "2026-11-21",
-    "2611.26372": "2026-11-21"
+    "2611.26372": "2026-11-21",
+    "rss:sciencedaily-physics:cab77ebb2c602bdc96c5f4de": "2026-11-22",
+    "rss:physorg-chemistry:86c2313ee1a484c21650bda2": "2026-11-22",
+    "rss:sciencedaily-archaeology:fe133581e69a354cc828faa6": "2026-11-22",
+    "rss:sciencedaily-archaeology:52250b93bbec613acd369b6a": "2026-11-22",
+    "2611.25803": "2026-11-22",
+    "2611.26455": "2026-11-22",
+    "2611.25348": "2026-11-22",
+    "2611.26057": "2026-11-22",
+    "2611.25686": "2026-11-22"
   },
   "daily": {
     "2026-10-26": {
@@ -1527,7 +1536,7 @@
       "astro-ph.SR": 2,
       "hep-ex": 1,
       "astro-ph.HE": 2,
-      "astro-ph.IM": 1,
+      "astro-ph.IM": 2,
       "gr-qc": 1,
       "hep-th": 1
     },
@@ -1548,10 +1557,10 @@
     },
     "2026-11-18": {
       "astro-ph.CO": 12,
-      "astro-ph.GA": 23,
+      "astro-ph.GA": 24,
       "gr-qc": 4,
       "hep-ex": 1,
-      "astro-ph.IM": 2,
+      "astro-ph.IM": 3,
       "cs.AI": 1,
       "astro-ph.HE": 1,
       "astro-ph.SR": 2,
@@ -1576,20 +1585,20 @@
   },
   "fetched": {
     "astrobites": "2026-10-26",
-    "aasnova": "2026-11-21",
-    "nasa": "2026-11-21",
-    "physorg": "2026-11-21",
-    "universetoday": "2026-11-21",
+    "aasnova": "2026-11-22",
+    "nasa": "2026-11-22",
+    "physorg": "2026-11-22",
+    "universetoday": "2026-11-22",
     "esa": "2026-11-02",
     "eso": "2026-11-16",
     "desi": "2026-11-16",
     "keck": "2026-11-16",
-    "physorg-physics": "2026-11-21",
-    "sciencedaily-physics": "2026-11-21",
-    "physorg-chemistry": "2026-11-21",
-    "sciencedaily-chemistry": "2026-11-21",
-    "smithsonian-history": "2026-11-21",
-    "sciencedaily-archaeology": "2026-11-21"
+    "physorg-physics": "2026-11-22",
+    "sciencedaily-physics": "2026-11-22",
+    "physorg-chemistry": "2026-11-22",
+    "sciencedaily-chemistry": "2026-11-22",
+    "smithsonian-history": "2026-11-22",
+    "sciencedaily-archaeology": "2026-11-22"
   },
   "observations": {
     "2610.35570": {
@@ -5751,63 +5760,21 @@
     "2611.26348": {
       "day": "2026-11-20",
       "category": "astro-ph.GA"
+    },
+    "2611.24991": {
+      "day": "2026-11-18",
+      "category": "astro-ph.GA"
+    },
+    "2611.23393": {
+      "day": "2026-11-18",
+      "category": "astro-ph.IM"
+    },
+    "2611.21686": {
+      "day": "2026-11-16",
+      "category": "astro-ph.IM"
     }
   },
   "materials": {
-    "rss:physorg:4ff64584ba6dffd6b64e3ea7": {
-      "id": "rss:physorg:4ff64584ba6dffd6b64e3ea7",
-      "kind": "secondary",
-      "title": "ALMA reveals three star-forming cores at different stages inside one gas clump",
-      "source": "Phys.org 天文",
-      "date": "2026-11-15",
-      "text": "Astronomers have revealed three dense cores at different evolutionary stages within the massive star-forming region G40.282−0.219, shedding light on the physical and chemical differences among cores within the same massive dense clump.",
-      "url": "https://phys.org/news/2026-11-alma-reveals-star-cores-stages.html"
-    },
-    "rss:physorg:bf17efb3ca8ff8721b7fd8c8": {
-      "id": "rss:physorg:bf17efb3ca8ff8721b7fd8c8",
-      "kind": "secondary",
-      "title": "Is this iconic black hole image accurate? New study delivers an independent result",
-      "source": "Phys.org 天文",
-      "date": "2026-11-15",
-      "text": "On April 10, 2019, the Event Horizon Telescope (EHT) Collaboration revealed the first picture of a black hole. The object is at the center of a galaxy known as M87, about 55 million light-years away.",
-      "url": "https://phys.org/news/2026-11-iconic-black-hole-image-accurate.html"
-    },
-    "rss:universetoday:e9dee7ed3616a531165d4414": {
-      "id": "rss:universetoday:e9dee7ed3616a531165d4414",
-      "kind": "secondary",
-      "title": "The First Foreign Astronaut Will Visit China's Tiangong Space Station in Two Weeks",
-      "source": "Universe Today",
-      "date": "2026-11-15",
-      "text": "The China Manned Space Agency (CMSA) will be taking a Pakistani astronaut to Tiangong as part of the Shenzou 24 mission, marking the first time a foreign astronaut has been to the station.",
-      "url": "https://www.universetoday.com/articles/the-first-foreign-astronaut-will-visit-chinas-tiangong-space-station-in-two-weeks"
-    },
-    "rss:universetoday:e55fc63de81e0938bd2e3191": {
-      "id": "rss:universetoday:e55fc63de81e0938bd2e3191",
-      "kind": "secondary",
-      "title": "Baby, She's Back! SpaceX Catches a Starship From Orbit for First Time",
-      "source": "Universe Today",
-      "date": "2026-11-15",
-      "text": "SpaceX brought back its Starship rocket's second stage for a first-ever midair capture at its launch pad, capping a record-setting, 22.5-hour orbital flight test.",
-      "url": "https://www.universetoday.com/articles/baby-shes-back-spacex-catches-a-starship-from-orbit-for-first-time"
-    },
-    "rss:physorg:9a59895b7dc588bbcf1c8135": {
-      "id": "rss:physorg:9a59895b7dc588bbcf1c8135",
-      "kind": "secondary",
-      "title": "A dead star is flashing radio waves every 8 minutes, and its partner looks a lot like the sun",
-      "source": "Phys.org 天文",
-      "date": "2026-11-15",
-      "text": "Since 2022, astronomers have been puzzling over a new kind of cosmic object called long-period radio transients. These are objects that emit bright flashes of radio waves into space every few minutes to every few hours. Some have been traced back to binary systems consisting of a small, dim, cool star called a red dwarf in orbit with a stellar remnant called a white dwarf.",
-      "url": "https://phys.org/news/2026-11-dead-star-radio-minutes-partner.html"
-    },
-    "rss:physorg:8f35d6c864b90608ea73baf8": {
-      "id": "rss:physorg:8f35d6c864b90608ea73baf8",
-      "kind": "secondary",
-      "title": "A cosmic magnifying glass could reveal the same supernova two more times in roughly 70 years",
-      "source": "Phys.org 天文",
-      "date": "2026-11-15",
-      "text": "Thanks to the gravitational lensing caused by a massive galaxy cluster and high-resolution images from the James Webb Space Telescope (JWST), astronomers discovered an exploding star when the universe was 4.9 billion years old. The discovery paper, posted to the arXiv preprint server on Oct. 23, presents a prediction for when the rest of the distorted images of SN Ares will arrive.",
-      "url": "https://phys.org/news/2026-11-cosmic-magnifying-glass-reveal-supernova.html"
-    },
     "doi:10.3847/1538-4357/aeb543": {
       "id": "doi:10.3847/1538-4357/aeb543",
       "kind": "paper",
@@ -5897,24 +5864,6 @@
       "date": "2026-11-16",
       "text": "UBC researchers have helped uncover 15,000 new potential strong gravitational lenses—the largest collection of these cosmic tools that help astronomers investigate dark matter.",
       "url": "https://phys.org/news/2026-11-dark-matterhunting-satellite-euclid-reveals.html"
-    },
-    "rss:physorg:32c7df833ed6654782e8011e": {
-      "id": "rss:physorg:32c7df833ed6654782e8011e",
-      "kind": "secondary",
-      "title": "New observations challenge evidence for an 'outsize' black hole in the early universe",
-      "source": "Phys.org 天文",
-      "date": "2026-11-15",
-      "text": "A recent reanalysis of the outsize black hole galaxy UHZ1 using existing X-ray data and new infrared observations challenges a previous groundbreaking claim. Three years ago, this galaxy made news for hosting an unusually massive and heavily dust-obscured black hole formed through direct collapse. Led by Fan Zou of the University of Michigan, the new study reports no signs of hidden black hole activity…",
-      "url": "https://phys.org/news/2026-11-evidence-outsize-black-hole-early.html"
-    },
-    "rss:universetoday:5da4ce41eb8dd2500f4abff6": {
-      "id": "rss:universetoday:5da4ce41eb8dd2500f4abff6",
-      "kind": "secondary",
-      "title": "Navigating Lunar Orbit Using Nothing But Shadows And A Power Meter",
-      "source": "Universe Today",
-      "date": "2026-11-15",
-      "text": "Humanity is quickly starting to saturate our ability to track all of the satellites we have in deep space. NASA’s Deep Space Network (DSN) has been the workhorse for tracking such things for decades, but is quickly being overwhelmed by the number of requests it receives. Which in turn makes it harder to track some of the missions that have been launched recently…",
-      "url": "https://www.universetoday.com/articles/navigating-lunar-orbit-using-nothing-but-shadows-and-a-power-meter"
     },
     "2611.21279": {
       "id": "2611.21279v1",
@@ -6025,13 +5974,13 @@
       "url": "https://arxiv.org/abs/2611.20910v1"
     },
     "2611.20884": {
-      "id": "2611.20884v1",
+      "id": "2611.20884v2",
       "kind": "paper",
       "title": "Orbital decomposition and evolution of LEGA-C-like galaxies in IllustrisTNG from z = 1 to z = 0",
       "source": "arXiv",
       "date": "2026-11-16",
       "text": "Stellar orbits encode the dynamical history of galaxies and provide a physically motivated link between galaxy structures and assembly processes. Although orbit-based decompositions are well established in the Local Universe, their evolution across cosmic time, especially at higher redshifts, remains poorly explored. We investigate the orbital structure of \\texttt{LEGA-C-like} galaxies in the \\texttt{TNG100} simulation from $z=1$ to $z=0$ to identify how stellar mass, star formation activity, environment, merger history, gas content, and ex situ stellar mass growth shape their orbital transformation. We decomposed the stellar orbital structure of simulated galaxies into cold, warm, hot, and counter-rotating (CR) components using time-averaged orbital circularities. We find a strong mass dependence of orbital structure at $z=0$ as well as at $z=1$. Galaxies below $\\log(M_\\star/M_\\odot)\\si",
-      "url": "https://arxiv.org/abs/2611.20884v1"
+      "url": "https://arxiv.org/abs/2611.20884v2"
     },
     "2611.20828": {
       "id": "2611.20828v1",
@@ -6149,69 +6098,6 @@
       "date": "2026-11-16",
       "text": "The mass distribution of early-type galaxies (ETGs) encodes key information about baryonic processes and dark-matter assembly. In this paper, we propose a new framework to investigate the mass-density profiles of ETGs and their evolution with redshift, based on the redshift distribution of strong gravitational lenses. We compile 200 galaxy-scale strong lensing systems with complete information, including lens and source redshifts, Einstein radii, and spectroscopic velocity dispersions. To account for the heterogeneous construction of the compiled sample, we model a lens-redshift-dependent selection function for each survey category. By combining the lens-redshift distribution with velocity dispersion function (VDF) and spherical Jeans-based mapping, we obtain population-level constraints on the total mass-density slope gamma in three lens-redshift intervals, marginalizing over the lumino",
       "url": "https://arxiv.org/abs/2611.20141v1"
-    },
-    "2611.19906": {
-      "id": "2611.19906v1",
-      "kind": "paper",
-      "title": "Magnetic fields in blazar jets derived from synchrotron self-absorption",
-      "source": "arXiv",
-      "date": "2026-11-15",
-      "text": "Context. Magnetic fields are believed to play a crucial role in the launching, acceleration, and evolution of blazar jets. However, direct measurements of the magnetic field strength in the radio-emitting regions of blazar jets remain limited. Aims. We aim to estimate the magnetic field strengths in the synchrotron self-absorption (SSA) regions of blazar jets and investigate their connections with the properties of the jet and central engine. Methods. We compiled multifrequency radio data for 143 blazars and fitted their radio spectra with a combined power-law and SSA model to derive the turnover frequency and turnover flux density. The magnetic field strengths were then calculated by combining the SSA parameters with the very long baseline interferometry (VLBI) measured angular sizes and Doppler factors compiled from the literature. Results. The SSA-derived magnetic fields are systemati",
-      "url": "https://arxiv.org/abs/2611.19906v1"
-    },
-    "2611.19899": {
-      "id": "2611.19899v1",
-      "kind": "paper",
-      "title": "Towards the LSST DESC pipeline for cosmology with galaxy clusters -- design and validation on simulations",
-      "source": "arXiv",
-      "date": "2026-11-15",
-      "text": "We present the current implementation of an automated framework developed within the Legacy Survey of Space and Time Dark Energy Science Collaboration (LSST DESC) for galaxy cluster cosmology, in preparation for the first LSST data releases of the NSF-DOE Vera C. Rubin Observatory. The cluster cosmology pipeline integrates DESC-developed tools dedicated to galaxy/cluster catalog ingestion, cluster number count and weak lensing measurements, modeling, and parameter inference through posterior sampling, enabling reproducible end-to-end cluster cosmology analyses. We test and validate the pipeline using synthetic mock datasets and the LSST DESC cosmoDC2 simulation, performing a joint analysis of redMaPPer cluster abundance and stacked weak lensing profiles measured in bins of redshift and richness. We constrain two cosmological parameters, $Ω_c$ and $σ_8$, along with six cluster mass-observ",
-      "url": "https://arxiv.org/abs/2611.19899v1"
-    },
-    "2611.19884": {
-      "id": "2611.19884v1",
-      "kind": "paper",
-      "title": "Mock Observations: Morphological Analysis of Galactic Bars in IllustrisTNG Simulations",
-      "source": "arXiv",
-      "date": "2026-11-15",
-      "text": "Galactic bars are important tracers of disk-galaxy evolution, yet reported bar fractions vary among observational studies and between observations and cosmological simulations. We compare bar statistics and properties in the IllustrisTNG simulations(TNG100 and TNG50 at z~0.1) with Sloan Digital Sky Survey(SDSS) galaxies at0.1<=z<=0.1264. We generate synthetic r-band TNG images,match SDSS observational conditions,and analyze mock TNG and real SDSS images using a common image-based framework of source segmentation,morphological classification, and isophotal ellipse fitting. For face-on late-type galaxies with log(M*/Msun)>10,the global bar fractions are 26.68+/-0.23%,24.96(-.76/+.78)%, and 13.42(-1.07/+1.15)% for SDSS,TNG100,and TNG50,respectively. TNG100 broadly agrees with SDSS over 10^10<~M*<~10^11.2Msun but shows a higher fbar at higher masses, whereas TNG50 remains lower than SDSS ove",
-      "url": "https://arxiv.org/abs/2611.19884v1"
-    },
-    "2611.19867": {
-      "id": "2611.19867v1",
-      "kind": "paper",
-      "title": "Stripped White Dwarfs as Spectroscopic Clocks: Abundance Transitions in Partial Tidal Disruptions",
-      "source": "arXiv",
-      "date": "2026-11-15",
-      "text": "We investigate partial tidal disruptions of He and CO white dwarfs (WDs) by a $10^{4}\\,M_{\\odot}$ intermediate-mass black hole (IMBH) using three-dimensional hydrodynamic simulations. We construct realistic WD structures and abundance profiles with MESA and map them into FLASH to follow the remnant response and the time-dependent composition of the fallback debris in single pericentre passages on tightly bound orbits ($e=0.9$). The element-specific fallback rates exhibit pre-peak compositional transitions that trace the WD's stratified layers. In the grazing encounter ($β=0.55$), hydrogen dominates the earliest returning debris, followed by helium, showing a H$\\rightarrow$He transition. Deeper encounters ($β=0.7$ and $0.8$) penetrate the CO core and produce a He$\\rightarrow$C transition, that occurs earlier relative to peak fallback and is stronger in the deeper encounter. These signatur",
-      "url": "https://arxiv.org/abs/2611.19867v1"
-    },
-    "2611.19721": {
-      "id": "2611.19721v1",
-      "kind": "paper",
-      "title": "Magnetogenesis in Low-Scale Inflation: Viability for Astrophysical Magnetic Fields",
-      "source": "arXiv",
-      "date": "2026-11-15",
-      "text": "The indirect evidence for magnetic fields in the intergalactic medium motivates the study of their possible primordial origin, including generation during inflation. One mechanism for inflationary magnetogenesis involves a pseudoscalar inflaton coupled to a gauge field through the interaction $g_{φγ}φF_{μν}\\tilde{F}^{μν}$. In this work, we study the viability of this mechanism in the context of low scale inflation, particularly on inflationary energy scales near the electroweak (EW) scale. We find that the post inflationary amplification of the gauge fields can produce astrophysically relevant magnetic fields for $g_{φγ}\\ge 360~m_{\\rm pl}^{-1}$ in the absence of Schwinger backreaction for an inflationary scale around the EW scale. We then include the backreaction of the charged current generated through the Schwinger mechanism. We find that the induced current suppresses the gauge field ",
-      "url": "https://arxiv.org/abs/2611.19721v1"
-    },
-    "2611.19631": {
-      "id": "2611.19631v1",
-      "kind": "paper",
-      "title": "Orion I: Discovery of an Isolated dE,N Galaxy at 60 Mph",
-      "source": "arXiv",
-      "date": "2026-11-15",
-      "text": "Inspection of deep JWST images centered on the lensing cluster of galaxies MACS J0454.1-0300 reveals a small, well resolved stellar system that is clearly in the foreground. Photometric measurements including a color-magnitude diagram and radial profile show that it is a nucleated dwarf early-type galaxy (dE,N) at a distance of ~60 Mpc and with structurally normal properties. This object (J04:54:07.39-02:59:22.5, referred to as Orion I for shorthand) may be an outlying member of a previously known small galaxy group, or may be simply an isolated field galaxy depending on the accuracy of its distance estimate. The discovery of Orion I suggests that other small stellar systems in the nearby universe might be found through a search of the many deep \\jwst imaging fields that are now being accumulated.",
-      "url": "https://arxiv.org/abs/2611.19631v1"
-    },
-    "2611.19491": {
-      "id": "2611.19491v1",
-      "kind": "paper",
-      "title": "Unbound matter in the circum-halo medium: a common mediator of halo secondary bias",
-      "source": "arXiv",
-      "date": "2026-11-15",
-      "text": "Halo secondary bias describes the dependence of halo clustering on properties beyond mass. Here we report that a new environmental metric, the unbound matter fraction ($f_{\\rm un}$) in the $2$--$3\\,R_{\\rm vir}$ shell around a halo, can largely account for secondary bias. Using haloes with $M_{\\rm vir}=10^{10.5}$--$10^{14.5}h^{-1}{\\rm M_\\odot}$ at $z=0$ obtained from TNG300-1-Dark, we find that controlling for $f_{\\rm un}$ reduces the secondary bias of formation time, concentration, spin, shape and velocity anisotropy to a residual correlation of $\\lesssim 4\\%$, outperforming other environmental metrics such as the tidal anisotropy for spin and velocity anisotropy. Applying a stacking method to the circum-halo medium (CHM), we identify two distinct flow patterns: low-$f_{\\rm un}$ haloes co-move with coherent flows, with the CHM converging onto the haloes; in contrast, high-$f_{\\rm un}$ ha",
-      "url": "https://arxiv.org/abs/2611.19491v1"
     },
     "doi:10.3847/1538-4357/aeb7e7": {
       "id": "doi:10.3847/1538-4357/aeb7e7",
@@ -6655,13 +6541,13 @@
       "url": "https://arxiv.org/abs/2611.21798v1"
     },
     "2611.21794": {
-      "id": "2611.21794v1",
+      "id": "2611.21794v2",
       "kind": "paper",
       "title": "A Single-Shot Method for the Absolute Polarization Angle Calibration of CMB Telescopes with Artificial Sky Sources via Stellar Diffraction Encoding",
       "source": "arXiv",
       "date": "2026-11-17",
       "text": "Absolute polarization angle calibration of cosmic microwave background (CMB) telescopes at the $\\lesssim 0.1^\\circ$ level is needed to prevent instrumental mixing of $E$ modes into $B$ modes from biasing constraints on primordial gravitational waves and cosmic birefringence. Artificial polarized sky sources like drones, balloons, or satellites can provide calibration references, but transferring their emitted polarization angle from the payload frame to the celestial frame remains a challenge. We propose a calibrator architecture, applicable to any such source, in which a single dual-use grid-optic sets the polarization axis of the emitted millimeter-wave signal and also diffracts starlight into a co-aligned star camera. The resulting diffraction spectra record the grid's orientation relative to the stars, so that it can be measured directly on the sky without fine alignment between the ",
-      "url": "https://arxiv.org/abs/2611.21794v1"
+      "url": "https://arxiv.org/abs/2611.21794v2"
     },
     "2611.21793": {
       "id": "2611.21793v1",
@@ -6727,13 +6613,13 @@
       "url": "https://arxiv.org/abs/2611.21760v1"
     },
     "2611.21756": {
-      "id": "2611.21756v1",
+      "id": "2611.21756v2",
       "kind": "paper",
       "title": "The Impact of Seeding Threshold on Wandering Black Hole Populations and Merger Rates",
       "source": "arXiv",
       "date": "2026-11-17",
       "text": "Cosmological simulations following massive black holes (MBHs) with dynamical friction subgrid models predict hundreds to thousands of off-centre, wandering MBHs in massive galaxies. We investigate how the wandering MBH population changes with halo mass seeding threshold. We present cosmological zoom-in simulations of a $(15\\,\\mathrm{cMpc})^3$ volume to $z=2$, using the halo mass seeding thresholds of ASTRID, EAGLE and Illustris-TNG $(5\\times10^{9}-5\\times10^{10}\\,\\mathrm{M}_{\\odot}/h)$, with a fixed MBH seed mass of $m_\\mathrm{seed}=2\\times10^{6}\\,\\mathrm{M}_{\\odot}/h$. The subgrid dynamical friction model for MBHs switches to accurate integration around MBHs using the \\textsc{ketju} module above $m_{\\bullet} \\geq 2\\times10^{7}\\,\\mathrm{M}_{\\odot}/h$. We find that the seeding threshold greatly affects the MBH population: the number of seeded MBHs varies by a factor of ten and the number ",
-      "url": "https://arxiv.org/abs/2611.21756v1"
+      "url": "https://arxiv.org/abs/2611.21756v2"
     },
     "2611.21755": {
       "id": "2611.21755v1",
@@ -6817,13 +6703,13 @@
       "url": "https://arxiv.org/abs/2611.21718v1"
     },
     "2611.21716": {
-      "id": "2611.21716v1",
+      "id": "2611.21716v2",
       "kind": "paper",
       "title": "A PhEW Good Simulations: I. Galaxy Properties",
       "source": "arXiv",
       "date": "2026-11-17",
       "text": "Although galactic outflows driven by stellar feedback are widely implemented in modern cosmological simulations, the interactions between them and the circumgalactic medium (CGM) remains poorly resolved. To overcome this limitation, we conduct a suite of cosmological simulations that use the PhEW (Physically Evolved Winds) subgrid model, which analytically tracks the exchange of mass, metals, momentum, and energy by winds with the ambient CGM using an algorithm based on high-resolution cloud-crushing simulations. Our results show that even without AGN feedback, our simulations are able to accurately reproduce the observed galactic stellar mass functions (GSMFs) and stellar mass-halo mass (SMHM) relations at $z\\gtrsim 1$, after which the massive galaxies in our simulations start to overproduce stars. Our simulations also match the observed relations of $M_{\\mathrm{HI}}-M_*$, $M_{\\mathrm{H",
-      "url": "https://arxiv.org/abs/2611.21716v1"
+      "url": "https://arxiv.org/abs/2611.21716v2"
     },
     "2611.21714": {
       "id": "2611.21714v1",
@@ -7294,13 +7180,13 @@
       "url": "https://arxiv.org/abs/2611.24281v1"
     },
     "2611.24217": {
-      "id": "2611.24217v1",
+      "id": "2611.24217v2",
       "kind": "paper",
       "title": "A Tight Broad-line Width-Luminosity Relation in Little Red Dots and Its Consequence for Virial Black Hole Masses",
       "source": "arXiv",
       "date": "2026-11-18",
-      "text": "JWST has uncovered compact high-redshift sources with red, $\\sim 5000$ K optical continua and broad Balmer lines, known as \"little red dots\" (LRDs). Whether these lines trace gas orbiting a massive black hole or electron scattering in a dense, Eddington-limited envelope around a lighter black hole leaves inferred masses spanning $10^{4}$--$10^{8}\\,M_\\odot$. We test both pictures by uniformly refitting public JWST/NIRSpec spectra of 29 LRDs, 15 other JWST broad-line sources, and luminosity-matched SDSS quasars. At fixed $\\mathrm{H}α$ luminosity, LRD broad $\\mathrm{H}α$ widths are remarkably uniform: their intrinsic scatter is 0.054 dex ($<0.075$ dex at 95%), less than half that of quasars (0.12 dex), clustering near $1760\\ \\mathrm{km\\,s^{-1}}$ outside the three brightest sources. Because single-epoch virial masses scale as width squared, they scatter intrinsically by $<0.16$ dex at fixed ",
-      "url": "https://arxiv.org/abs/2611.24217v1"
+      "text": "JWST has uncovered compact high-redshift sources with red, $\\sim 5000$ K optical continua and broad Balmer lines, known as \"little red dots\" (LRDs). Whether these lines trace gas orbiting a massive black hole or electron scattering in a dense, Eddington-limited envelope around a lighter black hole leaves inferred masses spanning $10^{4}$-$10^{8}\\,M_{\\odot}$. We test both pictures by uniformly refitting public JWST/NIRSpec spectra of 29 LRDs, 15 other JWST broad-line sources, and luminosity-matched SDSS quasars. At fixed $\\mathrm{H}α$ luminosity, LRD broad $\\mathrm{H}α$ widths have an intrinsic scatter of 0.054 dex ($<0.075$ dex at 95%), less than half that of quasars (0.12 dex), clustering near $1760\\,\\mathrm{km\\,s^{-1}}$ outside the three brightest sources. Because single-epoch virial masses scale as width squared, they scatter intrinsically by $<0.16$ dex at fixed $\\mathrm{H}α$ luminos",
+      "url": "https://arxiv.org/abs/2611.24217v2"
     },
     "2611.24203": {
       "id": "2611.24203v1",
@@ -8606,6 +8492,33 @@
       "date": "2026-11-20",
       "text": "Stars like our sun don't die quietly. In their final act, they swell into red giants, shed their outer layers into space and leave behind a glowing, often strikingly sculpted cloud of gas called a planetary nebula. That transformation is thought to take only a few thousand years, a blink in the life of a star, so catching one in the act is rare.",
       "url": "https://phys.org/news/2026-11-star-gasps-alma-reveals-giant.html"
+    },
+    "2611.24991": {
+      "id": "2611.24991v1",
+      "kind": "paper",
+      "title": "Testing the Universality of RAR Model with Constraints on Fermionic Dark Matter for M31",
+      "source": "arXiv",
+      "date": "2026-11-18",
+      "text": "The Ruffini--Argüelles--Rueda (RAR) model describes dark matter as a self-gravitating system of massive fermions in thermodynamic equilibrium within general relativity. It suggests a dual morphology in galaxies: a highly degenerate quantum core mimicking a central supermassive black hole, and a classical halo that explains galactic rotation curves. Earlier applications of the model to the Milky Way restricted the fermion mass to $mc^{2}=48\\text{--}345~\\text{keV}$, and the orbits of the S-stars around Sagittarius~A$^{\\ast}$ (Sgr~A$^{\\ast}$) favored $mc^{2}=56~\\text{keV}$, whereas a recent thermodynamic stability analysis allows only $mc^{2}\\approx194\\text{--}387~\\text{keV}$. In this work, we apply the RAR model to the Andromeda galaxy (M31), which hosts a dark compact object of approximately $1.4\\times10^{8}~M_{\\odot}$ within $0.19~\\text{pc}$, roughly 33 times the mass of Sgr~A$^{\\ast}$. ",
+      "url": "https://arxiv.org/abs/2611.24991v1"
+    },
+    "2611.23393": {
+      "id": "2611.23393v1",
+      "kind": "paper",
+      "title": "Lunar laser ranging analyses of NGLR-1 data with PEP and prospects for MPAc: towards one millimeter range precision",
+      "source": "arXiv",
+      "date": "2026-11-18",
+      "text": "Since 1969, Lunar Laser Ranging (LLR) has provided critical data for investigating Earth-Moon dynamics, lunar internal structure, and tests of General Relativity (GR). However, the measurement precision of historical arrays (such as those from Apollo and Lunokhod missions) is inherently limited by laser pulse broadening induced by lunar librations. To overcome this limit, next-generation single Cube Corner Retroreflectors (CCRs) of large optical diameter have been developed to eliminate pulse dispersion, enabling LLR measurements to advance from centimeter-level precision down to the millimeter scale. In this work, we present a detailed analysis of LLR observations from NGLR-1 (Next Generation Lunar Retroreflector-1), the first single 10cm-diameter CCR deployed on the lunar surface. Carried out using the Planetary Ephemeris Program (PEP), this study investigates individual range measurem",
+      "url": "https://arxiv.org/abs/2611.23393v1"
+    },
+    "2611.21686": {
+      "id": "2611.21686v1",
+      "kind": "paper",
+      "title": "Mass-conservative voxelisation of smoothed particles using cumulative kernels",
+      "source": "arXiv",
+      "date": "2026-11-16",
+      "text": "Smoothed particle hydrodynamics (SPH) simulations are frequently post-processed on Cartesian grids for applications such as radiative transfer calculations, visualisation, and data analysis. While numerous voxelisation algorithms have been proposed, relatively little attention has been paid to the fundamental properties that such algorithms should satisfy. We argue that SPH voxelisation algorithms should accurately reproduce the underlying density field, conserve mass globally, remain consistent under grid refinement, and be computationally efficient. We present a new finite-volume algorithm designed to satisfy these requirements simultaneously. Starting from a finite-volume formulation of the SPH density field, we derive a simple expression for the mass contained in a Cartesian voxel in terms of a cumulative kernel function. The cumulative kernel is tabulated numerically once for any co",
+      "url": "https://arxiv.org/abs/2611.21686v1"
     }
   },
   "feedback": {
@@ -37576,7 +37489,7 @@
         ],
         "authors": [
           "Atte Keitaanranta",
-          "Peter Johansson",
+          "Peter H. Johansson",
           "Alexander Rawlings",
           "Antti Rantala",
           "Thorsten Naab",
@@ -40356,12 +40269,72 @@
           "Andreas Just",
           "Walter Dehnen"
         ]
+      },
+      "2611.24991": {
+        "title": "Testing the Universality of RAR Model with Constraints on Fermionic Dark Matter for M31",
+        "categories": [
+          "astro-ph.GA",
+          "astro-ph.HE",
+          "gr-qc",
+          "hep-th"
+        ],
+        "authors": [
+          "Aqsa Yasmin",
+          "Ibrar Hussain",
+          "Mubasher Jamil"
+        ]
+      },
+      "2611.23393": {
+        "title": "Lunar laser ranging analyses of NGLR-1 data with PEP and prospects for MPAc: towards one millimeter range precision",
+        "categories": [
+          "astro-ph.IM",
+          "astro-ph.CO",
+          "astro-ph.EP"
+        ],
+        "authors": [
+          "G. Bargiacchi",
+          "J. Chandler",
+          "N. Burzillà",
+          "R. Campagnola",
+          "L. Porcelli",
+          "D. Currie",
+          "J. D. Carpenter",
+          "N. Boersma",
+          "L. Cacciapuoti",
+          "P. Firme",
+          "P. Ruzza",
+          "I. Lebouteiller",
+          "C. Courde",
+          "J. Chabé",
+          "J. Eckl",
+          "S. Merkowitz",
+          "N. Colmenares",
+          "R. Reasenberg",
+          "I. Shapiro",
+          "S. Dell'Agnello"
+        ]
+      },
+      "2611.21686": {
+        "title": "Mass-conservative voxelisation of smoothed particles using cumulative kernels",
+        "categories": [
+          "astro-ph.IM",
+          "astro-ph.GA"
+        ],
+        "authors": [
+          "Maarten Baes",
+          "Peter Camps",
+          "Kosei Matsumoto",
+          "Jules Dierickx",
+          "Andrea Gebek",
+          "Angelos Nersesian"
+        ]
       }
     }
   },
   "editions": {
     "weekly:2026-10-25:2026-11-01": "2026-11-01",
     "weekly:2026-11-01:2026-11-08": "2026-11-08",
-    "weekly:2026-11-08:2026-11-15": "2026-11-15"
+    "weekly:2026-11-08:2026-11-15": "2026-11-15",
+    "weekly:2026-11-15:2026-11-22": "2026-11-22"
   }
 }
