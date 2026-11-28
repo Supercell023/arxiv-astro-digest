@@ -1546,7 +1546,32 @@
     "2611.34890": "2026-11-27",
     "2611.34838": "2026-11-27",
     "2611.34910": "2026-11-27",
-    "2611.34867": "2026-11-27"
+    "2611.34867": "2026-11-27",
+    "2611.34775": "2026-11-28",
+    "2611.34127": "2026-11-28",
+    "2611.32906": "2026-11-28",
+    "2611.33334": "2026-11-28",
+    "2611.33435": "2026-11-28",
+    "2611.33550": "2026-11-28",
+    "2611.34625": "2026-11-28",
+    "doi:10.3847/1538-4357/aeb4b8": "2026-11-28",
+    "2611.34144": "2026-11-28",
+    "rss:universetoday:5793f4e6f07a91f679e2a836": "2026-11-28",
+    "rss:universetoday:bdf3e9531d1b051f5e7f8e1f": "2026-11-28",
+    "rss:universetoday:146f97162384385d631a4494": "2026-11-28",
+    "rss:physorg:61fbbb649668585280141cf7": "2026-11-28",
+    "rss:physorg:f839fb8379ffe92d86a3949a": "2026-11-28",
+    "rss:physorg:a4724350aae92b40876c0770": "2026-11-28",
+    "rss:physorg:c8fafa3926c638baf23e0896": "2026-11-28",
+    "rss:physorg-physics:64fb58110b83ee3b527ee7ed": "2026-11-28",
+    "rss:physorg-physics:6e291df5940960b2d07e7d69": "2026-11-28",
+    "rss:physorg-physics:0a95e9f7d9b0b5d882198d7a": "2026-11-28",
+    "rss:physorg-chemistry:b1b5f3d585bf32d5f987040f": "2026-11-28",
+    "2611.34790": "2026-11-28",
+    "2611.34753": "2026-11-28",
+    "2611.34797": "2026-11-28",
+    "2611.34817": "2026-11-28",
+    "2611.34720": "2026-11-28"
   },
   "daily": {
     "2026-10-26": {
@@ -1833,20 +1858,20 @@
   },
   "fetched": {
     "astrobites": "2026-10-26",
-    "aasnova": "2026-11-27",
-    "nasa": "2026-11-27",
-    "physorg": "2026-11-27",
-    "universetoday": "2026-11-27",
+    "aasnova": "2026-11-28",
+    "nasa": "2026-11-28",
+    "physorg": "2026-11-28",
+    "universetoday": "2026-11-28",
     "esa": "2026-11-02",
     "eso": "2026-11-24",
     "desi": "2026-11-24",
     "keck": "2026-11-24",
-    "physorg-physics": "2026-11-27",
-    "sciencedaily-physics": "2026-11-27",
-    "physorg-chemistry": "2026-11-27",
-    "sciencedaily-chemistry": "2026-11-27",
-    "smithsonian-history": "2026-11-27",
-    "sciencedaily-archaeology": "2026-11-27"
+    "physorg-physics": "2026-11-28",
+    "sciencedaily-physics": "2026-11-28",
+    "physorg-chemistry": "2026-11-28",
+    "sciencedaily-chemistry": "2026-11-28",
+    "smithsonian-history": "2026-11-28",
+    "sciencedaily-archaeology": "2026-11-28"
   },
   "observations": {
     "2610.35570": {
@@ -6719,159 +6744,6 @@
     }
   },
   "materials": {
-    "rss:physorg:1e123c2683b5fe9c88072281": {
-      "id": "rss:physorg:1e123c2683b5fe9c88072281",
-      "kind": "secondary",
-      "title": "Fermi's 14-year all-sky map bridges astronomy's elusive 'MeV gap'",
-      "source": "Phys.org 天文",
-      "date": "2026-11-21",
-      "text": "Gamma rays, the most high-energy type of electromagnetic radiation in the universe, have always had a blind spot. We've always had trouble measuring them in the \"megaelectronvolt\" (MeV) energy range, which astronomers have taken to calling the \"MeV gap.\" But a new paper from an international group of scientists working with the Fermi Large Area Telescope (LAT) Collaboration, recently published in The Astrophysical…",
-      "url": "https://phys.org/news/2026-11-fermi-year-sky-bridges-astronomy.html"
-    },
-    "rss:universetoday:fa2a72f79e8a96b48fcee9b3": {
-      "id": "rss:universetoday:fa2a72f79e8a96b48fcee9b3",
-      "kind": "secondary",
-      "title": "Space Entrepreneurs Should Look To 16th Century Spice Trade For Inspiration",
-      "source": "Universe Today",
-      "date": "2026-11-21",
-      "text": "In the short term, human exploration of the Moon and Mars seems practical, but for the next 50 years at least, robotic exploration may be the most cost-effective and efficient. Human exploration requires an imperative return on capital.",
-      "url": "https://www.universetoday.com/articles/space-entrepreneurs-should-look-to-16th-century-spice-trade-for-inspiration"
-    },
-    "rss:nasa:e5281c84a0df00fec8e35d00": {
-      "id": "rss:nasa:e5281c84a0df00fec8e35d00",
-      "kind": "secondary",
-      "title": "Curiosity Spots Drifting Twilight Clouds",
-      "source": "NASA 新闻",
-      "date": "2026-11-21",
-      "text": "Description NASA’s Curiosity Mars rover captured these drifting clouds on Oct. 31, 2026, the 5,061st Martian day, or sol, of the mission. The rover uses its navigation cameras to capture post-sunset clouds, called twilight clouds, which appear for only a short time each fall over Gale Crater, which it has been exploring for more than […]",
-      "url": "https://science.nasa.gov/photojournal/curiosity-spots-drifting-twilight-clouds/"
-    },
-    "rss:nasa:bf9c3d47acfba03a712f960d": {
-      "id": "rss:nasa:bf9c3d47acfba03a712f960d",
-      "kind": "secondary",
-      "title": "New NASA Seed Funding Primes Small Businesses for Innovation",
-      "source": "NASA 新闻",
-      "date": "2026-11-21",
-      "text": "Awards to small businesses around the country are addressing some of NASA’s most crucial technology needs for exploration of the Moon and Mars while fueling the U.S. space economy. NASA’s Small Business Innovation Research/Small Business Technology Transfer (SBIR/STTR) program recently selected 302 innovative projects, for a total investment of up to $171 million in seed […]",
-      "url": "https://www.nasa.gov/directorates/rtmd/new-nasa-seed-funding-primes-small-businesses-for-innovation/"
-    },
-    "rss:universetoday:930442501753f40159349cea": {
-      "id": "rss:universetoday:930442501753f40159349cea",
-      "kind": "secondary",
-      "title": "Complex Life on Earth May Not Have Appeared Without Tall Mountains",
-      "source": "Universe Today",
-      "date": "2026-11-21",
-      "text": "As Earth's surface area grew, weathering fed more nutrients into Earth's ancient oceans. This eventually resulted in more oxygen, making Earth more habitable. New research identifies two ancient mountain growth spurts on Earth that directly preceded two of Earth's oxygenation events. The researchers say that taller mountains encouraged habitability and led to complex life.",
-      "url": "https://www.universetoday.com/articles/complex-life-on-earth-may-not-have-appeared-without-tall-mountains"
-    },
-    "rss:universetoday:d5096761ce50935963477a5d": {
-      "id": "rss:universetoday:d5096761ce50935963477a5d",
-      "kind": "secondary",
-      "title": "A Radical Theory about the Universe Just Passed Some Key Tests. So... What Does that Mean?",
-      "source": "Universe Today",
-      "date": "2026-11-21",
-      "text": "An alternative model in which the Universe is 26.7 billion years old and needs neither dark matter nor dark energy has held up against several major cosmology tests, according to a new University of Ottawa study.",
-      "url": "https://www.universetoday.com/articles/a-radical-theory-about-the-universe-just-passed-some-key-tests-so-what-does-that-mean"
-    },
-    "rss:aasnova:813cdcdf2f46beac5b05de0f": {
-      "id": "rss:aasnova:813cdcdf2f46beac5b05de0f",
-      "kind": "secondary",
-      "title": "Pulsed Infrared Emission from Magnetar 4U 0142+61 Detected by JWST",
-      "source": "AAS Nova",
-      "date": "2026-11-21",
-      "text": "Jeremy Hare et al 2026 ApJ 1008 262 Comparison of JWST and NuSTAR observations shows that 4U 0142+61’s pulses have overlapping infrared and X-ray peaks, suggesting that the pulsed infrared emission originates within the magnetosphere. The post Pulsed Infrared Emission from Magnetar 4U 0142+61 Detected by JWST appeared first on AAS Nova .",
-      "url": "https://doi.org/10.3847/1538-4357/ae9745#new_tab?utm_source=rss&utm_medium=rss&utm_campaign=pulsed-infrared-emission-from-magnetar-4u-014261-detected-by-jwst"
-    },
-    "rss:aasnova:2c692866dcedfb695a5e1a04": {
-      "id": "rss:aasnova:2c692866dcedfb695a5e1a04",
-      "kind": "secondary",
-      "title": "Launching an Investigation into Cannibal Coronal Mass Ejections",
-      "source": "AAS Nova",
-      "date": "2026-11-21",
-      "text": "When multiple coronal mass ejections erupt from the same area, they can combine into a single, potentially more destructive event. New research explores the physics behind these mergers. The post Launching an Investigation into Cannibal Coronal Mass Ejections appeared first on AAS Nova .",
-      "url": "https://aasnova.org/2026/11/20/launching-an-investigation-into-cannibal-coronal-mass-ejections/?utm_source=rss&utm_medium=rss&utm_campaign=launching-an-investigation-into-cannibal-coronal-mass-ejections"
-    },
-    "rss:nasa:c3b73c4b6bac392de766d311": {
-      "id": "rss:nasa:c3b73c4b6bac392de766d311",
-      "kind": "secondary",
-      "title": "NASA Honor Awards Ceremony Recognizes Employees at Stennis Space Center",
-      "source": "NASA 新闻",
-      "date": "2026-11-21",
-      "text": "Employees contributing to NASA’s mission at the agency’s Stennis Space Center near Bay St. Louis, Mississippi, were recognized during the center’s Honor Awards ceremony on Nov. 18. Presenting the awards were Christine Powell, NASA Stennis center director, and Jeremy Parsons, the agency’s Artemis program manager responsible for management and oversight of NASA’s initiative to return […]",
-      "url": "https://www.nasa.gov/centers-and-facilities/stennis/honor-awards-ceremony-at-stennis/"
-    },
-    "rss:physorg:d6d2686629bb65eb0f268147": {
-      "id": "rss:physorg:d6d2686629bb65eb0f268147",
-      "kind": "secondary",
-      "title": "Researchers trace shifting pulsation modes in δ Scuti star KIC 4737720",
-      "source": "Phys.org 天文",
-      "date": "2026-11-21",
-      "text": "Stars in the night sky may look calm and unchanging, but some are in fact constantly \"vibrating.\" Just as a musical instrument can sound several notes at once, a star can pulse in several modes simultaneously. By measuring minute changes in a star's brightness, astronomers can read these stellar vibrations and, in turn, probe the physical processes at work inside it.",
-      "url": "https://phys.org/news/2026-11-shifting-pulsation-modes-scuti-star.html"
-    },
-    "2611.27986": {
-      "id": "2611.27986v1",
-      "kind": "paper",
-      "title": "Ohmic warm inflation",
-      "source": "arXiv",
-      "date": "2026-11-21",
-      "text": "We show that Warm Little Inflation is anomalous, lacks a suitable inflaton potential, and cannot sustain the thermal bath, as the quasi-static approximation over-estimated the dissipated power. To address these issues, we propose a new friction mechanism and new anomaly-free models based on one fermion charged under a U(1) gauge group in one extra dimension. The four-dimensional lattice version is a ring of $N$ U(1) groups with one fermion at each site, reducing to an anomaly-free version of the warm little inflaton model for $N=2$. The inflaton is a Wilson line, protected for $N\\ge5$. Large $N$ allows a suitable monodromy inflaton potential. In the continuum limit, $N\\to\\infty$, the inflaton velocity becomes a five-dimensional electric field and friction becomes Ohmic dissipation, which seems able to sustain warm inflation compatibly with observations.",
-      "url": "https://arxiv.org/abs/2611.27986v1"
-    },
-    "2611.27979": {
-      "id": "2611.27979v1",
-      "kind": "paper",
-      "title": "Nearly pristine gas and hard ionizing radiation one billion years after the Big Bang",
-      "source": "arXiv",
-      "date": "2026-11-21",
-      "text": "The first stars formed out of light elements (H, He, and Li leftover from Big Bang Nucleosynthesis) and began the chemical enrichment of the Universe. Identifying this first-generation population of stars, known as Population III, and understanding their properties is one of the most ambitious goals of modern extragalactic astrophysics. We report the detection of He and H emission lines and extremely low Oxygen abundance in AMORE6, a strongly magnified galaxy at redshift z = 5.725, i.e. approximately one billion years after the Big Bang, with deep James Webb Space Telescope spectroscopy. He II lambda1640 and lambda4686 emission lines are detected at 16.7 sigma and 4.0 sigma significance, respectively. The observed He II-to-Hbeta ratios are consistent with predictions for extreme ionizing radiation fields and the low chemical compositions typical of Population III stars. Oxygen abundance ",
-      "url": "https://arxiv.org/abs/2611.27979v1"
-    },
-    "2611.27952": {
-      "id": "2611.27952v1",
-      "kind": "paper",
-      "title": "Atmospheric parameters and chemical abundances of young stars with APOGEE -- II. Carbon, Nitrogen, Oxygen, and Sulphur abundances in Orion",
-      "source": "arXiv",
-      "date": "2026-11-21",
-      "text": "We derived the abundances of carbon, nitrogen, oxygen, sulphur, and iron in young G-, K-, and M-type stars (effective temperatures of 3500--5900 K) using APOGEE-2 infrared spectra. Our final sample comprises 195 slow rotators ($v\\sin i$ $\\leq$ 30 km~s$^{-1}$) in the Orion complex (Orion A, B, OB1, and $λ$~Ori). The abundances were determined using MARCS model atmospheres, atmospheric parameters derived with \\tona, and the \\bacc\\ code. We obtained median abundances of $ε$(C) = 8.37$\\pm$0.10, $ε$(N) = 7.35$\\pm$0.16, $ε$(O) = 8.63$\\pm$0.08, $ε$(S) = 7.19$\\pm$0.18, and $ε$(Fe) = 7.45$\\pm$0.05. Nitrogen is subsolar ([N/H] $=-0.48$), whereas carbon, oxygen, sulphur, and iron are within 0.1 dex of the solar values. We find no spatial structure within the Orion subgroups, and the only significant difference is a 0.29 dex lower nitrogen abundance in Orion A than in Orion OB1, which does not exten",
-      "url": "https://arxiv.org/abs/2611.27952v1"
-    },
-    "2611.27898": {
-      "id": "2611.27898v1",
-      "kind": "paper",
-      "title": "An early interaction between the Sagittarius dwarf and the Milky Way I: Fossil signatures in the phase-space structure of the disc",
-      "source": "arXiv",
-      "date": "2026-11-21",
-      "text": "Several independent lines of evidence point to an early encounter between the Milky Way and the Sagittarius dwarf galaxy $5$-$7$ Gyr ago. We present four controlled $N$-body+hydro simulations, one of an isolated host galaxy and three of a single interaction between a Milky-Way-like host and a Sagittarius-like satellite on an unbound polar orbit. Relative to the fiducial satellite (with total mass $0.7\\times10^{11}$ M$_\\odot$), one run increases the satellite's mass by a factor of $1.5$ and another its crossing speed by a factor of $1.4$, giving pericentric speeds of $466$-$634$ km s$^{-1}$ at pericentric radii of $R\\simeq15$-$18$ kpc. Comparing the present-day, phase-space structure in radial bins by age of newly-formed thin-disc stars across the runs, we find that stars that existed at the time of the passage are thickened by up to $\\sim37$ per cent in mass-enclosed height and heated by",
-      "url": "https://arxiv.org/abs/2611.27898v1"
-    },
-    "2611.27890": {
-      "id": "2611.27890v1",
-      "kind": "paper",
-      "title": "A TESS Search for Optical Variability in Intermediate-mass Black Hole Candidates",
-      "source": "arXiv",
-      "date": "2026-11-21",
-      "text": "Optical variability of active galactic nuclei (AGNs) probes accretion onto black holes. We study the optical variability of AGNs in the mass range of intermediate-mass black holes (IMBHs, $10^{2-6}\\,M_\\odot$), whose expected variability damping timescales are of order days. We use the high-cadence photometry of the Transiting Exoplanet Survey Satellite (TESS) to search for optical variability within its individual 28-day sectors. By applying the Quaver light-curve reduction pipeline and designing artifact-aware variability metrics, we identify 3 sources with high-confidence variability and 17 sources with medium-confidence variability. Fitting damped random walk (DRW) models reveals a tentative timescale-mass correlation in a small, metric-selected subset, but not in the full sample. ZTF difference-image aperture photometry reveals long-term fractional variability of 1.8-7.4% in the high",
-      "url": "https://arxiv.org/abs/2611.27890v1"
-    },
-    "2611.27856": {
-      "id": "2611.27856v1",
-      "kind": "paper",
-      "title": "Hotter than Little Red Dots: Two Quasars with $T\\sim10^4\\,\\mathrm{K}$ blackbody-like continua at $z\\sim4$",
-      "source": "arXiv",
-      "date": "2026-11-21",
-      "text": "Gas envelope models of Little Red Dots (LRDs) predict a transition from cool ($T\\sim5000\\,\\mathrm{K}$), gas-enshrouded accretion to an exposed quasar, but observational candidates remain scarce. We identify two blackbody quasars (BBQs), JADES1180 at $z=3.711$ and GTO1215 at $z=4.552$, among 3,553 sources with archival NIRSpec/PRISM spectra. Both show extremely red rest-frame UV ($β_\\mathrm{UV}>2.0$) but blue optical continua ($β_\\mathrm{opt}<-0.75$), where $f_λ\\proptoλ^β$. Their $Λ$-shaped UV-optical continua peak at $λ\\approx3000-4000$ Å and are not reproduced by a quasar template reddened with an SMC-like extinction curve. Under the gas envelope interpretation, UV-to-mid-infrared spectral energy distribution fitting indicates $T_\\mathrm{env}\\approx7600-10300\\,\\mathrm{K}$ and $L_\\mathrm{env}\\simeq(3-15)\\times10^{45}\\,\\mathrm{erg\\,s^{-1}}$, placing both sources just above the typical LRD",
-      "url": "https://arxiv.org/abs/2611.27856v1"
-    },
-    "2611.27773": {
-      "id": "2611.27773v1",
-      "kind": "paper",
-      "title": "Precise Interstellar Extinction Estimates for Nearly Ten Million Stars Based on Multiple Spectroscopic Surveys",
-      "source": "arXiv",
-      "date": "2026-11-21",
-      "text": "Accurate interstellar extinction estimates are vital for revealing the intrinsic physical properties of stars and the dynamic structure of the Milky Way. Based on multiple optical and near-infrared spectroscopic surveys, including LAMOST, APOGEE, GALAH, GaiaESO, SEGUE, and DESI, we use MLPs and polynomial regressions to calibrate giants and dwarfs separately onto the APOGEE parameter scale, constructing a combined spectroscopic catalog of nearly ten million stars with calibrated stellar atmospheric parameters. This catalog not only provides a robust dataset for our extinction measurements, but also serves as a reference sample for estimating stellar parameters from photometric surveys. Both cross-survey comparisons and external comparisons with high-resolution spectroscopic benchmarks show good agreement in the calibrated parameters. By applying the star-pair method to this extensive sam",
-      "url": "https://arxiv.org/abs/2611.27773v1"
-    },
     "doi:10.3847/1538-4357/aea4a7": {
       "id": "doi:10.3847/1538-4357/aea4a7",
       "kind": "paper",
@@ -8833,6 +8705,69 @@
       "date": "2026-11-27",
       "text": "A team of astronomers has spotted a rare example of a pulsar that has escaped the cloud of debris left by the supernova explosion in which it formed. Led by Rohit Dokara, formerly at the Max Planck Institute for Radio Astronomy, the team made the discovery by chance, adding to just a handful of similar known cases.",
       "url": "https://phys.org/news/2026-11-runaway-pulsar-remnant-supernova.html"
+    },
+    "rss:universetoday:5793f4e6f07a91f679e2a836": {
+      "id": "rss:universetoday:5793f4e6f07a91f679e2a836",
+      "kind": "secondary",
+      "title": "NASA’s Giant Pressure Cooker Reveals How Venus Hides Clues to Its Potential Watery Past",
+      "source": "Universe Today",
+      "date": "2026-11-28",
+      "text": "Venus will be drawing a lot of attention in the near future. So far, no spacecraft has survived on its surface for more than a few hours, and that was back in the 1970s and ‘80s. But a series of new missions coming up should give us a clearer picture of what exactly exists on the surface there…",
+      "url": "https://www.universetoday.com/articles/nasas-giant-pressure-cooker-reveals-how-venus-hides-clues-to-its-potential-watery-past"
+    },
+    "rss:universetoday:bdf3e9531d1b051f5e7f8e1f": {
+      "id": "rss:universetoday:bdf3e9531d1b051f5e7f8e1f",
+      "kind": "secondary",
+      "title": "BepiColombo Captures Mercury Orbit After 8-Year Trip",
+      "source": "Universe Today",
+      "date": "2026-11-28",
+      "text": "The planet Mercury might be one of the least explored planetary bodies in the solar system, but its is arguably the most crucial in helping scientists better understand the formation and evolution of the inner solar system. Its position as the closest planet to the Sun makes it a prime target for how the rocky planets formed and evolved and what this could mean for finding life beyond Earth…",
+      "url": "https://www.universetoday.com/articles/bepicolombo-captures-mercury-orbit-after-8-year-trip"
+    },
+    "rss:universetoday:146f97162384385d631a4494": {
+      "id": "rss:universetoday:146f97162384385d631a4494",
+      "kind": "secondary",
+      "title": "Nuclear Pathfinder Mission To Ceres Would Usher In Era Of Interplanetary Transport",
+      "source": "Universe Today",
+      "date": "2026-11-28",
+      "text": "The dwarf planet Ceres, the first object discovered in the Main Asteroid Belt, could play a revolutionary role in opening the outer solar system to a faster, cheaper means of interplanetary transport. Or say the proponents of a new initiative dubbed ‘Project CERES.’",
+      "url": "https://www.universetoday.com/articles/nuclear-pathfinder-mission-to-ceres-would-usher-in-era-of-interplanetary-transport"
+    },
+    "rss:physorg:61fbbb649668585280141cf7": {
+      "id": "rss:physorg:61fbbb649668585280141cf7",
+      "kind": "secondary",
+      "title": "Event Horizon Telescope views the dynamics and geometry of a black hole jet in extreme detail",
+      "source": "Phys.org 天文",
+      "date": "2026-11-28",
+      "text": "The Event Horizon Telescope (EHT), a massive international collaboration of scientists and radio observatories, is like the gift that keeps on giving. In 2019, the EHT Collaboration gave us the first image of a black hole: the supermassive black hole (SMBH) at the heart of the M87 galaxy (M87*). In 2022, it provided the first image of Sagittarius A*, the SMBH at the center of the Milky Way…",
+      "url": "https://phys.org/news/2026-11-event-horizon-telescope-views-dynamics.html"
+    },
+    "rss:physorg:f839fb8379ffe92d86a3949a": {
+      "id": "rss:physorg:f839fb8379ffe92d86a3949a",
+      "kind": "secondary",
+      "title": "Researchers develop mathematical model to estimate age and degradation of lunar impact craters",
+      "source": "Phys.org 天文",
+      "date": "2026-11-28",
+      "text": "Researchers from the Aerospace Information Research Institute of the Chinese Academy of Sciences (AIRCAS) and their collaborators have developed a mathematical model that uses morphometric parameters to rapidly estimate the degradation state and age of lunar impact craters. They applied the model to 140 impact craters in the Chang'e-6 landing area.",
+      "url": "https://phys.org/news/2026-11-mathematical-age-degradation-lunar-impact.html"
+    },
+    "rss:physorg:a4724350aae92b40876c0770": {
+      "id": "rss:physorg:a4724350aae92b40876c0770",
+      "kind": "secondary",
+      "title": "The dark matter puzzle deepens: Nearby galaxies challenge cosmic simulations",
+      "source": "Phys.org 天文",
+      "date": "2026-11-28",
+      "text": "Galaxies appear to hold a surprise beneath their visible stars: Their inner regions contain less dark matter than some of our most advanced simulations predict. Dark matter is invisible, but its gravitational pull helps govern the motions of stars and gas. By measuring these movements, astronomers can reconstruct where this unseen matter lies and test the computer simulations used to understand the universe…",
+      "url": "https://phys.org/news/2026-11-dark-puzzle-deepens-nearby-galaxies.html"
+    },
+    "rss:physorg:c8fafa3926c638baf23e0896": {
+      "id": "rss:physorg:c8fafa3926c638baf23e0896",
+      "kind": "secondary",
+      "title": "The faintest supernova ever observed refuses to go out, staying visible for nearly a year",
+      "source": "Phys.org 天文",
+      "date": "2026-11-27",
+      "text": "An international team of astronomers, including Paul Groot of Radboud University, has discovered that a supernova explosion does not always have to be extremely bright. The team has identified the faintest supernova observed to date. It remained visible for an exceptionally long time and appears to have been caused by a so-called white dwarf and a relatively small companion star…",
+      "url": "https://phys.org/news/2026-11-faintest-supernova-staying-visible-year.html"
     }
   },
   "feedback": {
@@ -44096,7 +44031,8 @@
           "L. Ighina",
           "A. Moretti",
           "J. Afonso",
-          "S. Antón R. Carvajal",
+          "S. Antón",
+          "R. Carvajal",
           "Y. Gordon",
           "A. Hopkins",
           "M. J. Marchã",
